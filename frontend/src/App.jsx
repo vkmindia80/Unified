@@ -55,6 +55,8 @@ function AppRoutes() {
         <Route path="/achievements" element={<PrivateRoute><Achievements /></PrivateRoute>} />
         <Route path="/challenges" element={<PrivateRoute><Challenges /></PrivateRoute>} />
         <Route path="/rewards" element={<PrivateRoute><Rewards /></PrivateRoute>} />
+        <Route path="/admin" element={<PrivateRoute><AdminPanel /></PrivateRoute>} />
+        <Route path="/calls" element={<PrivateRoute><CallHistory /></PrivateRoute>} />
         <Route path="/" element={<Navigate to="/dashboard" />} />
       </Routes>
     </Router>
@@ -63,9 +65,13 @@ function AppRoutes() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <SocketProvider>
+          <AppRoutes />
+        </SocketProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
