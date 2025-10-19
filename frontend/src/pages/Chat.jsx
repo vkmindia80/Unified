@@ -30,7 +30,7 @@ function Chat() {
 
   const fetchChats = async () => {
     try {
-      const response = await api.get('/api/chats');
+      const response = await api.get('/chats');
       setChats(response.data);
     } catch (error) {
       console.error('Failed to fetch chats:', error);
@@ -41,7 +41,7 @@ function Chat() {
 
   const fetchUsers = async () => {
     try {
-      const response = await api.get('/api/users');
+      const response = await api.get('/users');
       setUsers(response.data.filter(u => u.id !== user?.id));
     } catch (error) {
       console.error('Failed to fetch users:', error);
@@ -50,7 +50,7 @@ function Chat() {
 
   const fetchMessages = async (chatId) => {
     try {
-      const response = await api.get(`/api/chats/${chatId}/messages`);
+      const response = await api.get(`/chats/${chatId}/messages`);
       setMessages(response.data);
     } catch (error) {
       console.error('Failed to fetch messages:', error);
@@ -67,7 +67,7 @@ function Chat() {
         participants: selectedUsers
       };
       
-      const response = await api.post('/api/chats', chatData);
+      const response = await api.post('/chats', chatData);
       setChats([...chats, response.data]);
       setShowNewChat(false);
       setSelectedUsers([]);
