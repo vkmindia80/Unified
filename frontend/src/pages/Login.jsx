@@ -104,6 +104,47 @@ function Login() {
             </button>
           </form>
 
+          {/* Demo Credentials */}
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300"></div>
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Try with demo account</span>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-2">
+              {demoAccounts.map((account) => (
+                <button
+                  key={account.email}
+                  type="button"
+                  onClick={() => fillDemoCredentials(account.email, account.password)}
+                  className={`flex items-center justify-between px-4 py-3 border-2 border-${account.color}-200 bg-${account.color}-50 hover:bg-${account.color}-100 rounded-lg transition-all group`}
+                  data-testid={`demo-${account.role.toLowerCase()}`}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-10 h-10 bg-gradient-to-br from-${account.color}-400 to-${account.color}-600 rounded-full flex items-center justify-center text-white font-bold`}>
+                      {account.role.charAt(0)}
+                    </div>
+                    <div className="text-left">
+                      <p className="font-semibold text-gray-800">{account.role} Demo</p>
+                      <p className="text-xs text-gray-600">{account.email}</p>
+                    </div>
+                  </div>
+                  <span className="text-xs text-gray-500 group-hover:text-gray-700">Click to use →</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="mt-3 text-center">
+              <p className="text-xs text-gray-500">
+                💡 Click any demo account to auto-fill credentials
+              </p>
+            </div>
+          </div>
+
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Don't have an account?{' '}
