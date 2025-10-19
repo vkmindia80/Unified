@@ -115,27 +115,63 @@ function Login() {
               </div>
             </div>
 
-            <div className="mt-4 grid grid-cols-1 gap-2">
-              {demoAccounts.map((account) => (
-                <button
-                  key={account.email}
-                  type="button"
-                  onClick={() => fillDemoCredentials(account.email, account.password)}
-                  className={`flex items-center justify-between px-4 py-3 border-2 border-${account.color}-200 bg-${account.color}-50 hover:bg-${account.color}-100 rounded-lg transition-all group`}
-                  data-testid={`demo-${account.role.toLowerCase()}`}
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className={`w-10 h-10 bg-gradient-to-br from-${account.color}-400 to-${account.color}-600 rounded-full flex items-center justify-center text-white font-bold`}>
-                      {account.role.charAt(0)}
-                    </div>
-                    <div className="text-left">
-                      <p className="font-semibold text-gray-800">{account.role} Demo</p>
-                      <p className="text-xs text-gray-600">{account.email}</p>
-                    </div>
+            <div className="mt-4 space-y-2">
+              {/* Employee Demo */}
+              <button
+                type="button"
+                onClick={() => fillDemoCredentials('test@company.com', 'Test123!')}
+                className="w-full flex items-center justify-between px-4 py-3 border-2 border-blue-200 bg-blue-50 hover:bg-blue-100 rounded-lg transition-all group"
+                data-testid="demo-employee"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white font-bold">
+                    E
                   </div>
-                  <span className="text-xs text-gray-500 group-hover:text-gray-700">Click to use →</span>
-                </button>
-              ))}
+                  <div className="text-left">
+                    <p className="font-semibold text-gray-800">Employee Demo</p>
+                    <p className="text-xs text-gray-600">test@company.com</p>
+                  </div>
+                </div>
+                <span className="text-xs text-blue-600 group-hover:text-blue-700 font-medium">Click to use →</span>
+              </button>
+
+              {/* Admin Demo */}
+              <button
+                type="button"
+                onClick={() => fillDemoCredentials('admin@company.com', 'Admin123!')}
+                className="w-full flex items-center justify-between px-4 py-3 border-2 border-purple-200 bg-purple-50 hover:bg-purple-100 rounded-lg transition-all group"
+                data-testid="demo-admin"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                    A
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-gray-800">Admin Demo</p>
+                    <p className="text-xs text-gray-600">admin@company.com</p>
+                  </div>
+                </div>
+                <span className="text-xs text-purple-600 group-hover:text-purple-700 font-medium">Click to use →</span>
+              </button>
+
+              {/* Manager Demo */}
+              <button
+                type="button"
+                onClick={() => fillDemoCredentials('manager@company.com', 'Manager123!')}
+                className="w-full flex items-center justify-between px-4 py-3 border-2 border-green-200 bg-green-50 hover:bg-green-100 rounded-lg transition-all group"
+                data-testid="demo-manager"
+              >
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-bold">
+                    M
+                  </div>
+                  <div className="text-left">
+                    <p className="font-semibold text-gray-800">Manager Demo</p>
+                    <p className="text-xs text-gray-600">manager@company.com</p>
+                  </div>
+                </div>
+                <span className="text-xs text-green-600 group-hover:text-green-700 font-medium">Click to use →</span>
+              </button>
             </div>
 
             <div className="mt-3 text-center">
