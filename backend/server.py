@@ -54,6 +54,8 @@ achievements_collection = db["achievements"]
 user_achievements_collection = db["user_achievements"]
 challenges_collection = db["challenges"]
 rewards_collection = db["rewards"]
+call_history_collection = db["call_history"]
+typing_status_collection = db["typing_status"]
 
 # Create indexes
 users_collection.create_index("email", unique=True)
