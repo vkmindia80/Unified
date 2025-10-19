@@ -133,6 +133,27 @@ class PointTransaction(BaseModel):
     reason: str
     activity_type: str
 
+class AnnouncementCreate(BaseModel):
+    title: str
+    content: str
+    priority: str = "normal"  # "urgent", "high", "normal", "low"
+    target_audience: str = "all"  # "all", "department", "team", "role"
+    target_value: Optional[str] = None  # department name, team name, or role
+    expires_at: Optional[str] = None
+    requires_acknowledgement: bool = True
+
+class AnnouncementUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+    priority: Optional[str] = None
+    expires_at: Optional[str] = None
+
+class RecognitionCreate(BaseModel):
+    recognized_user_id: str
+    category: str  # "teamwork", "innovation", "leadership", "excellence", "helpful"
+    message: str
+    is_public: bool = True
+
 # Helper functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
