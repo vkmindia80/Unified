@@ -15,10 +15,12 @@ function Login() {
   const navigate = useNavigate();
 
   const fillDemoCredentials = (demoEmail, demoPassword) => {
+    console.log('fillDemoCredentials called with:', demoEmail, demoPassword);
     setEmail(demoEmail);
     setPassword(demoPassword);
     setError('');
     setDemoDataMessage('');
+    console.log('Credentials filled successfully');
   };
 
   const handleSubmit = async (e) => {
