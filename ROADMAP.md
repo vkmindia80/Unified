@@ -594,6 +594,7 @@ Build a best-in-class enterprise platform combining real-time communication with
 | Phase 5 | ⏳ Pending | 0% | Future |
 | Phase 6 | ⏳ Pending | 0% | Future |
 | Phase 7 | ⏳ Pending | 0% | Future |
+| **Phase 8** | **⏳ Pending** | **0%** | **New - Uniteam Features** |
 
 ### 🎉 What's Working Right Now
 
