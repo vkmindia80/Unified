@@ -207,6 +207,23 @@ function Login() {
             </div>
           </div>
 
+          {/* Generate Demo Data Button */}
+          <div className="mt-6">
+            <button
+              type="button"
+              onClick={generateDemoData}
+              disabled={generatingData}
+              className="w-full flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white rounded-lg font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+              data-testid="generate-demo-data-btn"
+            >
+              <FaDatabase className="text-lg" />
+              <span>{generatingData ? 'Generating Demo Data...' : 'Generate Demo Data'}</span>
+            </button>
+            <p className="text-xs text-center text-gray-500 mt-2">
+              🎲 Creates users, chats, messages, achievements & more for testing
+            </p>
+          </div>
+
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Don't have an account?{' '}
