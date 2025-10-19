@@ -11,6 +11,18 @@ function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const demoAccounts = [
+    { role: 'Employee', email: 'test@company.com', password: 'Test123!', color: 'blue' },
+    { role: 'Admin', email: 'admin@company.com', password: 'Admin123!', color: 'purple' },
+    { role: 'Manager', email: 'manager@company.com', password: 'Manager123!', color: 'green' },
+  ];
+
+  const fillDemoCredentials = (demoEmail, demoPassword) => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setError('');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
