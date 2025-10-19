@@ -93,6 +93,12 @@ function Login() {
             </div>
           )}
 
+          {autoFillMessage && (
+            <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-lg mb-4 text-sm font-semibold">
+              {autoFillMessage}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
