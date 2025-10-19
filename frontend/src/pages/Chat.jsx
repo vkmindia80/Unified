@@ -195,7 +195,7 @@ function Chat() {
         </div>
 
         {/* Main Chat Area */}
-        <div className="flex-1 flex flex-direction="column">
+        <div className="flex-1 flex flex-col">
           {selectedChat ? (
             <>
               {/* Chat Header */}
