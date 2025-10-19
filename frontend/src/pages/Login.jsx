@@ -14,13 +14,16 @@ function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const [autoFillMessage, setAutoFillMessage] = useState('');
+
   const fillDemoCredentials = (demoEmail, demoPassword) => {
     console.log('fillDemoCredentials called with:', demoEmail, demoPassword);
-    alert(`Filling credentials: ${demoEmail}`); // Visual confirmation
     setEmail(demoEmail);
     setPassword(demoPassword);
     setError('');
     setDemoDataMessage('');
+    setAutoFillMessage(`✅ Credentials filled: ${demoEmail}`);
+    setTimeout(() => setAutoFillMessage(''), 3000);
     console.log('Credentials filled successfully');
   };
 
