@@ -62,6 +62,8 @@ users_collection.create_index("email", unique=True)
 users_collection.create_index("username", unique=True)
 messages_collection.create_index("chat_id")
 messages_collection.create_index("created_at")
+call_history_collection.create_index("participants")
+call_history_collection.create_index("created_at")
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
