@@ -443,6 +443,358 @@ async def get_rewards(current_user = Depends(get_current_user)):
         reward["_id"] = str(reward["_id"])
     return rewards
 
+@app.post("/api/generate-demo-data")
+async def generate_demo_data():
+    """Generate comprehensive demo data for testing the system"""
+    try:
+        import random
+        from datetime import timedelta
+        
+        stats = {
+            "users": 0,
+            "chats": 0,
+            "messages": 0,
+            "achievements": 0,
+            "challenges": 0,
+            "rewards": 0,
+            "points_awarded": 0
+        }
+        
+        # Sample data
+        departments = ["Engineering", "Marketing", "Sales", "HR", "Operations", "Design", "Finance"]
+        teams = ["Alpha", "Beta", "Gamma", "Delta", "Omega"]
+        
+        # Create additional users
+        demo_users = [
+            {
+                "username": "sarah_johnson",
+                "email": "sarah.johnson@company.com",
+                "password": "Demo123!",
+                "full_name": "Sarah Johnson",
+                "role": "team_lead",
+                "department": "Engineering",
+                "team": "Alpha"
+            },
+            {
+                "username": "mike_chen",
+                "email": "mike.chen@company.com",
+                "password": "Demo123!",
+                "full_name": "Mike Chen",
+                "role": "employee",
+                "department": "Marketing",
+                "team": "Beta"
+            },
+            {
+                "username": "emma_davis",
+                "email": "emma.davis@company.com",
+                "password": "Demo123!",
+                "full_name": "Emma Davis",
+                "role": "department_head",
+                "department": "Sales",
+                "team": "Gamma"
+            },
+            {
+                "username": "james_wilson",
+                "email": "james.wilson@company.com",
+                "password": "Demo123!",
+                "full_name": "James Wilson",
+                "role": "employee",
+                "department": "Design",
+                "team": "Delta"
+            },
+            {
+                "username": "lisa_brown",
+                "email": "lisa.brown@company.com",
+                "password": "Demo123!",
+                "full_name": "Lisa Brown",
+                "role": "manager",
+                "department": "Operations",
+                "team": "Omega"
+            }
+        ]
+        
+        created_user_ids = []
+        
+        # Create users if they don't exist
+        for user_data in demo_users:
+            existing = users_collection.find_one({"email": user_data["email"]})
+            if not existing:
+                user_id = str(uuid.uuid4())
+                hashed_password = get_password_hash(user_data["password"])
+                
+                user_doc = {
+                    "id": user_id,
+                    "username": user_data["username"],
+                    "email": user_data["email"],
+                    "password": hashed_password,
+                    "full_name": user_data["full_name"],
+                    "role": user_data["role"],
+                    "department": user_data["department"],
+                    "team": user_data["team"],
+                    "avatar": None,
+                    "status": "online" if random.random() > 0.3 else "offline",
+                    "points": random.randint(50, 500),
+                    "level": random.randint(1, 5),
+                    "created_at": datetime.utcnow().isoformat()
+                }
+                
+                users_collection.insert_one(user_doc)
+                created_user_ids.append(user_id)
+                stats["users"] += 1
+            else:
+                created_user_ids.append(existing["id"])
+        
+        # Get all user IDs for creating chats
+        all_users = list(users_collection.find({}, {"id": 1}))
+        all_user_ids = [u["id"] for u in all_users]
+        
+        # Create group chats
+        group_chats_data = [
+            {
+                "name": "Engineering Team",
+                "type": "group",
+                "participants": random.sample(all_user_ids, min(5, len(all_user_ids)))
+            },
+            {
+                "name": "Project Alpha",
+                "type": "group",
+                "participants": random.sample(all_user_ids, min(4, len(all_user_ids)))
+            },
+            {
+                "name": "Marketing Campaign",
+                "type": "group",
+                "participants": random.sample(all_user_ids, min(3, len(all_user_ids)))
+            }
+        ]
+        
+        created_chat_ids = []
+        
+        for chat_data in group_chats_data:
+            chat_id = str(uuid.uuid4())
+            chat_doc = {
+                "id": chat_id,
+                "name": chat_data["name"],
+                "type": chat_data["type"],
+                "participants": chat_data["participants"],
+                "created_by": chat_data["participants"][0] if chat_data["participants"] else all_user_ids[0],
+                "created_at": datetime.utcnow().isoformat(),
+                "last_message": None,
+                "last_message_at": None
+            }
+            
+            chats_collection.insert_one(chat_doc)
+            created_chat_ids.append(chat_id)
+            stats["chats"] += 1
+        
+        # Create messages in chats
+        sample_messages = [
+            "Hey team, how's everyone doing?",
+            "Great work on the project!",
+            "Can we schedule a meeting for tomorrow?",
+            "I've uploaded the latest design files.",
+            "Thanks for the feedback!",
+            "Let's discuss this in our next standup.",
+            "The new feature looks amazing!",
+            "I'll review the PR today.",
+            "Anyone free for a quick call?",
+            "Just pushed the latest changes."
+        ]
+        
+        for chat_id in created_chat_ids:
+            chat = chats_collection.find_one({"id": chat_id})
+            if chat and chat["participants"]:
+                num_messages = random.randint(5, 15)
+                for i in range(num_messages):
+                    sender_id = random.choice(chat["participants"])
+                    message_doc = {
+                        "id": str(uuid.uuid4()),
+                        "chat_id": chat_id,
+                        "sender_id": sender_id,
+                        "content": random.choice(sample_messages),
+                        "type": "text",
+                        "created_at": (datetime.utcnow() - timedelta(hours=random.randint(1, 48))).isoformat()
+                    }
+                    messages_collection.insert_one(message_doc)
+                    stats["messages"] += 1
+        
+        # Create achievements
+        achievements_data = [
+            {
+                "id": str(uuid.uuid4()),
+                "name": "First Steps",
+                "description": "Complete your first task",
+                "icon": "🎯",
+                "points": 10,
+                "type": "milestone"
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Team Player",
+                "description": "Send 50 messages in team chats",
+                "icon": "🤝",
+                "points": 50,
+                "type": "social"
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Rising Star",
+                "description": "Reach level 5",
+                "icon": "⭐",
+                "points": 100,
+                "type": "milestone"
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Communicator",
+                "description": "Send 100 messages",
+                "icon": "💬",
+                "points": 75,
+                "type": "social"
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Early Bird",
+                "description": "Login before 8 AM for 5 days",
+                "icon": "🌅",
+                "points": 25,
+                "type": "activity"
+            }
+        ]
+        
+        for achievement in achievements_data:
+            existing = achievements_collection.find_one({"name": achievement["name"]})
+            if not existing:
+                achievements_collection.insert_one(achievement)
+                stats["achievements"] += 1
+                
+                # Award some achievements to random users
+                if random.random() > 0.5:
+                    lucky_users = random.sample(all_user_ids, min(3, len(all_user_ids)))
+                    for user_id in lucky_users:
+                        user_achievement = {
+                            "id": str(uuid.uuid4()),
+                            "user_id": user_id,
+                            "achievement_id": achievement["id"],
+                            "unlocked_at": datetime.utcnow().isoformat()
+                        }
+                        user_achievements_collection.insert_one(user_achievement)
+                        
+                        # Award points
+                        award_points(user_id, achievement["points"], f"Achievement unlocked: {achievement['name']}", "achievement")
+                        stats["points_awarded"] += achievement["points"]
+        
+        # Create challenges
+        challenges_data = [
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Weekly Communication Sprint",
+                "description": "Send 25 messages this week",
+                "points": 100,
+                "target": 25,
+                "type": "messages",
+                "active": True,
+                "start_date": datetime.utcnow().isoformat(),
+                "end_date": (datetime.utcnow() + timedelta(days=7)).isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Collaboration Champion",
+                "description": "Participate in 5 group chats",
+                "points": 150,
+                "target": 5,
+                "type": "participation",
+                "active": True,
+                "start_date": datetime.utcnow().isoformat(),
+                "end_date": (datetime.utcnow() + timedelta(days=14)).isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Daily Engager",
+                "description": "Login for 7 consecutive days",
+                "points": 200,
+                "target": 7,
+                "type": "attendance",
+                "active": True,
+                "start_date": datetime.utcnow().isoformat(),
+                "end_date": (datetime.utcnow() + timedelta(days=30)).isoformat()
+            }
+        ]
+        
+        for challenge in challenges_data:
+            existing = challenges_collection.find_one({"name": challenge["name"]})
+            if not existing:
+                challenges_collection.insert_one(challenge)
+                stats["challenges"] += 1
+        
+        # Create rewards
+        rewards_data = [
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Premium Coffee",
+                "description": "Get a free premium coffee from the cafeteria",
+                "cost": 50,
+                "icon": "☕",
+                "category": "food",
+                "active": True,
+                "stock": 100
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Extra Day Off",
+                "description": "Redeem for an additional vacation day",
+                "cost": 500,
+                "icon": "🏖️",
+                "category": "time-off",
+                "active": True,
+                "stock": 10
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Parking Spot",
+                "description": "Reserved parking spot for a month",
+                "cost": 200,
+                "icon": "🚗",
+                "category": "perks",
+                "active": True,
+                "stock": 5
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Team Lunch",
+                "description": "Lunch with your team at a restaurant of choice",
+                "cost": 300,
+                "icon": "🍽️",
+                "category": "food",
+                "active": True,
+                "stock": 20
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "Tech Gadget Voucher",
+                "description": "$100 voucher for tech accessories",
+                "cost": 400,
+                "icon": "🎧",
+                "category": "merchandise",
+                "active": True,
+                "stock": 15
+            }
+        ]
+        
+        for reward in rewards_data:
+            existing = rewards_collection.find_one({"name": reward["name"]})
+            if not existing:
+                rewards_collection.insert_one(reward)
+                stats["rewards"] += 1
+        
+        return {
+            "success": True,
+            "message": "Demo data generated successfully!",
+            "stats": stats
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating demo data: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("server:socket_app", host="0.0.0.0", port=8001, reload=True)
