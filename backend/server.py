@@ -799,6 +799,393 @@ async def generate_demo_data():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating demo data: {str(e)}")
 
+# Admin Routes
+@app.get("/api/admin/users")
+async def admin_get_users(current_user = Depends(get_current_user)):
+    """Get all users with detailed stats"""
+    users = list(users_collection.find({}, {"password": 0}).sort("created_at", -1))
+    for user in users:
+        user["_id"] = str(user["_id"])
+        # Get message count
+        message_count = messages_collection.count_documents({"sender_id": user["id"]})
+        user["message_count"] = message_count
+        # Get achievement count
+        achievement_count = user_achievements_collection.count_documents({"user_id": user["id"]})
+        user["achievement_count"] = achievement_count
+    return users
+
+@app.put("/api/admin/users/{user_id}")
+async def admin_update_user(user_id: str, updates: dict, current_user = Depends(get_current_user)):
+    """Update user details"""
+    allowed_fields = ["full_name", "email", "role", "department", "team", "status", "points", "level"]
+    update_data = {k: v for k, v in updates.items() if k in allowed_fields}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No valid fields to update")
+    
+    result = users_collection.update_one({"id": user_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user = users_collection.find_one({"id": user_id}, {"password": 0})
+    user["_id"] = str(user["_id"])
+    return user
+
+@app.delete("/api/admin/users/{user_id}")
+async def admin_delete_user(user_id: str, current_user = Depends(get_current_user)):
+    """Delete a user"""
+    result = users_collection.delete_one({"id": user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"success": True, "message": "User deleted"}
+
+@app.get("/api/admin/analytics")
+async def admin_analytics(current_user = Depends(get_current_user)):
+    """Get system analytics"""
+    total_users = users_collection.count_documents({})
+    total_messages = messages_collection.count_documents({})
+    total_chats = chats_collection.count_documents({})
+    total_points = sum([u.get("points", 0) for u in users_collection.find({}, {"points": 1})])
+    
+    # Online users
+    online_users = users_collection.count_documents({"status": "online"})
+    
+    # Recent activity (messages in last 24 hours)
+    from datetime import datetime, timedelta
+    yesterday = (datetime.utcnow() - timedelta(days=1)).isoformat()
+    recent_messages = messages_collection.count_documents({"created_at": {"$gte": yesterday}})
+    
+    # Top users by points
+    top_users = list(users_collection.find({}, {"password": 0, "full_name": 1, "points": 1, "email": 1}).sort("points", -1).limit(5))
+    for user in top_users:
+        user["_id"] = str(user["_id"])
+    
+    return {
+        "total_users": total_users,
+        "total_messages": total_messages,
+        "total_chats": total_chats,
+        "total_points": total_points,
+        "online_users": online_users,
+        "recent_messages_24h": recent_messages,
+        "top_users": top_users
+    }
+
+# Call History Routes
+@app.get("/api/calls/history")
+async def get_call_history(current_user = Depends(get_current_user)):
+    """Get user's call history"""
+    calls = list(call_history_collection.find(
+        {"participants": current_user["id"]}
+    ).sort("created_at", -1).limit(50))
+    
+    for call in calls:
+        call["_id"] = str(call["_id"])
+        # Get participant details
+        participants_data = []
+        for p_id in call.get("participants", []):
+            user = users_collection.find_one({"id": p_id}, {"password": 0, "full_name": 1, "avatar": 1, "email": 1})
+            if user:
+                user["_id"] = str(user["_id"])
+                participants_data.append(user)
+        call["participants_data"] = participants_data
+    
+    return calls
+
+@app.post("/api/calls/history")
+async def create_call_history(call_data: dict, current_user = Depends(get_current_user)):
+    """Create a call history record"""
+    call_id = str(uuid.uuid4())
+    call_doc = {
+        "id": call_id,
+        "type": call_data.get("type", "video"),  # video or voice
+        "participants": call_data.get("participants", []),
+        "duration": call_data.get("duration", 0),
+        "initiated_by": current_user["id"],
+        "status": call_data.get("status", "completed"),  # completed, missed, rejected
+        "created_at": datetime.utcnow().isoformat()
+    }
+    
+    call_history_collection.insert_one(call_doc)
+    call_doc["_id"] = str(call_doc["_id"])
+    
+    # Award points for video call
+    if call_data.get("status") == "completed":
+        award_points(current_user["id"], 20, "Video call attended", "call")
+    
+    return call_doc
+
+# Message read receipts
+@app.post("/api/messages/{message_id}/read")
+async def mark_message_read(message_id: str, current_user = Depends(get_current_user)):
+    """Mark message as read"""
+    message = messages_collection.find_one({"id": message_id})
+    if not message:
+        raise HTTPException(status_code=404, detail="Message not found")
+    
+    # Update read_by array
+    messages_collection.update_one(
+        {"id": message_id},
+        {"$addToSet": {"read_by": {"user_id": current_user["id"], "read_at": datetime.utcnow().isoformat()}}}
+    )
+    
+    return {"success": True}
+
+@app.get("/api/users/{user_id}/status")
+async def get_user_status(user_id: str, current_user = Depends(get_current_user)):
+    """Get user's online status"""
+    user = users_collection.find_one({"id": user_id}, {"status": 1, "last_seen": 1})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return {"status": user.get("status", "offline"), "last_seen": user.get("last_seen")}
+
+@app.post("/api/users/status")
+async def update_user_status(status_data: dict, current_user = Depends(get_current_user)):
+    """Update user's online status"""
+    status = status_data.get("status", "online")  # online, away, offline
+    users_collection.update_one(
+        {"id": current_user["id"]},
+        {"$set": {"status": status, "last_seen": datetime.utcnow().isoformat()}}
+    )
+    return {"success": True, "status": status}
+
+# Socket.IO Events
+@sio.event
+async def connect(sid, environ):
+    print(f"Client connected: {sid}")
+
+@sio.event
+async def disconnect(sid):
+    print(f"Client disconnected: {sid}")
+    # Update user status to offline
+    # Note: We'd need to track sid to user_id mapping for this
+
+@sio.event
+async def authenticate(sid, data):
+    """Authenticate socket connection"""
+    try:
+        token = data.get("token")
+        if not token:
+            await sio.emit("error", {"message": "No token provided"}, room=sid)
+            return
+        
+        # Verify JWT token
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM])
+        user_id = payload.get("sub")
+        
+        if not user_id:
+            await sio.emit("error", {"message": "Invalid token"}, room=sid)
+            return
+        
+        # Store user_id with sid
+        await sio.save_session(sid, {"user_id": user_id})
+        
+        # Update user status to online
+        users_collection.update_one(
+            {"id": user_id},
+            {"$set": {"status": "online", "last_seen": datetime.utcnow().isoformat()}}
+        )
+        
+        # Join user's personal room
+        await sio.enter_room(sid, f"user_{user_id}")
+        
+        # Notify other users that this user is online
+        await sio.emit("user_status", {"user_id": user_id, "status": "online"})
+        
+        await sio.emit("authenticated", {"user_id": user_id}, room=sid)
+        print(f"User {user_id} authenticated on socket {sid}")
+        
+    except JWTError:
+        await sio.emit("error", {"message": "Invalid token"}, room=sid)
+    except Exception as e:
+        print(f"Authentication error: {e}")
+        await sio.emit("error", {"message": str(e)}, room=sid)
+
+@sio.event
+async def join_chat(sid, data):
+    """Join a chat room"""
+    session = await sio.get_session(sid)
+    user_id = session.get("user_id")
+    
+    if not user_id:
+        await sio.emit("error", {"message": "Not authenticated"}, room=sid)
+        return
+    
+    chat_id = data.get("chat_id")
+    if not chat_id:
+        return
+    
+    # Verify user is participant
+    chat = chats_collection.find_one({"id": chat_id, "participants": user_id})
+    if not chat:
+        await sio.emit("error", {"message": "Not a participant"}, room=sid)
+        return
+    
+    await sio.enter_room(sid, f"chat_{chat_id}")
+    print(f"User {user_id} joined chat {chat_id}")
+
+@sio.event
+async def leave_chat(sid, data):
+    """Leave a chat room"""
+    chat_id = data.get("chat_id")
+    if chat_id:
+        await sio.leave_room(sid, f"chat_{chat_id}")
+
+@sio.event
+async def send_message(sid, data):
+    """Handle new message"""
+    session = await sio.get_session(sid)
+    user_id = session.get("user_id")
+    
+    if not user_id:
+        await sio.emit("error", {"message": "Not authenticated"}, room=sid)
+        return
+    
+    chat_id = data.get("chat_id")
+    content = data.get("content")
+    message_type = data.get("type", "text")
+    
+    if not chat_id or not content:
+        return
+    
+    # Verify user is participant
+    chat = chats_collection.find_one({"id": chat_id, "participants": user_id})
+    if not chat:
+        return
+    
+    # Create message
+    message_id = str(uuid.uuid4())
+    message_doc = {
+        "id": message_id,
+        "chat_id": chat_id,
+        "sender_id": user_id,
+        "content": content,
+        "type": message_type,
+        "created_at": datetime.utcnow().isoformat(),
+        "read_by": []
+    }
+    
+    messages_collection.insert_one(message_doc)
+    
+    # Update chat last message
+    chats_collection.update_one(
+        {"id": chat_id},
+        {"$set": {"last_message": content, "last_message_at": datetime.utcnow().isoformat()}}
+    )
+    
+    # Get sender details
+    sender = users_collection.find_one({"id": user_id}, {"password": 0})
+    if sender:
+        sender["_id"] = str(sender["_id"])
+        message_doc["sender"] = sender
+    
+    message_doc["_id"] = str(message_doc.get("_id", ""))
+    
+    # Award points
+    award_points(user_id, 5, "Message sent", "message")
+    
+    # Broadcast to chat room
+    await sio.emit("new_message", message_doc, room=f"chat_{chat_id}")
+
+@sio.event
+async def typing(sid, data):
+    """Handle typing indicator"""
+    session = await sio.get_session(sid)
+    user_id = session.get("user_id")
+    
+    if not user_id:
+        return
+    
+    chat_id = data.get("chat_id")
+    is_typing = data.get("is_typing", False)
+    
+    if not chat_id:
+        return
+    
+    # Get user details
+    user = users_collection.find_one({"id": user_id}, {"full_name": 1})
+    if not user:
+        return
+    
+    # Broadcast typing status to chat room (except sender)
+    await sio.emit("user_typing", {
+        "chat_id": chat_id,
+        "user_id": user_id,
+        "user_name": user.get("full_name", "Unknown"),
+        "is_typing": is_typing
+    }, room=f"chat_{chat_id}", skip_sid=sid)
+
+@sio.event
+async def webrtc_signal(sid, data):
+    """Handle WebRTC signaling"""
+    session = await sio.get_session(sid)
+    user_id = session.get("user_id")
+    
+    if not user_id:
+        return
+    
+    target_user_id = data.get("target_user_id")
+    signal = data.get("signal")
+    call_type = data.get("call_type", "video")
+    
+    if not target_user_id or not signal:
+        return
+    
+    # Forward signal to target user
+    await sio.emit("webrtc_signal", {
+        "from_user_id": user_id,
+        "signal": signal,
+        "call_type": call_type
+    }, room=f"user_{target_user_id}")
+
+@sio.event
+async def call_user(sid, data):
+    """Initiate a call to another user"""
+    session = await sio.get_session(sid)
+    user_id = session.get("user_id")
+    
+    if not user_id:
+        return
+    
+    target_user_id = data.get("target_user_id")
+    call_type = data.get("call_type", "video")
+    
+    if not target_user_id:
+        return
+    
+    # Get caller details
+    caller = users_collection.find_one({"id": user_id}, {"password": 0, "full_name": 1, "avatar": 1})
+    if not caller:
+        return
+    
+    caller["_id"] = str(caller["_id"])
+    
+    # Notify target user of incoming call
+    await sio.emit("incoming_call", {
+        "from_user": caller,
+        "call_type": call_type
+    }, room=f"user_{target_user_id}")
+
+@sio.event
+async def call_response(sid, data):
+    """Handle call response (accept/reject)"""
+    session = await sio.get_session(sid)
+    user_id = session.get("user_id")
+    
+    if not user_id:
+        return
+    
+    target_user_id = data.get("target_user_id")
+    accepted = data.get("accepted", False)
+    
+    if not target_user_id:
+        return
+    
+    # Notify caller of response
+    await sio.emit("call_response", {
+        "from_user_id": user_id,
+        "accepted": accepted
+    }, room=f"user_{target_user_id}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("server:socket_app", host="0.0.0.0", port=8001, reload=True)
