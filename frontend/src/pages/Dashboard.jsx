@@ -6,6 +6,7 @@ import { FaComments, FaTrophy, FaMedal, FaTasks, FaGift, FaSignOutAlt, FaChartLi
 
 function Dashboard() {
   const { user, logout } = useAuth();
+  const { darkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
 
   const handleLogout = () => {
