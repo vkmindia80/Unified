@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FaComments, FaTrophy, FaMedal, FaTasks, FaGift, FaSignOutAlt, FaChartLine, FaUsers } from 'react-icons/fa';
+import { useTheme } from '../context/ThemeContext';
+import { FaComments, FaTrophy, FaMedal, FaTasks, FaGift, FaSignOutAlt, FaChartLine, FaUsers, FaMoon, FaSun, FaUserShield, FaPhone } from 'react-icons/fa';
 
 function Dashboard() {
   const { user, logout } = useAuth();
