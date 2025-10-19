@@ -56,6 +56,11 @@ challenges_collection = db["challenges"]
 rewards_collection = db["rewards"]
 call_history_collection = db["call_history"]
 typing_status_collection = db["typing_status"]
+announcements_collection = db["announcements"]
+recognitions_collection = db["recognitions"]
+spaces_collection = db["spaces"]
+polls_collection = db["polls"]
+poll_responses_collection = db["poll_responses"]
 
 # Create indexes
 users_collection.create_index("email", unique=True)
@@ -64,6 +69,10 @@ messages_collection.create_index("chat_id")
 messages_collection.create_index("created_at")
 call_history_collection.create_index("participants")
 call_history_collection.create_index("created_at")
+announcements_collection.create_index("created_at")
+announcements_collection.create_index("priority")
+recognitions_collection.create_index("created_at")
+recognitions_collection.create_index("recognized_user_id")
 
 # Password hashing
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
