@@ -104,38 +104,38 @@ function Dashboard() {
       {/* Stats Cards */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6 border-l-4 border-blue-500`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm font-medium">Total Points</p>
-                <p className="text-3xl font-bold text-gray-800 mt-1">{user?.points || 0}</p>
+                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} text-sm font-medium`}>Total Points</p>
+                <p className={`text-3xl font-bold mt-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>{user?.points || 0}</p>
               </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                <FaChartLine className="text-2xl text-blue-600" />
+              <div className={`w-12 h-12 ${darkMode ? 'bg-blue-900' : 'bg-blue-100'} rounded-full flex items-center justify-center`}>
+                <FaChartLine className={`text-2xl ${darkMode ? 'text-blue-400' : 'text-blue-600'}`} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6 border-l-4 border-purple-500`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm font-medium">Current Level</p>
-                <p className="text-3xl font-bold text-gray-800 mt-1">{user?.level || 1}</p>
+                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} text-sm font-medium`}>Current Level</p>
+                <p className={`text-3xl font-bold mt-1 ${darkMode ? 'text-white' : 'text-gray-800'}`}>{user?.level || 1}</p>
               </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-                <FaMedal className="text-2xl text-purple-600" />
+              <div className={`w-12 h-12 ${darkMode ? 'bg-purple-900' : 'bg-purple-100'} rounded-full flex items-center justify-center`}>
+                <FaMedal className={`text-2xl ${darkMode ? 'text-purple-400' : 'text-purple-600'}`} />
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6 border-l-4 border-green-500`}>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-500 text-sm font-medium">Status</p>
-                <p className="text-3xl font-bold text-gray-800 mt-1 capitalize">{user?.status || 'Active'}</p>
+                <p className={`${darkMode ? 'text-gray-400' : 'text-gray-500'} text-sm font-medium`}>Status</p>
+                <p className={`text-3xl font-bold mt-1 ${darkMode ? 'text-white' : 'text-gray-800'} capitalize`}>{user?.status || 'Active'}</p>
               </div>
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                <FaUsers className="text-2xl text-green-600" />
+              <div className={`w-12 h-12 ${darkMode ? 'bg-green-900' : 'bg-green-100'} rounded-full flex items-center justify-center`}>
+                <FaUsers className={`text-2xl ${darkMode ? 'text-green-400' : 'text-green-600'}`} />
               </div>
             </div>
           </div>
@@ -143,20 +143,20 @@ function Dashboard() {
 
         {/* Features Grid */}
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Explore Features</h2>
+          <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Explore Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {features.map((feature, index) => (
               <div
                 key={index}
                 onClick={() => navigate(feature.path)}
-                className="bg-white rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200"
+                className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200`}
                 data-testid={`feature-card-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
               >
                 <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-4`}>
                   {feature.icon}
                 </div>
-                <h3 className="text-xl font-bold text-gray-800 mb-2">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
+                <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>{feature.title}</h3>
+                <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>{feature.description}</p>
               </div>
             ))}
           </div>
