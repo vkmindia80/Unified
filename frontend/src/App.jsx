@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { SocketProvider } from './context/SocketContext';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -9,6 +11,8 @@ import Leaderboard from './pages/Leaderboard';
 import Achievements from './pages/Achievements';
 import Challenges from './pages/Challenges';
 import Rewards from './pages/Rewards';
+import AdminPanel from './pages/AdminPanel';
+import CallHistory from './pages/CallHistory';
 import './App.css';
 
 const PrivateRoute = ({ children }) => {
