@@ -663,10 +663,34 @@ Build a best-in-class enterprise platform combining real-time communication with
   - Added missing dependencies (python-engineio, bidict)
   - Updated requirements.txt
 
-### Active Tasks (Phase 3 - Advanced Communication)
-- Real-time WebSocket integration for live chat
-- WebRTC video/voice call integration
-- Screen sharing capabilities
+### Active Tasks (Phase 8 - Uniteam Enhancement Features) 🆕
+**Current Focus:** Implementing Uniteam-inspired features for enhanced collaboration
+
+#### 🎯 Implementation Order (Recommended):
+1. **Smart Feed System** - Core feature for company communication
+2. **Recognition Posts** - Boost employee engagement and morale
+3. **Enhanced File Uploads & GIF Sharing** - Improve messaging experience
+4. **Spaces & Subspaces** - Better organization for growing teams
+5. **Polls & Surveys** - Team decision-making and feedback
+6. **Digital HQ** - Central hub for productivity
+7. **Complete Read Receipts** - Full message tracking
+8. **Voice & Video Notes** - Async communication options
+9. **Advanced Analytics** - Insights and reporting
+
+#### 📦 Dependencies & Integrations Needed:
+- **File Storage:** Local storage (already configured) or AWS S3 (optional)
+- **GIF Integration:** Giphy API (free tier available) or Tenor API
+- **Calendar:** Custom implementation or Google Calendar API
+- **Media Processing:** FFmpeg for video/audio processing
+- **Charts/Graphs:** Chart.js or Recharts for analytics visualization
+
+#### 🚀 Quick Start Implementation Plan:
+**Week 1-2:** Smart Feed + Recognition Posts (Core engagement features)
+**Week 3:** File Uploads + GIF Sharing (Enhanced messaging)
+**Week 4:** Spaces & Subspaces (Better organization)
+**Week 5:** Polls & Digital HQ (Team tools)
+**Week 6:** Voice/Video Notes + Read Receipts (Communication polish)
+**Week 7:** Advanced Analytics (Insights and reporting)
 
 ### Previously Completed
 - **Phase 1**: Complete backend and frontend infrastructure ✅
