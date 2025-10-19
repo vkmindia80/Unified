@@ -26,7 +26,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUser = async () => {
     try {
-      const response = await api.get('/api/auth/me');
+      const response = await api.get('/auth/me');
       setUser(response.data);
     } catch (error) {
       console.error('Failed to fetch user:', error);
@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('Attempting login with:', email);
       console.log('API URL:', api.defaults.baseURL);
-      const response = await api.post('/api/auth/login', { email, password });
+      const response = await api.post('/auth/login', { email, password });
       console.log('Login response:', response.data);
       const { access_token, user: userData } = response.data;
       localStorage.setItem('token', access_token);
@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await api.post('/api/auth/register', userData);
+      const response = await api.post('/auth/register', userData);
       const { access_token, user: newUser } = response.data;
       localStorage.setItem('token', access_token);
       setToken(access_token);
