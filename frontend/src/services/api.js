@@ -1,6 +1,7 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL || 'http://localhost:8001';
+// Use relative URL for API calls so it works in both local and preview environments
+const API_URL = import.meta.env.VITE_REACT_APP_BACKEND_URL || '/api';
 
 const api = axios.create({
   baseURL: API_URL,
