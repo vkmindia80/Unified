@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FaEnvelope, FaLock, FaRocket } from 'react-icons/fa';
+import { FaEnvelope, FaLock, FaRocket, FaDatabase } from 'react-icons/fa';
+import api from '../services/api';
 
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [generatingData, setGeneratingData] = useState(false);
+  const [demoDataMessage, setDemoDataMessage] = useState('');
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -15,11 +18,13 @@ function Login() {
     setEmail(demoEmail);
     setPassword(demoPassword);
     setError('');
+    setDemoDataMessage('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setDemoDataMessage('');
     setLoading(true);
 
     const result = await login(email, password);
@@ -31,6 +36,27 @@ function Login() {
     }
     
     setLoading(false);
+  };
+
+  const generateDemoData = async () => {
+    setGeneratingData(true);
+    setError('');
+    setDemoDataMessage('');
+    
+    try {
+      const response = await api.post('/generate-demo-data');
+      const { stats } = response.data;
+      
+      setDemoDataMessage(
+        `✅ Demo data generated! Created ${stats.users} users, ${stats.chats} chats, ` +
+        `${stats.messages} messages, ${stats.achievements} achievements, ${stats.challenges} challenges, ` +
+        `and ${stats.rewards} rewards. Points awarded: ${stats.points_awarded}`
+      );
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to generate demo data');
+    } finally {
+      setGeneratingData(false);
+    }
   };
 
   return (
