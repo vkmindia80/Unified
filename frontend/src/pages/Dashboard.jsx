@@ -50,6 +50,20 @@ function Dashboard() {
       path: '/rewards',
       color: 'from-pink-500 to-pink-600'
     },
+    {
+      icon: <FaUserShield className="text-4xl text-indigo-600" />,
+      title: 'Admin Panel',
+      description: 'Manage users and system analytics',
+      path: '/admin',
+      color: 'from-indigo-500 to-indigo-600'
+    },
+    {
+      icon: <FaPhone className="text-4xl text-teal-600" />,
+      title: 'Call History',
+      description: 'View your call logs and history',
+      path: '/calls',
+      color: 'from-teal-500 to-teal-600'
+    },
   ];
 
   return (
