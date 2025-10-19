@@ -16,6 +16,7 @@ function Login() {
 
   const fillDemoCredentials = (demoEmail, demoPassword) => {
     console.log('fillDemoCredentials called with:', demoEmail, demoPassword);
+    alert(`Filling credentials: ${demoEmail}`); // Visual confirmation
     setEmail(demoEmail);
     setPassword(demoPassword);
     setError('');
