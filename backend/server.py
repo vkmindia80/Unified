@@ -978,6 +978,377 @@ async def update_user_status(status_data: dict, current_user = Depends(get_curre
     )
     return {"success": True, "status": status}
 
+
+# ==================== SMART FEED SYSTEM ====================
+
+@app.post("/api/announcements")
+async def create_announcement(announcement: AnnouncementCreate, current_user = Depends(get_current_user)):
+    """Create a new announcement (admin/manager only)"""
+    # Check permissions
+    if current_user["role"] not in ["admin", "manager", "department_head", "team_lead"]:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    announcement_id = str(uuid.uuid4())
+    announcement_doc = {
+        "id": announcement_id,
+        "title": announcement.title,
+        "content": announcement.content,
+        "priority": announcement.priority,
+        "target_audience": announcement.target_audience,
+        "target_value": announcement.target_value,
+        "requires_acknowledgement": announcement.requires_acknowledgement,
+        "expires_at": announcement.expires_at,
+        "created_by": current_user["id"],
+        "created_at": datetime.utcnow().isoformat(),
+        "acknowledged_by": [],
+        "view_count": 0
+    }
+    
+    announcements_collection.insert_one(announcement_doc)
+    announcement_doc["_id"] = str(announcement_doc["_id"])
+    
+    # Get creator details
+    creator = users_collection.find_one({"id": current_user["id"]}, {"password": 0, "full_name": 1, "avatar": 1, "role": 1})
+    if creator:
+        creator["_id"] = str(creator["_id"])
+        announcement_doc["created_by_user"] = creator
+    
+    # Broadcast new announcement via Socket.IO
+    await sio.emit("new_announcement", announcement_doc)
+    
+    # Award points for creating announcement
+    award_points(current_user["id"], 10, "Created announcement", "announcement")
+    
+    return announcement_doc
+
+@app.get("/api/announcements")
+async def get_announcements(
+    current_user = Depends(get_current_user),
+    priority: Optional[str] = None,
+    show_expired: bool = False
+):
+    """Get announcements visible to current user"""
+    query = {}
+    
+    # Filter by target audience
+    or_conditions = [
+        {"target_audience": "all"},
+        {"target_audience": "department", "target_value": current_user.get("department")},
+        {"target_audience": "team", "target_value": current_user.get("team")},
+        {"target_audience": "role", "target_value": current_user.get("role")}
+    ]
+    query["$or"] = or_conditions
+    
+    # Filter by priority if specified
+    if priority:
+        query["priority"] = priority
+    
+    # Filter expired announcements
+    if not show_expired:
+        current_time = datetime.utcnow().isoformat()
+        query["$or"] = [
+            {"expires_at": None},
+            {"expires_at": {"$gte": current_time}}
+        ]
+    
+    announcements = list(announcements_collection.find(query).sort("created_at", -1).limit(100))
+    
+    for announcement in announcements:
+        announcement["_id"] = str(announcement["_id"])
+        
+        # Get creator details
+        creator = users_collection.find_one({"id": announcement["created_by"]}, {"password": 0, "full_name": 1, "avatar": 1, "role": 1})
+        if creator:
+            creator["_id"] = str(creator["_id"])
+            announcement["created_by_user"] = creator
+        
+        # Check if current user has acknowledged
+        announcement["acknowledged"] = current_user["id"] in announcement.get("acknowledged_by", [])
+        announcement["acknowledgement_count"] = len(announcement.get("acknowledged_by", []))
+    
+    return announcements
+
+@app.get("/api/announcements/{announcement_id}")
+async def get_announcement(announcement_id: str, current_user = Depends(get_current_user)):
+    """Get a specific announcement"""
+    announcement = announcements_collection.find_one({"id": announcement_id})
+    if not announcement:
+        raise HTTPException(status_code=404, detail="Announcement not found")
+    
+    announcement["_id"] = str(announcement["_id"])
+    
+    # Increment view count
+    announcements_collection.update_one(
+        {"id": announcement_id},
+        {"$inc": {"view_count": 1}}
+    )
+    
+    # Get creator details
+    creator = users_collection.find_one({"id": announcement["created_by"]}, {"password": 0, "full_name": 1, "avatar": 1, "role": 1})
+    if creator:
+        creator["_id"] = str(creator["_id"])
+        announcement["created_by_user"] = creator
+    
+    # Check if current user has acknowledged
+    announcement["acknowledged"] = current_user["id"] in announcement.get("acknowledged_by", [])
+    announcement["acknowledgement_count"] = len(announcement.get("acknowledged_by", []))
+    
+    return announcement
+
+@app.put("/api/announcements/{announcement_id}")
+async def update_announcement(
+    announcement_id: str,
+    update_data: AnnouncementUpdate,
+    current_user = Depends(get_current_user)
+):
+    """Update an announcement (creator or admin only)"""
+    announcement = announcements_collection.find_one({"id": announcement_id})
+    if not announcement:
+        raise HTTPException(status_code=404, detail="Announcement not found")
+    
+    # Check permissions
+    if announcement["created_by"] != current_user["id"] and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized to update this announcement")
+    
+    update_fields = {k: v for k, v in update_data.dict().items() if v is not None}
+    
+    if update_fields:
+        announcements_collection.update_one(
+            {"id": announcement_id},
+            {"$set": update_fields}
+        )
+    
+    updated = announcements_collection.find_one({"id": announcement_id})
+    updated["_id"] = str(updated["_id"])
+    
+    return updated
+
+@app.delete("/api/announcements/{announcement_id}")
+async def delete_announcement(announcement_id: str, current_user = Depends(get_current_user)):
+    """Delete an announcement (creator or admin only)"""
+    announcement = announcements_collection.find_one({"id": announcement_id})
+    if not announcement:
+        raise HTTPException(status_code=404, detail="Announcement not found")
+    
+    # Check permissions
+    if announcement["created_by"] != current_user["id"] and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized to delete this announcement")
+    
+    announcements_collection.delete_one({"id": announcement_id})
+    return {"success": True, "message": "Announcement deleted"}
+
+@app.post("/api/announcements/{announcement_id}/acknowledge")
+async def acknowledge_announcement(announcement_id: str, current_user = Depends(get_current_user)):
+    """Acknowledge an announcement"""
+    announcement = announcements_collection.find_one({"id": announcement_id})
+    if not announcement:
+        raise HTTPException(status_code=404, detail="Announcement not found")
+    
+    # Check if already acknowledged
+    if current_user["id"] in announcement.get("acknowledged_by", []):
+        return {"success": True, "message": "Already acknowledged"}
+    
+    # Add user to acknowledged_by list
+    announcements_collection.update_one(
+        {"id": announcement_id},
+        {"$addToSet": {"acknowledged_by": current_user["id"]}}
+    )
+    
+    # Award points for acknowledging
+    award_points(current_user["id"], 2, "Acknowledged announcement", "acknowledgement")
+    
+    # Broadcast acknowledgement via Socket.IO
+    await sio.emit("announcement_acknowledged", {
+        "announcement_id": announcement_id,
+        "user_id": current_user["id"],
+        "acknowledgement_count": len(announcement.get("acknowledged_by", [])) + 1
+    })
+    
+    return {"success": True, "message": "Announcement acknowledged", "points_awarded": 2}
+
+@app.get("/api/announcements/{announcement_id}/acknowledgements")
+async def get_announcement_acknowledgements(announcement_id: str, current_user = Depends(get_current_user)):
+    """Get list of users who acknowledged an announcement"""
+    announcement = announcements_collection.find_one({"id": announcement_id})
+    if not announcement:
+        raise HTTPException(status_code=404, detail="Announcement not found")
+    
+    acknowledged_users = []
+    for user_id in announcement.get("acknowledged_by", []):
+        user = users_collection.find_one({"id": user_id}, {"password": 0, "full_name": 1, "avatar": 1, "department": 1, "role": 1})
+        if user:
+            user["_id"] = str(user["_id"])
+            acknowledged_users.append(user)
+    
+    return {
+        "total_count": len(acknowledged_users),
+        "users": acknowledged_users
+    }
+
+# ==================== RECOGNITION POSTS ====================
+
+@app.post("/api/recognitions")
+async def create_recognition(recognition: RecognitionCreate, current_user = Depends(get_current_user)):
+    """Create a recognition post"""
+    # Verify recognized user exists
+    recognized_user = users_collection.find_one({"id": recognition.recognized_user_id})
+    if not recognized_user:
+        raise HTTPException(status_code=404, detail="Recognized user not found")
+    
+    recognition_id = str(uuid.uuid4())
+    recognition_doc = {
+        "id": recognition_id,
+        "recognized_user_id": recognition.recognized_user_id,
+        "recognizer_id": current_user["id"],
+        "category": recognition.category,
+        "message": recognition.message,
+        "is_public": recognition.is_public,
+        "likes": [],
+        "comments": [],
+        "created_at": datetime.utcnow().isoformat()
+    }
+    
+    recognitions_collection.insert_one(recognition_doc)
+    recognition_doc["_id"] = str(recognition_doc["_id"])
+    
+    # Get user details
+    recognizer = users_collection.find_one({"id": current_user["id"]}, {"password": 0, "full_name": 1, "avatar": 1, "role": 1})
+    recognized = users_collection.find_one({"id": recognition.recognized_user_id}, {"password": 0, "full_name": 1, "avatar": 1, "role": 1})
+    
+    if recognizer:
+        recognizer["_id"] = str(recognizer["_id"])
+        recognition_doc["recognizer"] = recognizer
+    
+    if recognized:
+        recognized["_id"] = str(recognized["_id"])
+        recognition_doc["recognized_user"] = recognized
+    
+    # Award points
+    award_points(recognition.recognized_user_id, 15, f"Recognized for {recognition.category}", "recognition_received")
+    award_points(current_user["id"], 5, f"Recognized {recognized_user['full_name']}", "recognition_given")
+    
+    # Broadcast new recognition via Socket.IO
+    await sio.emit("new_recognition", recognition_doc)
+    
+    return recognition_doc
+
+@app.get("/api/recognitions")
+async def get_recognitions(
+    current_user = Depends(get_current_user),
+    category: Optional[str] = None,
+    user_id: Optional[str] = None
+):
+    """Get recognition posts"""
+    query = {"is_public": True}
+    
+    if category:
+        query["category"] = category
+    
+    if user_id:
+        query["$or"] = [
+            {"recognized_user_id": user_id},
+            {"recognizer_id": user_id}
+        ]
+    
+    recognitions = list(recognitions_collection.find(query).sort("created_at", -1).limit(100))
+    
+    for recognition in recognitions:
+        recognition["_id"] = str(recognition["_id"])
+        
+        # Get user details
+        recognizer = users_collection.find_one({"id": recognition["recognizer_id"]}, {"password": 0, "full_name": 1, "avatar": 1, "role": 1})
+        recognized = users_collection.find_one({"id": recognition["recognized_user_id"]}, {"password": 0, "full_name": 1, "avatar": 1, "role": 1})
+        
+        if recognizer:
+            recognizer["_id"] = str(recognizer["_id"])
+            recognition["recognizer"] = recognizer
+        
+        if recognized:
+            recognized["_id"] = str(recognized["_id"])
+            recognition["recognized_user"] = recognized
+        
+        recognition["like_count"] = len(recognition.get("likes", []))
+        recognition["comment_count"] = len(recognition.get("comments", []))
+        recognition["liked_by_me"] = current_user["id"] in recognition.get("likes", [])
+    
+    return recognitions
+
+@app.post("/api/recognitions/{recognition_id}/like")
+async def like_recognition(recognition_id: str, current_user = Depends(get_current_user)):
+    """Like a recognition post"""
+    recognition = recognitions_collection.find_one({"id": recognition_id})
+    if not recognition:
+        raise HTTPException(status_code=404, detail="Recognition not found")
+    
+    # Toggle like
+    if current_user["id"] in recognition.get("likes", []):
+        # Unlike
+        recognitions_collection.update_one(
+            {"id": recognition_id},
+            {"$pull": {"likes": current_user["id"]}}
+        )
+        liked = False
+    else:
+        # Like
+        recognitions_collection.update_one(
+            {"id": recognition_id},
+            {"$addToSet": {"likes": current_user["id"]}}
+        )
+        liked = True
+        
+        # Award 1 point for liking
+        award_points(current_user["id"], 1, "Liked a recognition", "like")
+    
+    updated = recognitions_collection.find_one({"id": recognition_id})
+    like_count = len(updated.get("likes", []))
+    
+    # Broadcast like update via Socket.IO
+    await sio.emit("recognition_liked", {
+        "recognition_id": recognition_id,
+        "user_id": current_user["id"],
+        "liked": liked,
+        "like_count": like_count
+    })
+    
+    return {"success": True, "liked": liked, "like_count": like_count}
+
+@app.post("/api/recognitions/{recognition_id}/comment")
+async def comment_on_recognition(recognition_id: str, comment_data: dict, current_user = Depends(get_current_user)):
+    """Comment on a recognition post"""
+    recognition = recognitions_collection.find_one({"id": recognition_id})
+    if not recognition:
+        raise HTTPException(status_code=404, detail="Recognition not found")
+    
+    comment = {
+        "id": str(uuid.uuid4()),
+        "user_id": current_user["id"],
+        "comment": comment_data.get("comment", ""),
+        "created_at": datetime.utcnow().isoformat()
+    }
+    
+    recognitions_collection.update_one(
+        {"id": recognition_id},
+        {"$push": {"comments": comment}}
+    )
+    
+    # Get commenter details
+    user = users_collection.find_one({"id": current_user["id"]}, {"password": 0, "full_name": 1, "avatar": 1})
+    if user:
+        user["_id"] = str(user["_id"])
+        comment["user"] = user
+    
+    # Award points for commenting
+    award_points(current_user["id"], 2, "Commented on recognition", "comment")
+    
+    # Broadcast comment via Socket.IO
+    await sio.emit("recognition_commented", {
+        "recognition_id": recognition_id,
+        "comment": comment
+    })
+    
+    return {"success": True, "comment": comment}
+
+
 # Socket.IO Events
 @sio.event
 async def connect(sid, environ):
