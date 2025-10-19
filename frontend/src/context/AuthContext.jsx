@@ -38,14 +38,20 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      console.log('Attempting login with:', email);
+      console.log('API URL:', api.defaults.baseURL);
       const response = await api.post('/api/auth/login', { email, password });
+      console.log('Login response:', response.data);
       const { access_token, user: userData } = response.data;
       localStorage.setItem('token', access_token);
       setToken(access_token);
       setUser(userData);
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.response?.data?.detail || 'Login failed' };
+      console.error('Login error:', error);
+      console.error('Error response:', error.response);
+      const errorMessage = error.response?.data?.detail || error.message || 'Login failed';
+      return { success: false, error: errorMessage };
     }
   };
 
