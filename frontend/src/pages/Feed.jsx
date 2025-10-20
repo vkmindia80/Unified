@@ -93,12 +93,7 @@ function Feed() {
 
   const handleAcknowledge = async (announcementId) => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${API_URL}/api/announcements/${announcementId}/acknowledge`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post(`/announcements/${announcementId}/acknowledge`, {});
       
       setAnnouncements(prev => prev.map(a => 
         a.id === announcementId 
