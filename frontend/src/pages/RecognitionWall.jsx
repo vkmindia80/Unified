@@ -80,12 +80,8 @@ function RecognitionWall() {
 
   const fetchRecognitions = async () => {
     try {
-      const token = localStorage.getItem('token');
       const params = selectedCategory !== 'all' ? { category: selectedCategory } : {};
-      const response = await axios.get(`${API_URL}/api/recognitions`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params
-      });
+      const response = await api.get('/recognitions', { params });
       setRecognitions(response.data);
     } catch (error) {
       console.error('Error fetching recognitions:', error);
@@ -97,10 +93,7 @@ function RecognitionWall() {
 
   const fetchUsers = async () => {
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.get(`${API_URL}/api/users`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/users');
       setUsers(response.data.filter(u => u.id !== user?.id));
     } catch (error) {
       console.error('Error fetching users:', error);
@@ -110,12 +103,7 @@ function RecognitionWall() {
   const handleCreateRecognition = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${API_URL}/api/recognitions`,
-        newRecognition,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/recognitions', newRecognition);
       setRecognitions([response.data, ...recognitions]);
       setShowCreateModal(false);
       setNewRecognition({
@@ -133,12 +121,7 @@ function RecognitionWall() {
 
   const handleLike = async (recognitionId) => {
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${API_URL}/api/recognitions/${recognitionId}/like`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/recognitions/${recognitionId}/like`, {});
     } catch (error) {
       console.error('Error liking recognition:', error);
     }
@@ -149,12 +132,7 @@ function RecognitionWall() {
     if (!comment || !comment.trim()) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `${API_URL}/api/recognitions/${recognitionId}/comment`,
-        { comment },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      await api.post(`/recognitions/${recognitionId}/comment`, { comment });
       setCommentText({ ...commentText, [recognitionId]: '' });
       toast.success('+2 points for commenting!');
     } catch (error) {
