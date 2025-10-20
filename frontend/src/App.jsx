@@ -13,6 +13,8 @@ import Challenges from './pages/Challenges';
 import Rewards from './pages/Rewards';
 import AdminPanel from './pages/AdminPanel';
 import CallHistory from './pages/CallHistory';
+import Feed from './pages/Feed';
+import RecognitionWall from './pages/RecognitionWall';
 import './App.css';
 
 const PrivateRoute = ({ children }) => {
