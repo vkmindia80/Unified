@@ -315,6 +315,10 @@ async def register(user: UserCreate):
     user_id = str(uuid.uuid4())
     hashed_password = get_password_hash(user.password)
     
+    # For now, auto-approve all registrations
+    # To enable approval workflow, set account_status to "pending"
+    account_status = "active"  # or "pending" for approval workflow
+    
     user_doc = {
         "id": user_id,
         "username": user.username,
@@ -326,6 +330,7 @@ async def register(user: UserCreate):
         "team": user.team,
         "avatar": None,
         "status": "offline",
+        "account_status": account_status,  # "active", "pending", "suspended"
         "points": 0,
         "level": 1,
         "created_at": datetime.utcnow().isoformat()
