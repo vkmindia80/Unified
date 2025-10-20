@@ -1873,6 +1873,692 @@ async def migrate_chats_to_spaces(current_user = Depends(get_current_user)):
     }
 
 
+
+# ==================== APPROVAL SYSTEM ====================
+
+@app.post("/api/approvals")
+async def create_approval(approval: ApprovalCreate, current_user = Depends(get_current_user)):
+    """Create an approval request"""
+    approval_id = str(uuid.uuid4())
+    approval_doc = {
+        "id": approval_id,
+        "type": approval.type,
+        "reference_id": approval.reference_id,
+        "reference_type": approval.reference_type,
+        "requester_id": current_user["id"],
+        "status": "pending",
+        "details": approval.details or {},
+        "notes": approval.notes,
+        "approver_id": None,
+        "approver_notes": None,
+        "created_at": datetime.utcnow().isoformat(),
+        "updated_at": datetime.utcnow().isoformat()
+    }
+    
+    approvals_collection.insert_one(approval_doc)
+    approval_doc["_id"] = str(approval_doc["_id"])
+    
+    # Get requester details
+    requester = users_collection.find_one({"id": current_user["id"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1, "email": 1})
+    if requester:
+        requester["_id"] = str(requester["_id"])
+        approval_doc["requester"] = requester
+    
+    # Broadcast new approval to admins/managers
+    await sio.emit("new_approval", approval_doc)
+    
+    return approval_doc
+
+@app.get("/api/approvals")
+async def get_approvals(
+    current_user = Depends(get_current_user),
+    type: Optional[str] = None,
+    status: Optional[str] = None,
+    my_requests: bool = False
+):
+    """Get approval requests (filtered)"""
+    query = {}
+    
+    if my_requests:
+        # Get approvals requested by current user
+        query["requester_id"] = current_user["id"]
+    else:
+        # Only admins/managers can see all approvals
+        if current_user["role"] not in ["admin", "manager", "department_head", "team_lead"]:
+            query["requester_id"] = current_user["id"]
+    
+    if type:
+        query["type"] = type
+    
+    if status:
+        query["status"] = status
+    
+    approvals = list(approvals_collection.find(query).sort("created_at", -1))
+    
+    for approval in approvals:
+        approval["_id"] = str(approval["_id"])
+        
+        # Get requester details
+        requester = users_collection.find_one({"id": approval["requester_id"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1, "email": 1})
+        if requester:
+            requester["_id"] = str(requester["_id"])
+            approval["requester"] = requester
+        
+        # Get approver details if approved/rejected
+        if approval.get("approver_id"):
+            approver = users_collection.find_one({"id": approval["approver_id"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1})
+            if approver:
+                approver["_id"] = str(approver["_id"])
+                approval["approver"] = approver
+        
+        # Add reference details based on type
+        if approval["reference_type"] == "space":
+            space = spaces_collection.find_one({"id": approval["reference_id"]}, {"_id": 1, "id": 1, "name": 1, "icon": 1, "type": 1})
+            if space:
+                space["_id"] = str(space["_id"])
+                approval["reference"] = space
+        elif approval["reference_type"] == "user":
+            user = users_collection.find_one({"id": approval["reference_id"]}, {"_id": 1, "id": 1, "username": 1, "full_name": 1, "email": 1})
+            if user:
+                user["_id"] = str(user["_id"])
+                approval["reference"] = user
+        elif approval["reference_type"] == "reward":
+            reward = rewards_collection.find_one({"id": approval["reference_id"]}, {"_id": 1, "id": 1, "name": 1, "cost": 1})
+            if reward:
+                reward["_id"] = str(reward["_id"])
+                approval["reference"] = reward
+    
+    return approvals
+
+@app.get("/api/approvals/pending")
+async def get_pending_approvals(current_user = Depends(get_current_user)):
+    """Get count of pending approvals (for badge)"""
+    # Only admins/managers/leads can see pending count
+    if current_user["role"] not in ["admin", "manager", "department_head", "team_lead"]:
+        return {"count": 0}
+    
+    count = approvals_collection.count_documents({"status": "pending"})
+    return {"count": count}
+
+@app.put("/api/approvals/{approval_id}/approve")
+async def approve_request(approval_id: str, update: ApprovalUpdate, current_user = Depends(get_current_user)):
+    """Approve an approval request"""
+    # Check permissions
+    if current_user["role"] not in ["admin", "manager", "department_head", "team_lead"]:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    approval = approvals_collection.find_one({"id": approval_id})
+    if not approval:
+        raise HTTPException(status_code=404, detail="Approval request not found")
+    
+    if approval["status"] != "pending":
+        raise HTTPException(status_code=400, detail="Approval request already processed")
+    
+    # Update approval status
+    approvals_collection.update_one(
+        {"id": approval_id},
+        {"$set": {
+            "status": "approved",
+            "approver_id": current_user["id"],
+            "approver_notes": update.notes,
+            "updated_at": datetime.utcnow().isoformat()
+        }}
+    )
+    
+    # Execute approval action based on type
+    if approval["type"] == "space_join":
+        # Add user to space members
+        spaces_collection.update_one(
+            {"id": approval["reference_id"]},
+            {"$addToSet": {"members": approval["requester_id"]}}
+        )
+    elif approval["type"] == "user_registration":
+        # Activate user account
+        users_collection.update_one(
+            {"id": approval["reference_id"]},
+            {"$set": {"status": "active"}}
+        )
+    elif approval["type"] == "reward_redemption":
+        # Process reward redemption
+        redemption_id = approval["reference_id"]
+        reward_redemptions_collection.update_one(
+            {"id": redemption_id},
+            {"$set": {"status": "approved", "approved_by": current_user["id"], "approved_at": datetime.utcnow().isoformat()}}
+        )
+        # Deduct points if not already done
+        redemption = reward_redemptions_collection.find_one({"id": redemption_id})
+        if redemption and not redemption.get("points_deducted"):
+            user = users_collection.find_one({"id": redemption["user_id"]})
+            if user:
+                new_points = user.get("points", 0) - redemption["cost"]
+                users_collection.update_one(
+                    {"id": redemption["user_id"]},
+                    {"$set": {"points": max(0, new_points)}}
+                )
+                reward_redemptions_collection.update_one(
+                    {"id": redemption_id},
+                    {"$set": {"points_deducted": True}}
+                )
+    elif approval["type"] == "content_approval":
+        # Publish content (announcement or recognition)
+        if approval["reference_type"] == "announcement":
+            announcements_collection.update_one(
+                {"id": approval["reference_id"]},
+                {"$set": {"published": True, "published_at": datetime.utcnow().isoformat()}}
+            )
+        elif approval["reference_type"] == "recognition":
+            recognitions_collection.update_one(
+                {"id": approval["reference_id"]},
+                {"$set": {"published": True, "published_at": datetime.utcnow().isoformat()}}
+            )
+    
+    # Award points to approver
+    award_points(current_user["id"], 3, "Approved request", "approval")
+    
+    # Get updated approval
+    updated_approval = approvals_collection.find_one({"id": approval_id})
+    updated_approval["_id"] = str(updated_approval["_id"])
+    
+    # Broadcast approval notification
+    await sio.emit("approval_processed", {
+        "approval_id": approval_id,
+        "status": "approved",
+        "requester_id": approval["requester_id"]
+    }, room=f"user_{approval['requester_id']}")
+    
+    return updated_approval
+
+@app.put("/api/approvals/{approval_id}/reject")
+async def reject_request(approval_id: str, update: ApprovalUpdate, current_user = Depends(get_current_user)):
+    """Reject an approval request"""
+    # Check permissions
+    if current_user["role"] not in ["admin", "manager", "department_head", "team_lead"]:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    approval = approvals_collection.find_one({"id": approval_id})
+    if not approval:
+        raise HTTPException(status_code=404, detail="Approval request not found")
+    
+    if approval["status"] != "pending":
+        raise HTTPException(status_code=400, detail="Approval request already processed")
+    
+    # Update approval status
+    approvals_collection.update_one(
+        {"id": approval_id},
+        {"$set": {
+            "status": "rejected",
+            "approver_id": current_user["id"],
+            "approver_notes": update.notes,
+            "updated_at": datetime.utcnow().isoformat()
+        }}
+    )
+    
+    # Get updated approval
+    updated_approval = approvals_collection.find_one({"id": approval_id})
+    updated_approval["_id"] = str(updated_approval["_id"])
+    
+    # Broadcast rejection notification
+    await sio.emit("approval_processed", {
+        "approval_id": approval_id,
+        "status": "rejected",
+        "requester_id": approval["requester_id"]
+    }, room=f"user_{approval['requester_id']}")
+    
+    return updated_approval
+
+@app.delete("/api/approvals/{approval_id}")
+async def delete_approval(approval_id: str, current_user = Depends(get_current_user)):
+    """Delete/cancel an approval request"""
+    approval = approvals_collection.find_one({"id": approval_id})
+    if not approval:
+        raise HTTPException(status_code=404, detail="Approval request not found")
+    
+    # Only requester or admin can delete
+    if approval["requester_id"] != current_user["id"] and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    approvals_collection.delete_one({"id": approval_id})
+    return {"success": True, "message": "Approval request deleted"}
+
+
+# ==================== INVITATION SYSTEM ====================
+
+@app.post("/api/invitations")
+async def create_invitation(invitation: InvitationCreate, current_user = Depends(get_current_user)):
+    """Create an invitation"""
+    invitation_id = str(uuid.uuid4())
+    
+    # Generate unique token for organization invitations
+    token = None
+    if invitation.type == "organization":
+        token = str(uuid.uuid4())
+    
+    invitation_doc = {
+        "id": invitation_id,
+        "type": invitation.type,
+        "inviter_id": current_user["id"],
+        "invitee_email": invitation.invitee_email,
+        "invitee_user_id": invitation.invitee_user_id,
+        "reference_id": invitation.reference_id,
+        "message": invitation.message,
+        "status": "pending",
+        "token": token,
+        "expires_at": invitation.expires_at or (datetime.utcnow() + timedelta(days=7)).isoformat(),
+        "created_at": datetime.utcnow().isoformat()
+    }
+    
+    invitations_collection.insert_one(invitation_doc)
+    invitation_doc["_id"] = str(invitation_doc["_id"])
+    
+    # Get inviter details
+    inviter = users_collection.find_one({"id": current_user["id"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1, "email": 1})
+    if inviter:
+        inviter["_id"] = str(inviter["_id"])
+        invitation_doc["inviter"] = inviter
+    
+    # Get reference details based on type
+    if invitation.type == "space" and invitation.reference_id:
+        space = spaces_collection.find_one({"id": invitation.reference_id}, {"_id": 1, "id": 1, "name": 1, "icon": 1})
+        if space:
+            space["_id"] = str(space["_id"])
+            invitation_doc["reference"] = space
+    
+    # If inviting an existing user, notify them
+    if invitation.invitee_user_id:
+        await sio.emit("new_invitation", invitation_doc, room=f"user_{invitation.invitee_user_id}")
+    
+    # Award points for sending invitation
+    award_points(current_user["id"], 2, "Sent invitation", "invitation")
+    
+    return invitation_doc
+
+@app.get("/api/invitations")
+async def get_invitations(
+    current_user = Depends(get_current_user),
+    type: Optional[str] = None,
+    status: Optional[str] = None,
+    sent: bool = False
+):
+    """Get invitations (sent by me or received by me)"""
+    query = {}
+    
+    if sent:
+        # Invitations sent by current user
+        query["inviter_id"] = current_user["id"]
+    else:
+        # Invitations received by current user
+        query["$or"] = [
+            {"invitee_user_id": current_user["id"]},
+            {"invitee_email": current_user["email"]}
+        ]
+    
+    if type:
+        query["type"] = type
+    
+    if status:
+        query["status"] = status
+    
+    invitations = list(invitations_collection.find(query).sort("created_at", -1))
+    
+    for invitation in invitations:
+        invitation["_id"] = str(invitation["_id"])
+        
+        # Get inviter details
+        inviter = users_collection.find_one({"id": invitation["inviter_id"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1})
+        if inviter:
+            inviter["_id"] = str(inviter["_id"])
+            invitation["inviter"] = inviter
+        
+        # Get invitee details if user
+        if invitation.get("invitee_user_id"):
+            invitee = users_collection.find_one({"id": invitation["invitee_user_id"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1})
+            if invitee:
+                invitee["_id"] = str(invitee["_id"])
+                invitation["invitee"] = invitee
+        
+        # Get reference details
+        if invitation["type"] == "space" and invitation.get("reference_id"):
+            space = spaces_collection.find_one({"id": invitation["reference_id"]}, {"_id": 1, "id": 1, "name": 1, "icon": 1})
+            if space:
+                space["_id"] = str(space["_id"])
+                invitation["reference"] = space
+    
+    return invitations
+
+@app.get("/api/invitations/pending")
+async def get_pending_invitations(current_user = Depends(get_current_user)):
+    """Get count of pending invitations (for badge)"""
+    count = invitations_collection.count_documents({
+        "$or": [
+            {"invitee_user_id": current_user["id"]},
+            {"invitee_email": current_user["email"]}
+        ],
+        "status": "pending"
+    })
+    return {"count": count}
+
+@app.post("/api/invitations/{invitation_id}/accept")
+async def accept_invitation(invitation_id: str, current_user = Depends(get_current_user)):
+    """Accept an invitation"""
+    invitation = invitations_collection.find_one({"id": invitation_id})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    # Verify current user is the invitee
+    if invitation.get("invitee_user_id") != current_user["id"] and invitation.get("invitee_email") != current_user["email"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    if invitation["status"] != "pending":
+        raise HTTPException(status_code=400, detail="Invitation already processed")
+    
+    # Check if expired
+    if datetime.fromisoformat(invitation["expires_at"]) < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Invitation expired")
+    
+    # Update invitation status
+    invitations_collection.update_one(
+        {"id": invitation_id},
+        {"$set": {
+            "status": "accepted",
+            "accepted_at": datetime.utcnow().isoformat()
+        }}
+    )
+    
+    # Execute invitation action based on type
+    if invitation["type"] == "space":
+        # Add user to space
+        spaces_collection.update_one(
+            {"id": invitation["reference_id"]},
+            {"$addToSet": {"members": current_user["id"]}}
+        )
+    
+    # Award points
+    award_points(current_user["id"], 5, "Accepted invitation", "invitation")
+    
+    # Notify inviter
+    await sio.emit("invitation_accepted", {
+        "invitation_id": invitation_id,
+        "invitee_id": current_user["id"],
+        "invitee_name": current_user["full_name"]
+    }, room=f"user_{invitation['inviter_id']}")
+    
+    return {"success": True, "message": "Invitation accepted"}
+
+@app.post("/api/invitations/{invitation_id}/reject")
+async def reject_invitation(invitation_id: str, current_user = Depends(get_current_user)):
+    """Reject an invitation"""
+    invitation = invitations_collection.find_one({"id": invitation_id})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    # Verify current user is the invitee
+    if invitation.get("invitee_user_id") != current_user["id"] and invitation.get("invitee_email") != current_user["email"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    if invitation["status"] != "pending":
+        raise HTTPException(status_code=400, detail="Invitation already processed")
+    
+    # Update invitation status
+    invitations_collection.update_one(
+        {"id": invitation_id},
+        {"$set": {
+            "status": "rejected",
+            "rejected_at": datetime.utcnow().isoformat()
+        }}
+    )
+    
+    # Notify inviter
+    await sio.emit("invitation_rejected", {
+        "invitation_id": invitation_id,
+        "invitee_id": current_user["id"]
+    }, room=f"user_{invitation['inviter_id']}")
+    
+    return {"success": True, "message": "Invitation rejected"}
+
+@app.delete("/api/invitations/{invitation_id}")
+async def delete_invitation(invitation_id: str, current_user = Depends(get_current_user)):
+    """Cancel/delete an invitation"""
+    invitation = invitations_collection.find_one({"id": invitation_id})
+    if not invitation:
+        raise HTTPException(status_code=404, detail="Invitation not found")
+    
+    # Only inviter or admin can delete
+    if invitation["inviter_id"] != current_user["id"] and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    invitations_collection.delete_one({"id": invitation_id})
+    return {"success": True, "message": "Invitation cancelled"}
+
+
+# ==================== MEMBER MANAGEMENT ====================
+
+@app.get("/api/spaces/{space_id}/members")
+async def get_space_members(space_id: str, current_user = Depends(get_current_user)):
+    """Get all members of a space with their roles"""
+    space = spaces_collection.find_one({"id": space_id})
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    # Check if user has access to see members
+    if space["type"] == "private" and current_user["id"] not in space.get("members", []):
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    members = []
+    for user_id in space.get("members", []):
+        user = users_collection.find_one({"id": user_id}, {"_id": 1, "id": 1, "username": 1, "full_name": 1, "email": 1, "avatar": 1, "role": 1, "department": 1, "team": 1})
+        if user:
+            user["_id"] = str(user["_id"])
+            user["space_role"] = "admin" if user_id in space.get("admins", []) else "member"
+            members.append(user)
+    
+    return {
+        "space_id": space_id,
+        "space_name": space["name"],
+        "total_members": len(members),
+        "members": members
+    }
+
+@app.post("/api/spaces/{space_id}/members/{user_id}")
+async def add_space_member(space_id: str, user_id: str, current_user = Depends(get_current_user)):
+    """Add a member to a space (admin only)"""
+    space = spaces_collection.find_one({"id": space_id})
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    # Check permissions
+    if current_user["id"] not in space.get("admins", []) and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only space admins can add members")
+    
+    # Verify user exists
+    user = users_collection.find_one({"id": user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Add to members
+    spaces_collection.update_one(
+        {"id": space_id},
+        {"$addToSet": {"members": user_id}}
+    )
+    
+    # Award points
+    award_points(current_user["id"], 2, "Added space member", "member_management")
+    
+    return {"success": True, "message": f"User {user['full_name']} added to space"}
+
+@app.delete("/api/spaces/{space_id}/members/{user_id}")
+async def remove_space_member(space_id: str, user_id: str, current_user = Depends(get_current_user)):
+    """Remove a member from a space (admin only)"""
+    space = spaces_collection.find_one({"id": space_id})
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    # Check permissions
+    if current_user["id"] not in space.get("admins", []) and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only space admins can remove members")
+    
+    # Cannot remove the space creator
+    if user_id == space["created_by"]:
+        raise HTTPException(status_code=400, detail="Cannot remove space creator")
+    
+    # Remove from members and admins
+    spaces_collection.update_one(
+        {"id": space_id},
+        {"$pull": {"members": user_id, "admins": user_id}}
+    )
+    
+    return {"success": True, "message": "Member removed from space"}
+
+@app.put("/api/spaces/{space_id}/members/{user_id}/role")
+async def update_member_role(space_id: str, user_id: str, update: MemberUpdate, current_user = Depends(get_current_user)):
+    """Update a member's role in a space (promote/demote admin)"""
+    space = spaces_collection.find_one({"id": space_id})
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    # Check permissions
+    if current_user["id"] not in space.get("admins", []) and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only space admins can change roles")
+    
+    # Verify user is a member
+    if user_id not in space.get("members", []):
+        raise HTTPException(status_code=400, detail="User is not a member of this space")
+    
+    # Cannot change creator's role
+    if user_id == space["created_by"]:
+        raise HTTPException(status_code=400, detail="Cannot change space creator's role")
+    
+    if update.role == "admin":
+        # Promote to admin
+        spaces_collection.update_one(
+            {"id": space_id},
+            {"$addToSet": {"admins": user_id}}
+        )
+        message = "Member promoted to admin"
+    else:
+        # Demote to regular member
+        spaces_collection.update_one(
+            {"id": space_id},
+            {"$pull": {"admins": user_id}}
+        )
+        message = "Admin demoted to member"
+    
+    # Award points
+    award_points(current_user["id"], 3, "Updated member role", "member_management")
+    
+    return {"success": True, "message": message}
+
+@app.get("/api/teams/{team_name}/members")
+async def get_team_members(team_name: str, current_user = Depends(get_current_user)):
+    """Get all members of a team"""
+    members = list(users_collection.find({"team": team_name}, {"password": 0}))
+    for member in members:
+        member["_id"] = str(member["_id"])
+    
+    return {
+        "team": team_name,
+        "total_members": len(members),
+        "members": members
+    }
+
+@app.get("/api/departments/{department_name}/members")
+async def get_department_members(department_name: str, current_user = Depends(get_current_user)):
+    """Get all members of a department"""
+    members = list(users_collection.find({"department": department_name}, {"password": 0}))
+    for member in members:
+        member["_id"] = str(member["_id"])
+    
+    return {
+        "department": department_name,
+        "total_members": len(members),
+        "members": members
+    }
+
+
+# ==================== REWARD REDEMPTION WITH APPROVAL ====================
+
+@app.post("/api/rewards/{reward_id}/redeem")
+async def redeem_reward(reward_id: str, redemption: RewardRedemptionCreate, current_user = Depends(get_current_user)):
+    """Redeem a reward (creates approval request for manager)"""
+    reward = rewards_collection.find_one({"id": reward_id})
+    if not reward:
+        raise HTTPException(status_code=404, detail="Reward not found")
+    
+    if not reward.get("active", True):
+        raise HTTPException(status_code=400, detail="Reward is not active")
+    
+    # Check if user has enough points
+    total_cost = reward["cost"] * redemption.quantity
+    if current_user["points"] < total_cost:
+        raise HTTPException(status_code=400, detail="Insufficient points")
+    
+    # Check stock
+    if reward.get("stock", 0) < redemption.quantity:
+        raise HTTPException(status_code=400, detail="Insufficient stock")
+    
+    # Create redemption record
+    redemption_id = str(uuid.uuid4())
+    redemption_doc = {
+        "id": redemption_id,
+        "user_id": current_user["id"],
+        "reward_id": reward_id,
+        "quantity": redemption.quantity,
+        "cost": total_cost,
+        "status": "pending",
+        "notes": redemption.notes,
+        "points_deducted": False,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    
+    reward_redemptions_collection.insert_one(redemption_doc)
+    
+    # Create approval request
+    approval = ApprovalCreate(
+        type="reward_redemption",
+        reference_id=redemption_id,
+        reference_type="reward",
+        details={
+            "reward_name": reward["name"],
+            "reward_cost": reward["cost"],
+            "quantity": redemption.quantity,
+            "total_cost": total_cost
+        },
+        notes=redemption.notes
+    )
+    
+    approval_result = await create_approval(approval, current_user)
+    
+    return {
+        "success": True,
+        "message": "Reward redemption submitted for approval",
+        "redemption_id": redemption_id,
+        "approval_id": approval_result["id"],
+        "requires_approval": True
+    }
+
+@app.get("/api/my-redemptions")
+async def get_my_redemptions(current_user = Depends(get_current_user)):
+    """Get current user's reward redemptions"""
+    redemptions = list(reward_redemptions_collection.find({"user_id": current_user["id"]}).sort("created_at", -1))
+    
+    for redemption in redemptions:
+        redemption["_id"] = str(redemption["_id"])
+        
+        # Get reward details
+        reward = rewards_collection.find_one({"id": redemption["reward_id"]}, {"_id": 1, "id": 1, "name": 1, "icon": 1, "cost": 1})
+        if reward:
+            reward["_id"] = str(reward["_id"])
+            redemption["reward"] = reward
+    
+    return redemptions
+
+
+# ==================== UPDATE USER REGISTRATION FOR APPROVAL ====================
+
+# Update the registration endpoint to support optional approval
+# This doesn't replace the existing endpoint, just adds approval logic
+
+
+
 # Socket.IO Events
 @sio.event
 async def connect(sid, environ):
