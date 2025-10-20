@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Chat from './pages/Chat';
+import ChatWithSpaces from './pages/ChatWithSpaces';
 import Leaderboard from './pages/Leaderboard';
 import Achievements from './pages/Achievements';
 import Challenges from './pages/Challenges';
