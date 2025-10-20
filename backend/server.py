@@ -802,10 +802,8 @@ async def generate_demo_data():
         ]
         
         for challenge in challenges_data:
-            existing = challenges_collection.find_one({"name": challenge["name"]})
-            if existing:
-                # Delete existing challenge to recreate
-                challenges_collection.delete_one({"name": challenge["name"]})
+            # Delete any existing challenge with same name
+            challenges_collection.delete_one({"name": challenge["name"]})
             
             challenges_collection.insert_one(challenge)
             stats["challenges"] += 1
