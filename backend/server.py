@@ -599,18 +599,8 @@ async def generate_demo_data():
         
         created_user_ids = []
         
-        # Create users - delete existing ones first to ensure fresh data with correct passwords
+        # Create fresh demo users
         for user_data in demo_users:
-            existing = users_collection.find_one({"email": user_data["email"]})
-            if existing:
-                # Delete existing user to recreate with correct password
-                users_collection.delete_one({"email": user_data["email"]})
-                # Also clean up related data
-                messages_collection.delete_many({"sender_id": existing["id"]})
-                points_collection.delete_many({"user_id": existing["id"]})
-                user_achievements_collection.delete_many({"user_id": existing["id"]})
-            
-            # Create user with correct password
             user_id = str(uuid.uuid4())
             hashed_password = get_password_hash(user_data["password"])
             
