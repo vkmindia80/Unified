@@ -576,34 +576,40 @@ async def generate_demo_data():
         
         created_user_ids = []
         
-        # Create users if they don't exist
+        # Create users - delete existing ones first to ensure fresh data with correct passwords
         for user_data in demo_users:
             existing = users_collection.find_one({"email": user_data["email"]})
-            if not existing:
-                user_id = str(uuid.uuid4())
-                hashed_password = get_password_hash(user_data["password"])
-                
-                user_doc = {
-                    "id": user_id,
-                    "username": user_data["username"],
-                    "email": user_data["email"],
-                    "password": hashed_password,
-                    "full_name": user_data["full_name"],
-                    "role": user_data["role"],
-                    "department": user_data["department"],
-                    "team": user_data["team"],
-                    "avatar": None,
-                    "status": "online" if random.random() > 0.3 else "offline",
-                    "points": random.randint(50, 500),
-                    "level": random.randint(1, 5),
-                    "created_at": datetime.utcnow().isoformat()
-                }
-                
-                users_collection.insert_one(user_doc)
-                created_user_ids.append(user_id)
-                stats["users"] += 1
-            else:
-                created_user_ids.append(existing["id"])
+            if existing:
+                # Delete existing user to recreate with correct password
+                users_collection.delete_one({"email": user_data["email"]})
+                # Also clean up related data
+                messages_collection.delete_many({"sender_id": existing["id"]})
+                points_collection.delete_many({"user_id": existing["id"]})
+                user_achievements_collection.delete_many({"user_id": existing["id"]})
+            
+            # Create user with correct password
+            user_id = str(uuid.uuid4())
+            hashed_password = get_password_hash(user_data["password"])
+            
+            user_doc = {
+                "id": user_id,
+                "username": user_data["username"],
+                "email": user_data["email"],
+                "password": hashed_password,
+                "full_name": user_data["full_name"],
+                "role": user_data["role"],
+                "department": user_data["department"],
+                "team": user_data["team"],
+                "avatar": None,
+                "status": "online" if random.random() > 0.3 else "offline",
+                "points": random.randint(50, 500),
+                "level": random.randint(1, 5),
+                "created_at": datetime.utcnow().isoformat()
+            }
+            
+            users_collection.insert_one(user_doc)
+            created_user_ids.append(user_id)
+            stats["users"] += 1
         
         # Get all user IDs for creating chats
         all_users = list(users_collection.find({}, {"id": 1}))
