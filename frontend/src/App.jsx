@@ -53,6 +53,8 @@ function AppRoutes() {
         <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/chat" element={<PrivateRoute><Chat /></PrivateRoute>} />
+        <Route path="/feed" element={<PrivateRoute><Feed /></PrivateRoute>} />
+        <Route path="/recognition" element={<PrivateRoute><RecognitionWall /></PrivateRoute>} />
         <Route path="/leaderboard" element={<PrivateRoute><Leaderboard /></PrivateRoute>} />
         <Route path="/achievements" element={<PrivateRoute><Achievements /></PrivateRoute>} />
         <Route path="/challenges" element={<PrivateRoute><Challenges /></PrivateRoute>} />
