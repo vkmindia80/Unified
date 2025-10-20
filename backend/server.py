@@ -1554,7 +1554,7 @@ async def call_user(sid, data):
         return
     
     # Get caller details
-    caller = users_collection.find_one({"id": user_id}, {"password": 0, "full_name": 1, "avatar": 1})
+    caller = users_collection.find_one({"id": user_id}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1})
     if not caller:
         return
     
