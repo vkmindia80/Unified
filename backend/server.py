@@ -730,25 +730,29 @@ async def generate_demo_data():
         
         for achievement in achievements_data:
             existing = achievements_collection.find_one({"name": achievement["name"]})
-            if not existing:
-                achievements_collection.insert_one(achievement)
-                stats["achievements"] += 1
-                
-                # Award some achievements to random users
-                if random.random() > 0.5:
-                    lucky_users = random.sample(all_user_ids, min(3, len(all_user_ids)))
-                    for user_id in lucky_users:
-                        user_achievement = {
-                            "id": str(uuid.uuid4()),
-                            "user_id": user_id,
-                            "achievement_id": achievement["id"],
-                            "unlocked_at": datetime.utcnow().isoformat()
-                        }
-                        user_achievements_collection.insert_one(user_achievement)
-                        
-                        # Award points
-                        award_points(user_id, achievement["points"], f"Achievement unlocked: {achievement['name']}", "achievement")
-                        stats["points_awarded"] += achievement["points"]
+            if existing:
+                # Delete existing achievement to recreate
+                achievements_collection.delete_one({"name": achievement["name"]})
+                user_achievements_collection.delete_many({"achievement_id": existing["id"]})
+            
+            achievements_collection.insert_one(achievement)
+            stats["achievements"] += 1
+            
+            # Award some achievements to random users
+            if random.random() > 0.5:
+                lucky_users = random.sample(all_user_ids, min(3, len(all_user_ids)))
+                for user_id in lucky_users:
+                    user_achievement = {
+                        "id": str(uuid.uuid4()),
+                        "user_id": user_id,
+                        "achievement_id": achievement["id"],
+                        "unlocked_at": datetime.utcnow().isoformat()
+                    }
+                    user_achievements_collection.insert_one(user_achievement)
+                    
+                    # Award points
+                    award_points(user_id, achievement["points"], f"Achievement unlocked: {achievement['name']}", "achievement")
+                    stats["points_awarded"] += achievement["points"]
         
         # Create challenges
         challenges_data = [
