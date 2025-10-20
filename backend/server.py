@@ -1175,7 +1175,7 @@ async def get_announcement_acknowledgements(announcement_id: str, current_user =
     
     acknowledged_users = []
     for user_id in announcement.get("acknowledged_by", []):
-        user = users_collection.find_one({"id": user_id}, {"password": 0, "full_name": 1, "avatar": 1, "department": 1, "role": 1})
+        user = users_collection.find_one({"id": user_id}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1, "department": 1, "role": 1})
         if user:
             user["_id"] = str(user["_id"])
             acknowledged_users.append(user)
