@@ -194,6 +194,39 @@ class ChatCreateWithSpace(BaseModel):
     space_id: Optional[str] = None
     subspace_id: Optional[str] = None
 
+# Approval Models
+class ApprovalCreate(BaseModel):
+    type: str  # "space_join", "user_registration", "reward_redemption", "content_approval"
+    reference_id: str  # ID of the item being approved (space_id, user_id, reward_id, content_id)
+    reference_type: str  # "space", "user", "reward", "announcement", "recognition"
+    details: Optional[dict] = None
+    notes: Optional[str] = None
+
+class ApprovalUpdate(BaseModel):
+    status: str  # "approved", "rejected"
+    notes: Optional[str] = None
+
+# Invitation Models
+class InvitationCreate(BaseModel):
+    type: str  # "space", "organization", "event"
+    invitee_email: Optional[str] = None
+    invitee_user_id: Optional[str] = None
+    reference_id: Optional[str] = None  # space_id, event_id, etc.
+    message: Optional[str] = None
+    expires_at: Optional[str] = None
+
+class InvitationResponse(BaseModel):
+    status: str  # "accepted", "rejected"
+
+# Member Management Models
+class MemberUpdate(BaseModel):
+    role: str  # "admin", "member"
+
+class RewardRedemptionCreate(BaseModel):
+    reward_id: str
+    quantity: int = 1
+    notes: Optional[str] = None
+
 # Helper functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
