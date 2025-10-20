@@ -494,6 +494,29 @@ async def generate_demo_data():
             "points_awarded": 0
         }
         
+        # Clean up old demo data for fresh start
+        # Only delete demo accounts, not all data
+        demo_emails = [
+            "test@company.com",
+            "admin@company.com", 
+            "manager@company.com",
+            "sarah.johnson@company.com",
+            "mike.chen@company.com",
+            "emma.davis@company.com",
+            "james.wilson@company.com",
+            "lisa.brown@company.com"
+        ]
+        
+        # Delete old demo users and their related data
+        for email in demo_emails:
+            user = users_collection.find_one({"email": email})
+            if user:
+                user_id = user["id"]
+                messages_collection.delete_many({"sender_id": user_id})
+                points_collection.delete_many({"user_id": user_id})
+                user_achievements_collection.delete_many({"user_id": user_id})
+                users_collection.delete_one({"email": email})
+        
         # Sample data
         departments = ["Engineering", "Marketing", "Sales", "HR", "Operations", "Design", "Finance"]
         teams = ["Alpha", "Beta", "Gamma", "Delta", "Omega"]
