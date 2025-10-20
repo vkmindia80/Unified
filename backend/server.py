@@ -1624,30 +1624,59 @@ async def delete_space(space_id: str, current_user = Depends(get_current_user)):
 
 @app.post("/api/spaces/{space_id}/join")
 async def join_space(space_id: str, current_user = Depends(get_current_user)):
-    """Join a space"""
+    """Join a space (creates approval request for private/restricted spaces)"""
     space = spaces_collection.find_one({"id": space_id})
     if not space:
         raise HTTPException(status_code=404, detail="Space not found")
     
     # Check if already a member
     if current_user["id"] in space.get("members", []):
-        return {"success": True, "message": "Already a member"}
+        return {"success": True, "message": "Already a member", "status": "member"}
+    
+    # Check if there's already a pending approval request
+    existing_approval = approvals_collection.find_one({
+        "type": "space_join",
+        "reference_id": space_id,
+        "requester_id": current_user["id"],
+        "status": "pending"
+    })
+    
+    if existing_approval:
+        return {"success": True, "message": "Join request already pending", "status": "pending"}
     
     # Check space type
     if space["type"] == "private":
+        # Private spaces require invitation only
         raise HTTPException(status_code=403, detail="Cannot join private space without invitation")
     
     if space["type"] == "restricted":
-        # For MVP, allow joining but in production this would require approval
-        pass
+        # Restricted spaces require approval
+        approval = ApprovalCreate(
+            type="space_join",
+            reference_id=space_id,
+            reference_type="space",
+            details={
+                "space_name": space["name"],
+                "space_type": space["type"]
+            }
+        )
+        
+        approval_result = await create_approval(approval, current_user)
+        
+        return {
+            "success": True,
+            "message": "Join request submitted for approval",
+            "status": "pending",
+            "approval_id": approval_result["id"]
+        }
     
-    # Add user to members
+    # Public spaces - join immediately
     spaces_collection.update_one(
         {"id": space_id},
         {"$addToSet": {"members": current_user["id"]}}
     )
     
-    return {"success": True, "message": "Joined space"}
+    return {"success": True, "message": "Joined space", "status": "member"}
 
 @app.post("/api/spaces/{space_id}/leave")
 async def leave_space(space_id: str, current_user = Depends(get_current_user)):
