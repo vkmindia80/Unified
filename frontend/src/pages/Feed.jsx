@@ -3,11 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { useTheme } from '../context/ThemeContext';
-import axios from 'axios';
+import api from '../services/api';
 import { FaBell, FaExclamationCircle, FaCheckCircle, FaPlus, FaArrowLeft, FaClock, FaUsers } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-
-const API_URL = import.meta.env.VITE_BACKEND_URL || process.env.REACT_APP_BACKEND_URL;
 
 function Feed() {
   const { user } = useAuth();
