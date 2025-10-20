@@ -1427,6 +1427,399 @@ async def comment_on_recognition(recognition_id: str, comment_data: dict, curren
     return {"success": True, "comment": comment}
 
 
+# ==================== SPACES & SUBSPACES ====================
+
+@app.post("/api/spaces")
+async def create_space(space: SpaceCreate, current_user = Depends(get_current_user)):
+    """Create a new space (admin/manager only)"""
+    # Check permissions
+    if current_user["role"] not in ["admin", "manager"]:
+        raise HTTPException(status_code=403, detail="Only admins and managers can create spaces")
+    
+    space_id = str(uuid.uuid4())
+    space_doc = {
+        "id": space_id,
+        "name": space.name,
+        "description": space.description,
+        "type": space.type,
+        "icon": space.icon or "📁",
+        "created_by": current_user["id"],
+        "created_at": datetime.utcnow().isoformat(),
+        "members": [current_user["id"]],
+        "admins": [current_user["id"]],
+        "subspaces": []
+    }
+    
+    spaces_collection.insert_one(space_doc)
+    space_doc["_id"] = str(space_doc["_id"])
+    
+    # Get creator details
+    creator = users_collection.find_one({"id": current_user["id"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1})
+    if creator:
+        creator["_id"] = str(creator["_id"])
+        space_doc["created_by_user"] = creator
+    
+    # Award points for creating space
+    award_points(current_user["id"], 10, "Created space", "space_created")
+    
+    return space_doc
+
+@app.get("/api/spaces")
+async def get_spaces(current_user = Depends(get_current_user)):
+    """Get all spaces visible to current user"""
+    # Get spaces where user is a member OR space is public
+    query = {
+        "$or": [
+            {"members": current_user["id"]},
+            {"type": "public"},
+            {"type": "restricted"}
+        ]
+    }
+    
+    spaces = list(spaces_collection.find(query).sort("name", 1))
+    
+    for space in spaces:
+        space["_id"] = str(space["_id"])
+        
+        # Get creator details
+        creator = users_collection.find_one({"id": space["created_by"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1})
+        if creator:
+            creator["_id"] = str(creator["_id"])
+            space["created_by_user"] = creator
+        
+        # Check if user is member
+        space["is_member"] = current_user["id"] in space.get("members", [])
+        space["is_admin"] = current_user["id"] in space.get("admins", [])
+        space["member_count"] = len(space.get("members", []))
+        
+        # Get subspaces count
+        space["subspace_count"] = len(space.get("subspaces", []))
+    
+    return spaces
+
+@app.get("/api/spaces/{space_id}")
+async def get_space(space_id: str, current_user = Depends(get_current_user)):
+    """Get a specific space"""
+    space = spaces_collection.find_one({"id": space_id})
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    # Check access
+    if space["type"] == "private" and current_user["id"] not in space.get("members", []):
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    space["_id"] = str(space["_id"])
+    
+    # Get creator details
+    creator = users_collection.find_one({"id": space["created_by"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1})
+    if creator:
+        creator["_id"] = str(creator["_id"])
+        space["created_by_user"] = creator
+    
+    space["is_member"] = current_user["id"] in space.get("members", [])
+    space["is_admin"] = current_user["id"] in space.get("admins", [])
+    space["member_count"] = len(space.get("members", []))
+    
+    return space
+
+@app.put("/api/spaces/{space_id}")
+async def update_space(space_id: str, update_data: SpaceUpdate, current_user = Depends(get_current_user)):
+    """Update a space (admin only)"""
+    space = spaces_collection.find_one({"id": space_id})
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    # Check permissions
+    if current_user["id"] not in space.get("admins", []) and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized to update this space")
+    
+    update_fields = {k: v for k, v in update_data.dict().items() if v is not None}
+    
+    if update_fields:
+        spaces_collection.update_one(
+            {"id": space_id},
+            {"$set": update_fields}
+        )
+    
+    updated = spaces_collection.find_one({"id": space_id})
+    updated["_id"] = str(updated["_id"])
+    
+    return updated
+
+@app.delete("/api/spaces/{space_id}")
+async def delete_space(space_id: str, current_user = Depends(get_current_user)):
+    """Delete a space (admin only)"""
+    space = spaces_collection.find_one({"id": space_id})
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    # Check permissions
+    if current_user["id"] not in space.get("admins", []) and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized to delete this space")
+    
+    # Check if it's the default General space
+    if space.get("name") == "General" and space.get("is_default"):
+        raise HTTPException(status_code=400, detail="Cannot delete the default General space")
+    
+    spaces_collection.delete_one({"id": space_id})
+    return {"success": True, "message": "Space deleted"}
+
+@app.post("/api/spaces/{space_id}/join")
+async def join_space(space_id: str, current_user = Depends(get_current_user)):
+    """Join a space"""
+    space = spaces_collection.find_one({"id": space_id})
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    # Check if already a member
+    if current_user["id"] in space.get("members", []):
+        return {"success": True, "message": "Already a member"}
+    
+    # Check space type
+    if space["type"] == "private":
+        raise HTTPException(status_code=403, detail="Cannot join private space without invitation")
+    
+    if space["type"] == "restricted":
+        # For MVP, allow joining but in production this would require approval
+        pass
+    
+    # Add user to members
+    spaces_collection.update_one(
+        {"id": space_id},
+        {"$addToSet": {"members": current_user["id"]}}
+    )
+    
+    return {"success": True, "message": "Joined space"}
+
+@app.post("/api/spaces/{space_id}/leave")
+async def leave_space(space_id: str, current_user = Depends(get_current_user)):
+    """Leave a space"""
+    space = spaces_collection.find_one({"id": space_id})
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    # Check if it's the default General space
+    if space.get("name") == "General" and space.get("is_default"):
+        raise HTTPException(status_code=400, detail="Cannot leave the default General space")
+    
+    # Remove user from members
+    spaces_collection.update_one(
+        {"id": space_id},
+        {"$pull": {"members": current_user["id"], "admins": current_user["id"]}}
+    )
+    
+    return {"success": True, "message": "Left space"}
+
+# ==================== SUBSPACES ====================
+
+@app.post("/api/spaces/{space_id}/subspaces")
+async def create_subspace(space_id: str, subspace: SubspaceCreate, current_user = Depends(get_current_user)):
+    """Create a subspace within a space"""
+    space = spaces_collection.find_one({"id": space_id})
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    # Check permissions (must be space admin)
+    if current_user["id"] not in space.get("admins", []) and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only space admins can create subspaces")
+    
+    subspace_id = str(uuid.uuid4())
+    subspace_doc = {
+        "id": subspace_id,
+        "space_id": space_id,
+        "name": subspace.name,
+        "description": subspace.description,
+        "icon": subspace.icon or "📂",
+        "created_by": current_user["id"],
+        "created_at": datetime.utcnow().isoformat(),
+        "channels": []
+    }
+    
+    # Add subspace ID to space's subspaces array
+    spaces_collection.update_one(
+        {"id": space_id},
+        {"$addToSet": {"subspaces": subspace_id}}
+    )
+    
+    # Store subspace in a separate collection or embedded (for MVP, we'll use a new collection)
+    db["subspaces"].insert_one(subspace_doc)
+    subspace_doc["_id"] = str(subspace_doc["_id"])
+    
+    return subspace_doc
+
+@app.get("/api/spaces/{space_id}/subspaces")
+async def get_subspaces(space_id: str, current_user = Depends(get_current_user)):
+    """Get all subspaces in a space"""
+    space = spaces_collection.find_one({"id": space_id})
+    if not space:
+        raise HTTPException(status_code=404, detail="Space not found")
+    
+    # Check access
+    if space["type"] == "private" and current_user["id"] not in space.get("members", []):
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    subspaces = list(db["subspaces"].find({"space_id": space_id}).sort("name", 1))
+    
+    for subspace in subspaces:
+        subspace["_id"] = str(subspace["_id"])
+        # Count channels in subspace
+        subspace["channel_count"] = chats_collection.count_documents({"subspace_id": subspace["id"]})
+    
+    return subspaces
+
+@app.put("/api/subspaces/{subspace_id}")
+async def update_subspace(subspace_id: str, update_data: SubspaceUpdate, current_user = Depends(get_current_user)):
+    """Update a subspace"""
+    subspace = db["subspaces"].find_one({"id": subspace_id})
+    if not subspace:
+        raise HTTPException(status_code=404, detail="Subspace not found")
+    
+    # Get parent space
+    space = spaces_collection.find_one({"id": subspace["space_id"]})
+    if not space:
+        raise HTTPException(status_code=404, detail="Parent space not found")
+    
+    # Check permissions
+    if current_user["id"] not in space.get("admins", []) and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    update_fields = {k: v for k, v in update_data.dict().items() if v is not None}
+    
+    if update_fields:
+        db["subspaces"].update_one(
+            {"id": subspace_id},
+            {"$set": update_fields}
+        )
+    
+    updated = db["subspaces"].find_one({"id": subspace_id})
+    updated["_id"] = str(updated["_id"])
+    
+    return updated
+
+@app.delete("/api/subspaces/{subspace_id}")
+async def delete_subspace(subspace_id: str, current_user = Depends(get_current_user)):
+    """Delete a subspace"""
+    subspace = db["subspaces"].find_one({"id": subspace_id})
+    if not subspace:
+        raise HTTPException(status_code=404, detail="Subspace not found")
+    
+    # Get parent space
+    space = spaces_collection.find_one({"id": subspace["space_id"]})
+    if not space:
+        raise HTTPException(status_code=404, detail="Parent space not found")
+    
+    # Check permissions
+    if current_user["id"] not in space.get("admins", []) and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized")
+    
+    # Remove subspace ID from space
+    spaces_collection.update_one(
+        {"id": subspace["space_id"]},
+        {"$pull": {"subspaces": subspace_id}}
+    )
+    
+    db["subspaces"].delete_one({"id": subspace_id})
+    
+    return {"success": True, "message": "Subspace deleted"}
+
+# ==================== CHAT WITH SPACES ====================
+
+@app.post("/api/chats/with-space")
+async def create_chat_with_space(chat: ChatCreateWithSpace, current_user = Depends(get_current_user)):
+    """Create a chat within a space/subspace"""
+    chat_id = str(uuid.uuid4())
+    
+    # Ensure current user is in participants
+    if current_user["id"] not in chat.participants:
+        chat.participants.append(current_user["id"])
+    
+    chat_doc = {
+        "id": chat_id,
+        "name": chat.name,
+        "type": chat.type,
+        "participants": chat.participants,
+        "space_id": chat.space_id,
+        "subspace_id": chat.subspace_id,
+        "created_by": current_user["id"],
+        "created_at": datetime.utcnow().isoformat(),
+        "last_message": None,
+        "last_message_at": None
+    }
+    
+    chats_collection.insert_one(chat_doc)
+    chat_doc["_id"] = str(chat_doc["_id"])
+    
+    return chat_doc
+
+@app.get("/api/spaces/{space_id}/chats")
+async def get_space_chats(space_id: str, current_user = Depends(get_current_user)):
+    """Get all chats in a space"""
+    chats = list(chats_collection.find({
+        "space_id": space_id,
+        "participants": current_user["id"]
+    }).sort("last_message_at", -1))
+    
+    for chat in chats:
+        chat["_id"] = str(chat["_id"])
+        
+        # Get participant details
+        participants_data = []
+        for p_id in chat["participants"]:
+            user = users_collection.find_one({"id": p_id}, {"password": 0})
+            if user:
+                user["_id"] = str(user["_id"])
+                participants_data.append(user)
+        chat["participants_data"] = participants_data
+    
+    return chats
+
+# ==================== MIGRATION ENDPOINT ====================
+
+@app.post("/api/migrate-chats-to-spaces")
+async def migrate_chats_to_spaces(current_user = Depends(get_current_user)):
+    """Migrate existing chats to default 'General' space (admin only)"""
+    # Check if user is admin
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can run migration")
+    
+    # Check if General space exists
+    general_space = spaces_collection.find_one({"name": "General", "is_default": True})
+    
+    if not general_space:
+        # Create default General space
+        space_id = str(uuid.uuid4())
+        general_space = {
+            "id": space_id,
+            "name": "General",
+            "description": "Default space for all users",
+            "type": "public",
+            "icon": "🏢",
+            "is_default": True,
+            "created_by": current_user["id"],
+            "created_at": datetime.utcnow().isoformat(),
+            "members": [],
+            "admins": [current_user["id"]],
+            "subspaces": []
+        }
+        spaces_collection.insert_one(general_space)
+        general_space_id = space_id
+    else:
+        general_space_id = general_space["id"]
+    
+    # Update all chats without space_id
+    result = chats_collection.update_many(
+        {"space_id": {"$exists": False}},
+        {"$set": {"space_id": general_space_id, "subspace_id": None}}
+    )
+    
+    return {
+        "success": True,
+        "message": "Migration completed",
+        "chats_migrated": result.modified_count,
+        "general_space_id": general_space_id
+    }
+
+
 # Socket.IO Events
 @sio.event
 async def connect(sid, environ):
