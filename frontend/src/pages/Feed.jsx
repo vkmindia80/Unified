@@ -58,12 +58,8 @@ function Feed() {
 
   const fetchAnnouncements = async () => {
     try {
-      const token = localStorage.getItem('token');
       const params = selectedPriority !== 'all' ? { priority: selectedPriority } : {};
-      const response = await axios.get(`${API_URL}/api/announcements`, {
-        headers: { Authorization: `Bearer ${token}` },
-        params
-      });
+      const response = await api.get('/announcements', { params });
       setAnnouncements(response.data);
     } catch (error) {
       console.error('Error fetching announcements:', error);
