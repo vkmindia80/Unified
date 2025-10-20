@@ -23,6 +23,20 @@ function Dashboard() {
       color: 'from-blue-500 to-blue-600'
     },
     {
+      icon: <FaBell className="text-4xl text-indigo-600" />,
+      title: 'Company Feed',
+      description: 'Announcements and company updates',
+      path: '/feed',
+      color: 'from-indigo-500 to-indigo-600'
+    },
+    {
+      icon: <FaTrophy className="text-4xl text-pink-600" />,
+      title: 'Recognition Wall',
+      description: 'Celebrate team achievements and shout-outs',
+      path: '/recognition',
+      color: 'from-pink-500 to-pink-600'
+    },
+    {
       icon: <FaTrophy className="text-4xl text-yellow-600" />,
       title: 'Leaderboard',
       description: 'See top performers and rankings',
