@@ -1,13 +1,36 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import { FaComments, FaTrophy, FaMedal, FaTasks, FaGift, FaSignOutAlt, FaChartLine, FaUsers, FaMoon, FaSun, FaUserShield, FaPhone, FaBell, FaLayerGroup } from 'react-icons/fa';
+import api from '../services/api';
+import { FaComments, FaTrophy, FaMedal, FaTasks, FaGift, FaSignOutAlt, FaChartLine, FaUsers, FaMoon, FaSun, FaUserShield, FaPhone, FaBell, FaLayerGroup, FaCheckCircle, FaEnvelope } from 'react-icons/fa';
 
 function Dashboard() {
   const { user, logout } = useAuth();
   const { darkMode, toggleDarkMode } = useTheme();
   const navigate = useNavigate();
+  const [pendingApprovals, setPendingApprovals] = useState(0);
+  const [pendingInvitations, setPendingInvitations] = useState(0);
+
+  useEffect(() => {
+    fetchNotifications();
+  }, []);
+
+  const fetchNotifications = async () => {
+    try {
+      // Fetch pending approvals count (only for admins/managers)
+      if (user?.role && ['admin', 'manager', 'department_head', 'team_lead'].includes(user.role)) {
+        const approvalsRes = await api.get('/api/approvals/pending');
+        setPendingApprovals(approvalsRes.data.count || 0);
+      }
+      
+      // Fetch pending invitations count
+      const invitationsRes = await api.get('/api/invitations/pending');
+      setPendingInvitations(invitationsRes.data.count || 0);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -42,6 +65,23 @@ function Dashboard() {
       description: 'Celebrate team achievements and shout-outs',
       path: '/recognition',
       color: 'from-pink-500 to-pink-600'
+    },
+    {
+      icon: <FaCheckCircle className="text-4xl text-orange-600" />,
+      title: 'Approval Center',
+      description: 'Review and manage approval requests',
+      path: '/approvals',
+      color: 'from-orange-500 to-orange-600',
+      badge: pendingApprovals,
+      showBadge: user?.role && ['admin', 'manager', 'department_head', 'team_lead'].includes(user.role)
+    },
+    {
+      icon: <FaEnvelope className="text-4xl text-purple-600" />,
+      title: 'Invitations',
+      description: 'Manage space and organization invitations',
+      path: '/invitations',
+      color: 'from-purple-500 to-purple-600',
+      badge: pendingInvitations
     },
     {
       icon: <FaTrophy className="text-4xl text-yellow-600" />,
