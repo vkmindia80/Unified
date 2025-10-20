@@ -422,6 +422,15 @@ async def get_chats(current_user = Depends(get_current_user)):
                 user["_id"] = str(user["_id"])
                 participants_data.append(user)
         chat["participants_data"] = participants_data
+        
+        # Get space and subspace details if they exist
+        if chat.get("space_id"):
+            space = spaces_collection.find_one({"id": chat["space_id"]}, {"_id": 0, "id": 1, "name": 1, "icon": 1})
+            chat["space"] = space
+        
+        if chat.get("subspace_id"):
+            subspace = db["subspaces"].find_one({"id": chat["subspace_id"]}, {"_id": 0, "id": 1, "name": 1, "icon": 1})
+            chat["subspace"] = subspace
     
     return chats
 
