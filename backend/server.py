@@ -886,7 +886,7 @@ async def admin_analytics(current_user = Depends(get_current_user)):
     recent_messages = messages_collection.count_documents({"created_at": {"$gte": yesterday}})
     
     # Top users by points
-    top_users = list(users_collection.find({}, {"password": 0, "full_name": 1, "points": 1, "email": 1}).sort("points", -1).limit(5))
+    top_users = list(users_collection.find({}, {"_id": 1, "id": 1, "full_name": 1, "points": 1, "email": 1}).sort("points", -1).limit(5))
     for user in top_users:
         user["_id"] = str(user["_id"])
     
