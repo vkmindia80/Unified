@@ -1084,7 +1084,7 @@ async def get_announcement(announcement_id: str, current_user = Depends(get_curr
     )
     
     # Get creator details
-    creator = users_collection.find_one({"id": announcement["created_by"]}, {"password": 0, "full_name": 1, "avatar": 1, "role": 1})
+    creator = users_collection.find_one({"id": announcement["created_by"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1, "role": 1})
     if creator:
         creator["_id"] = str(creator["_id"])
         announcement["created_by_user"] = creator
