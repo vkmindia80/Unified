@@ -154,6 +154,35 @@ class RecognitionCreate(BaseModel):
     message: str
     is_public: bool = True
 
+class SpaceCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    type: str = "public"  # "public", "private", "restricted"
+    icon: Optional[str] = None
+
+class SpaceUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    type: Optional[str] = None
+    icon: Optional[str] = None
+
+class SubspaceCreate(BaseModel):
+    name: str
+    description: Optional[str] = None
+    icon: Optional[str] = None
+
+class SubspaceUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    icon: Optional[str] = None
+
+class ChatCreateWithSpace(BaseModel):
+    name: Optional[str]
+    type: str  # "direct" or "group"
+    participants: List[str]
+    space_id: Optional[str] = None
+    subspace_id: Optional[str] = None
+
 # Helper functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
