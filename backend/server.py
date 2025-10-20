@@ -742,11 +742,8 @@ async def generate_demo_data():
         ]
         
         for achievement in achievements_data:
-            existing = achievements_collection.find_one({"name": achievement["name"]})
-            if existing:
-                # Delete existing achievement to recreate
-                achievements_collection.delete_one({"name": achievement["name"]})
-                user_achievements_collection.delete_many({"achievement_id": existing["id"]})
+            # Delete any existing achievement with same name
+            achievements_collection.delete_one({"name": achievement["name"]})
             
             achievements_collection.insert_one(achievement)
             stats["achievements"] += 1
