@@ -1256,8 +1256,8 @@ async def get_recognitions(
         recognition["_id"] = str(recognition["_id"])
         
         # Get user details
-        recognizer = users_collection.find_one({"id": recognition["recognizer_id"]}, {"password": 0, "full_name": 1, "avatar": 1, "role": 1})
-        recognized = users_collection.find_one({"id": recognition["recognized_user_id"]}, {"password": 0, "full_name": 1, "avatar": 1, "role": 1})
+        recognizer = users_collection.find_one({"id": recognition["recognizer_id"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1, "role": 1})
+        recognized = users_collection.find_one({"id": recognition["recognized_user_id"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1, "role": 1})
         
         if recognizer:
             recognizer["_id"] = str(recognizer["_id"])
