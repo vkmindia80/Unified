@@ -16,6 +16,8 @@ import AdminPanel from './pages/AdminPanel';
 import CallHistory from './pages/CallHistory';
 import Feed from './pages/Feed';
 import RecognitionWall from './pages/RecognitionWall';
+import ApprovalCenter from './pages/ApprovalCenter';
+import Invitations from './pages/Invitations';
 import './App.css';
 
 const PrivateRoute = ({ children }) => {
