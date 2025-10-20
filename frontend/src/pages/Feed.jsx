@@ -72,12 +72,7 @@ function Feed() {
   const handleCreateAnnouncement = async (e) => {
     e.preventDefault();
     try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(
-        `${API_URL}/api/announcements`,
-        newAnnouncement,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post('/announcements', newAnnouncement);
       setAnnouncements([response.data, ...announcements]);
       setShowCreateModal(false);
       setNewAnnouncement({
