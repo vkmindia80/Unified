@@ -913,7 +913,7 @@ async def get_call_history(current_user = Depends(get_current_user)):
         # Get participant details
         participants_data = []
         for p_id in call.get("participants", []):
-            user = users_collection.find_one({"id": p_id}, {"password": 0, "full_name": 1, "avatar": 1, "email": 1})
+            user = users_collection.find_one({"id": p_id}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1, "email": 1})
             if user:
                 user["_id"] = str(user["_id"])
                 participants_data.append(user)
