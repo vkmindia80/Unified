@@ -23,6 +23,13 @@ function Dashboard() {
       color: 'from-blue-500 to-blue-600'
     },
     {
+      icon: <FaLayerGroup className="text-4xl text-cyan-600" />,
+      title: 'Spaces & Channels',
+      description: 'Organized workspaces with subspaces and channels',
+      path: '/spaces',
+      color: 'from-cyan-500 to-cyan-600'
+    },
+    {
       icon: <FaBell className="text-4xl text-indigo-600" />,
       title: 'Company Feed',
       description: 'Announcements and company updates',
