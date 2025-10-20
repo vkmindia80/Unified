@@ -863,10 +863,8 @@ async def generate_demo_data():
         ]
         
         for reward in rewards_data:
-            existing = rewards_collection.find_one({"name": reward["name"]})
-            if existing:
-                # Delete existing reward to recreate
-                rewards_collection.delete_one({"name": reward["name"]})
+            # Delete any existing reward with same name
+            rewards_collection.delete_one({"name": reward["name"]})
             
             rewards_collection.insert_one(reward)
             stats["rewards"] += 1
