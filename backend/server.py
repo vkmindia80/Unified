@@ -1212,8 +1212,8 @@ async def create_recognition(recognition: RecognitionCreate, current_user = Depe
     recognition_doc["_id"] = str(recognition_doc["_id"])
     
     # Get user details
-    recognizer = users_collection.find_one({"id": current_user["id"]}, {"password": 0, "full_name": 1, "avatar": 1, "role": 1})
-    recognized = users_collection.find_one({"id": recognition.recognized_user_id}, {"password": 0, "full_name": 1, "avatar": 1, "role": 1})
+    recognizer = users_collection.find_one({"id": current_user["id"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1, "role": 1})
+    recognized = users_collection.find_one({"id": recognition.recognized_user_id}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1, "role": 1})
     
     if recognizer:
         recognizer["_id"] = str(recognizer["_id"])
