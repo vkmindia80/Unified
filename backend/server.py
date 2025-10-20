@@ -1332,7 +1332,7 @@ async def comment_on_recognition(recognition_id: str, comment_data: dict, curren
     )
     
     # Get commenter details
-    user = users_collection.find_one({"id": current_user["id"]}, {"password": 0, "full_name": 1, "avatar": 1})
+    user = users_collection.find_one({"id": current_user["id"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1})
     if user:
         user["_id"] = str(user["_id"])
         comment["user"] = user
