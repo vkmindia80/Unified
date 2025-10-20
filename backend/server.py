@@ -498,8 +498,35 @@ async def generate_demo_data():
         departments = ["Engineering", "Marketing", "Sales", "HR", "Operations", "Design", "Finance"]
         teams = ["Alpha", "Beta", "Gamma", "Delta", "Omega"]
         
-        # Create additional users
+        # Create demo users matching the login form autofill credentials
         demo_users = [
+            {
+                "username": "test_employee",
+                "email": "test@company.com",
+                "password": "Test123!",
+                "full_name": "Test Employee",
+                "role": "employee",
+                "department": "Engineering",
+                "team": "Alpha"
+            },
+            {
+                "username": "admin_user",
+                "email": "admin@company.com",
+                "password": "Admin123!",
+                "full_name": "Admin User",
+                "role": "admin",
+                "department": "Administration",
+                "team": "Executive"
+            },
+            {
+                "username": "manager_user",
+                "email": "manager@company.com",
+                "password": "Manager123!",
+                "full_name": "Manager User",
+                "role": "manager",
+                "department": "Operations",
+                "team": "Management"
+            },
             {
                 "username": "sarah_johnson",
                 "email": "sarah.johnson@company.com",
