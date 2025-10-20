@@ -61,6 +61,9 @@ recognitions_collection = db["recognitions"]
 spaces_collection = db["spaces"]
 polls_collection = db["polls"]
 poll_responses_collection = db["poll_responses"]
+approvals_collection = db["approvals"]
+invitations_collection = db["invitations"]
+reward_redemptions_collection = db["reward_redemptions"]
 
 # Create indexes
 users_collection.create_index("email", unique=True)
