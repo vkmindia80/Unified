@@ -206,20 +206,32 @@ function Dashboard() {
         <div className="mb-8">
           <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Explore Features</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                onClick={() => navigate(feature.path)}
-                className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200`}
-                data-testid={`feature-card-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
-              >
-                <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-4`}>
-                  {feature.icon}
+            {features.map((feature, index) => {
+              // Only show feature if showBadge is not false
+              if (feature.showBadge === false) return null;
+              
+              return (
+                <div
+                  key={index}
+                  onClick={() => navigate(feature.path)}
+                  className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6 cursor-pointer hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-200 relative`}
+                  data-testid={`feature-card-${feature.title.toLowerCase().replace(/\s+/g, '-')}`}
+                >
+                  {/* Badge for notifications */}
+                  {feature.badge && feature.badge > 0 && (
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg">
+                      {feature.badge}
+                    </div>
+                  )}
+                  
+                  <div className={`w-16 h-16 bg-gradient-to-br ${feature.color} rounded-xl flex items-center justify-center mb-4`}>
+                    {feature.icon}
+                  </div>
+                  <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>{feature.title}</h3>
+                  <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>{feature.description}</p>
                 </div>
-                <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>{feature.title}</h3>
-                <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>{feature.description}</p>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
