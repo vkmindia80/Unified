@@ -1008,7 +1008,7 @@ async def create_announcement(announcement: AnnouncementCreate, current_user = D
     announcement_doc["_id"] = str(announcement_doc["_id"])
     
     # Get creator details
-    creator = users_collection.find_one({"id": current_user["id"]}, {"password": 0, "full_name": 1, "avatar": 1, "role": 1})
+    creator = users_collection.find_one({"id": current_user["id"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1, "role": 1})
     if creator:
         creator["_id"] = str(creator["_id"])
         announcement_doc["created_by_user"] = creator
