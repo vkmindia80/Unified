@@ -185,12 +185,12 @@ const Register = () => {
               />
             </div>
 
-            <div className="bg-accent-50 border border-accent-200 rounded-lg p-4">
+            <div className="bg-gradient-to-r from-accent-50 to-accent-100 dark:from-accent-900/20 dark:to-accent-800/20 border border-accent-200 dark:border-accent-800 rounded-xl p-4 shadow-sm">
               <div className="flex items-start space-x-3">
-                <FiCheckCircle className="w-5 h-5 text-accent-600 mt-0.5 flex-shrink-0" />
+                <FiCheckCircle className="w-5 h-5 text-accent-600 dark:text-accent-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <p className="text-sm font-medium text-accent-900">Welcome Bonus</p>
-                  <p className="text-xs text-accent-700 mt-1">Get 50 points instantly when you create your account!</p>
+                  <p className="text-sm font-semibold text-accent-900 dark:text-accent-100">Welcome Bonus</p>
+                  <p className="text-xs text-accent-700 dark:text-accent-300 mt-1">Get 50 points instantly when you create your account!</p>
                 </div>
               </div>
             </div>
