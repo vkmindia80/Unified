@@ -360,15 +360,18 @@ function Chat() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-primary-900">
+    <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-primary-900 dark:to-primary-800">
       <Sidebar />
-      <div className={`flex-1 flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+      <div className={`flex-1 flex flex-col ${darkMode ? 'bg-transparent' : 'bg-transparent'}`}>
         {/* Header */}
-        <header className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-          <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <FaComments className={`text-3xl ${darkMode ? 'text-blue-400' : 'text-blue-500'}`} />
-              <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Chat</h1>
+        <header className={`${darkMode ? 'bg-primary-800/80 backdrop-blur-xl' : 'bg-white/80 backdrop-blur-xl'} shadow-lg border-b border-gray-200 dark:border-primary-700`}>
+          <div className="px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-md">
+                <FaComments className="text-2xl text-white" />
+              </div>
+              <div>
+                <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Chat</h1>
               {connected && (
                 <span className="flex items-center space-x-1 text-sm text-green-500">
                   <FaCircle className="text-xs" />
