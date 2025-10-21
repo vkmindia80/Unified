@@ -171,20 +171,70 @@ function Chat() {
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !selectedChat || !socket) return;
+    if ((!newMessage.trim() && pendingFiles.length === 0) || !selectedChat || !socket) return;
 
     try {
       socket.emit('send_message', {
         chat_id: selectedChat.id,
         content: newMessage,
-        type: 'text'
+        type: pendingFiles.length > 0 ? 'file' : 'text',
+        files: pendingFiles
       });
       
       setNewMessage('');
+      setPendingFiles([]);
       setIsTyping(false);
     } catch (error) {
       console.error('Failed to send message:', error);
     }
+  };
+
+  const handleFilesUploaded = (files) => {
+    setPendingFiles([...pendingFiles, ...files]);
+    setShowFileUpload(false);
+  };
+
+  const handleGifSelect = (gif) => {
+    if (!selectedChat || !socket) return;
+
+    // For uploaded GIFs
+    if (gif.source === 'upload') {
+      setPendingFiles([{
+        id: gif.id,
+        url: gif.url,
+        filename: gif.filename,
+        category: 'image',
+        mime_type: 'image/gif'
+      }]);
+    } else {
+      // For GIPHY GIFs, we'll send the URL directly
+      socket.emit('send_message', {
+        chat_id: selectedChat.id,
+        content: `GIF: ${gif.title || 'Shared a GIF'}`,
+        type: 'gif',
+        files: [{
+          url: gif.url,
+          filename: gif.title || 'gif',
+          category: 'image',
+          mime_type: 'image/gif',
+          source: 'giphy'
+        }]
+      });
+    }
+    
+    setShowGifPicker(false);
+  };
+
+  const removePendingFile = (fileId) => {
+    setPendingFiles(pendingFiles.filter(f => f.id !== fileId));
+  };
+
+  const openImageGallery = (imageFile, allImages) => {
+    const imageIndex = allImages.findIndex(img => img.id === imageFile.id);
+    setImageGallery({
+      images: allImages,
+      initialIndex: imageIndex >= 0 ? imageIndex : 0
+    });
   };
 
   const handleTyping = (e) => {
