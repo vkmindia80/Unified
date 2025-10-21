@@ -26,9 +26,23 @@ JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 JWT_ALGORITHM = os.getenv("JWT_ALGORITHM", "HS256")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 FILE_UPLOAD_DIR = os.getenv("FILE_UPLOAD_DIR", "/app/backend/uploads")
+GIPHY_API_KEY = os.getenv("GIPHY_API_KEY", "")  # Optional GIPHY API key
 
-# Create upload directory
+# File size limits (in bytes)
+MAX_FILE_SIZE_IMAGE = 5 * 1024 * 1024  # 5MB
+MAX_FILE_SIZE_DOCUMENT = 10 * 1024 * 1024  # 10MB
+MAX_FILE_SIZE_VIDEO = 50 * 1024 * 1024  # 50MB
+
+# Allowed file extensions
+ALLOWED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp"}
+ALLOWED_DOCUMENT_EXTENSIONS = {".pdf", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".txt", ".csv"}
+ALLOWED_VIDEO_EXTENSIONS = {".mp4", ".mov", ".avi", ".mkv", ".webm"}
+
+# Create upload directories
 os.makedirs(FILE_UPLOAD_DIR, exist_ok=True)
+os.makedirs(os.path.join(FILE_UPLOAD_DIR, "images"), exist_ok=True)
+os.makedirs(os.path.join(FILE_UPLOAD_DIR, "documents"), exist_ok=True)
+os.makedirs(os.path.join(FILE_UPLOAD_DIR, "videos"), exist_ok=True)
 
 # FastAPI app
 app = FastAPI(title="Enterprise Communication & Gamification API")
