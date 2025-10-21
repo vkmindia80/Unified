@@ -1893,6 +1893,94 @@ async def get_integrations(current_user = Depends(get_current_user)):
                     {"name": "company_id", "label": "Company ID", "type": "text", "required": True}
                 ],
                 "updated_at": datetime.utcnow().isoformat()
+            },
+            # Accounting System Integrations
+            {
+                "id": str(uuid.uuid4()),
+                "name": "quickbooks",
+                "display_name": "QuickBooks Online",
+                "description": "Sync financial data and expense tracking",
+                "type": "accounting_system",
+                "api_key": "",
+                "config": {"client_secret": "", "company_id": "", "redirect_uri": "", "environment": "production"},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "Client ID", "type": "text", "required": True},
+                    {"name": "client_secret", "label": "Client Secret", "type": "password", "required": True},
+                    {"name": "company_id", "label": "Company ID (Realm ID)", "type": "text", "required": True, "placeholder": "1234567890"},
+                    {"name": "redirect_uri", "label": "Redirect URI", "type": "text", "required": True, "placeholder": "https://yourapp.com/callback"},
+                    {"name": "environment", "label": "Environment", "type": "text", "required": False, "placeholder": "production or sandbox"}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "xero",
+                "display_name": "Xero",
+                "description": "Cloud-based accounting integration",
+                "type": "accounting_system",
+                "api_key": "",
+                "config": {"client_secret": "", "tenant_id": "", "redirect_uri": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "Client ID", "type": "text", "required": True},
+                    {"name": "client_secret", "label": "Client Secret", "type": "password", "required": True},
+                    {"name": "tenant_id", "label": "Tenant ID", "type": "text", "required": True},
+                    {"name": "redirect_uri", "label": "Redirect URI", "type": "text", "required": True, "placeholder": "https://yourapp.com/xero/callback"}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "freshbooks",
+                "display_name": "FreshBooks",
+                "description": "Invoicing and accounting for small businesses",
+                "type": "accounting_system",
+                "api_key": "",
+                "config": {"client_secret": "", "account_id": "", "redirect_uri": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "Client ID", "type": "text", "required": True},
+                    {"name": "client_secret", "label": "Client Secret", "type": "password", "required": True},
+                    {"name": "account_id", "label": "Account ID", "type": "text", "required": True},
+                    {"name": "redirect_uri", "label": "Redirect URI", "type": "text", "required": True, "placeholder": "https://yourapp.com/freshbooks/callback"}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "sage",
+                "display_name": "Sage Business Cloud",
+                "description": "Accounting software for SMBs",
+                "type": "accounting_system",
+                "api_key": "",
+                "config": {"client_secret": "", "company_id": "", "region": "us"},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "Client ID", "type": "text", "required": True},
+                    {"name": "client_secret", "label": "Client Secret", "type": "password", "required": True},
+                    {"name": "company_id", "label": "Company ID", "type": "text", "required": True},
+                    {"name": "region", "label": "Region", "type": "text", "required": True, "placeholder": "us, uk, ca, etc."}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "netsuite",
+                "display_name": "NetSuite",
+                "description": "Oracle ERP and financial management",
+                "type": "accounting_system",
+                "api_key": "",
+                "config": {"account_id": "", "consumer_key": "", "consumer_secret": "", "token_id": "", "token_secret": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "account_id", "label": "Account ID", "type": "text", "required": True},
+                    {"name": "consumer_key", "label": "Consumer Key", "type": "text", "required": True},
+                    {"name": "consumer_secret", "label": "Consumer Secret", "type": "password", "required": True},
+                    {"name": "token_id", "label": "Token ID", "type": "text", "required": True},
+                    {"name": "token_secret", "label": "Token Secret", "type": "password", "required": True}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
             }
         ]
         
