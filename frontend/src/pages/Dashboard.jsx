@@ -67,6 +67,13 @@ function Dashboard() {
       color: 'from-pink-500 to-pink-600'
     },
     {
+      icon: <FaChartBar className="text-4xl text-teal-600" />,
+      title: 'Polls & Surveys',
+      description: 'Participate in polls and share your opinion',
+      path: '/polls',
+      color: 'from-teal-500 to-teal-600'
+    },
+    {
       icon: <FaCheckCircle className="text-4xl text-orange-600" />,
       title: 'Approval Center',
       description: 'Review and manage approval requests',
