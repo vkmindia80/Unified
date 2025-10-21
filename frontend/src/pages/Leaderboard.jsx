@@ -116,9 +116,9 @@ function Leaderboard() {
 
       {/* Top 3 Podium */}
       {leaderboard.length >= 3 && (
-        <div className="mb-8">
-          <Card>
-            <div className="flex items-end justify-center space-x-8 py-8">
+        <div className="mb-8 animate-scale-in">
+          <Card className="bg-gradient-to-br from-white to-gray-50 dark:from-primary-800 dark:to-primary-900">
+            <div className="flex items-end justify-center space-x-4 md:space-x-8 py-8 px-4">
               {/* 2nd Place */}
               <div className="flex flex-col items-center" data-testid="rank-2">
                 <div className="relative mb-4">
