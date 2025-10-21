@@ -3090,6 +3090,267 @@ async def sync_freshbooks_data(integration: dict):
     except Exception as e:
         return {"synced": 0, "updated": 0, "errors": [str(e)]}
 
+
+async def sync_sage_data(integration: dict):
+    """Sync data from Sage Business Cloud"""
+    try:
+        config = integration.get("config", {})
+        company_id = config.get("company_id")
+        access_token = config.get("access_token")
+        region = config.get("region", "us")
+        
+        if not company_id:
+            return {"synced": 0, "updated": 0, "errors": ["Missing Company ID"]}
+        
+        if not access_token:
+            return {"synced": 0, "updated": 0, "errors": ["Missing Access Token. Please provide your OAuth access token."]}
+        
+        # Check if token is expired and refresh if needed
+        token_expiry = config.get("token_expiry")
+        if token_expiry:
+            expiry_dt = datetime.fromisoformat(token_expiry)
+            if datetime.utcnow() >= expiry_dt:
+                new_token = await refresh_oauth_token("sage", integration)
+                if new_token:
+                    access_token = new_token
+                else:
+                    return {"synced": 0, "updated": 0, "errors": ["Access token expired. Please provide a new token or refresh token."]}
+        
+        # Sage API base URL varies by region
+        region_urls = {
+            "us": "https://api.sageone.com",
+            "uk": "https://api.accounting.sage.com",
+            "ca": "https://api.sageone.com",
+            "de": "https://api.sage.com/de"
+        }
+        base_url = region_urls.get(region.lower(), "https://api.accounting.sage.com")
+        
+        headers = {
+            "Authorization": f"Bearer {access_token}",
+            "Content-Type": "application/json"
+        }
+        
+        synced_count = 0
+        updated_count = 0
+        errors = []
+        
+        try:
+            # 1. Fetch Ledger Accounts (Chart of Accounts)
+            accounts_url = f"{base_url}/v3.1/ledger_accounts"
+            accounts_response = requests.get(accounts_url, headers=headers, timeout=30)
+            
+            if accounts_response.status_code == 200:
+                accounts_data = accounts_response.json()
+                accounts = accounts_data.get("$items", [])
+                
+                for account in accounts:
+                    account_doc = {
+                        "integration_name": "sage",
+                        "account_id": account.get("id"),
+                        "account_name": account.get("displayed_as"),
+                        "account_type": account.get("ledger_account_type", {}).get("displayed_as"),
+                        "account_code": account.get("nominal_code"),
+                        "balance": account.get("balance", 0),
+                        "synced_at": datetime.utcnow().isoformat()
+                    }
+                    
+                    result = financial_accounts_collection.update_one(
+                        {"integration_name": "sage", "account_id": account.get("id")},
+                        {"$set": account_doc},
+                        upsert=True
+                    )
+                    
+                    if result.upserted_id:
+                        synced_count += 1
+                    else:
+                        updated_count += 1
+            else:
+                errors.append(f"Failed to fetch accounts: {accounts_response.status_code}")
+            
+            # 2. Fetch Contacts (Customers and Suppliers)
+            contacts_url = f"{base_url}/v3.1/contacts"
+            contacts_response = requests.get(contacts_url, headers=headers, timeout=30)
+            
+            if contacts_response.status_code == 200:
+                contacts_data = contacts_response.json()
+                contacts = contacts_data.get("$items", [])
+                
+                for contact in contacts:
+                    contact_type = "customer" if contact.get("contact_type_ids") and "CUSTOMER" in str(contact.get("contact_type_ids")) else "vendor"
+                    
+                    contact_doc = {
+                        "integration_name": "sage",
+                        "entity_id": contact.get("id"),
+                        "entity_name": contact.get("name"),
+                        "entity_type": contact_type,
+                        "email": contact.get("email"),
+                        "balance": contact.get("balance", 0),
+                        "synced_at": datetime.utcnow().isoformat()
+                    }
+                    
+                    vendors_customers_collection.update_one(
+                        {"integration_name": "sage", "entity_id": contact.get("id")},
+                        {"$set": contact_doc},
+                        upsert=True
+                    )
+                    synced_count += 1
+            
+        except requests.exceptions.RequestException as e:
+            errors.append(f"API request error: {str(e)}")
+        
+        return {
+            "synced": synced_count,
+            "updated": updated_count,
+            "errors": errors if errors else []
+        }
+            
+    except Exception as e:
+        return {"synced": 0, "updated": 0, "errors": [str(e)]}
+
+async def sync_netsuite_data(integration: dict):
+    """Sync data from NetSuite (Oracle)"""
+    try:
+        config = integration.get("config", {})
+        account_id = config.get("account_id")
+        consumer_key = config.get("consumer_key")
+        consumer_secret = config.get("consumer_secret")
+        token_id = config.get("token_id")
+        token_secret = config.get("token_secret")
+        
+        if not all([account_id, consumer_key, consumer_secret, token_id, token_secret]):
+            return {"synced": 0, "updated": 0, "errors": ["Missing required credentials. NetSuite requires Account ID, Consumer Key, Consumer Secret, Token ID, and Token Secret."]}
+        
+        # NetSuite uses Token-Based Authentication (TBA), not OAuth
+        # The full implementation requires OAuth 1.0a signature generation
+        # which is complex. Here's a framework:
+        
+        base_url = f"https://{account_id}.suitetalk.api.netsuite.com/services/rest"
+        
+        synced_count = 0
+        updated_count = 0
+        errors = []
+        
+        try:
+            # NetSuite requires OAuth 1.0a signature
+            # For a complete implementation, you would use the requests-oauthlib library
+            # with OAuth1 authentication
+            
+            from oauthlib.oauth1 import Client
+            from requests_oauthlib import OAuth1
+            
+            oauth = OAuth1(
+                consumer_key,
+                client_secret=consumer_secret,
+                resource_owner_key=token_id,
+                resource_owner_secret=token_secret,
+                realm=account_id,
+                signature_method='HMAC-SHA256'
+            )
+            
+            headers = {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            }
+            
+            # 1. Fetch Chart of Accounts
+            accounts_url = f"{base_url}/record/v1/account"
+            accounts_response = requests.get(accounts_url, auth=oauth, headers=headers, timeout=30)
+            
+            if accounts_response.status_code == 200:
+                accounts_data = accounts_response.json()
+                accounts = accounts_data.get("items", [])
+                
+                for account in accounts:
+                    account_doc = {
+                        "integration_name": "netsuite",
+                        "account_id": account.get("id"),
+                        "account_name": account.get("acctName"),
+                        "account_type": account.get("acctType"),
+                        "account_number": account.get("acctNumber"),
+                        "balance": account.get("balance", 0),
+                        "synced_at": datetime.utcnow().isoformat()
+                    }
+                    
+                    result = financial_accounts_collection.update_one(
+                        {"integration_name": "netsuite", "account_id": account.get("id")},
+                        {"$set": account_doc},
+                        upsert=True
+                    )
+                    
+                    if result.upserted_id:
+                        synced_count += 1
+                    else:
+                        updated_count += 1
+            else:
+                errors.append(f"Failed to fetch accounts: {accounts_response.status_code} - {accounts_response.text}")
+            
+            # 2. Fetch Vendors
+            vendors_url = f"{base_url}/record/v1/vendor"
+            vendors_response = requests.get(vendors_url, auth=oauth, headers=headers, timeout=30)
+            
+            if vendors_response.status_code == 200:
+                vendors_data = vendors_response.json()
+                vendors = vendors_data.get("items", [])
+                
+                for vendor in vendors:
+                    vendor_doc = {
+                        "integration_name": "netsuite",
+                        "entity_id": vendor.get("id"),
+                        "entity_name": vendor.get("companyName") or vendor.get("entityId"),
+                        "entity_type": "vendor",
+                        "email": vendor.get("email"),
+                        "balance": vendor.get("balance", 0),
+                        "synced_at": datetime.utcnow().isoformat()
+                    }
+                    
+                    vendors_customers_collection.update_one(
+                        {"integration_name": "netsuite", "entity_id": vendor.get("id"), "entity_type": "vendor"},
+                        {"$set": vendor_doc},
+                        upsert=True
+                    )
+                    synced_count += 1
+            
+            # 3. Fetch Customers
+            customers_url = f"{base_url}/record/v1/customer"
+            customers_response = requests.get(customers_url, auth=oauth, headers=headers, timeout=30)
+            
+            if customers_response.status_code == 200:
+                customers_data = customers_response.json()
+                customers = customers_data.get("items", [])
+                
+                for customer in customers:
+                    customer_doc = {
+                        "integration_name": "netsuite",
+                        "entity_id": customer.get("id"),
+                        "entity_name": customer.get("companyName") or customer.get("entityId"),
+                        "entity_type": "customer",
+                        "email": customer.get("email"),
+                        "balance": customer.get("balance", 0),
+                        "synced_at": datetime.utcnow().isoformat()
+                    }
+                    
+                    vendors_customers_collection.update_one(
+                        {"integration_name": "netsuite", "entity_id": customer.get("id"), "entity_type": "customer"},
+                        {"$set": customer_doc},
+                        upsert=True
+                    )
+                    synced_count += 1
+            
+        except ImportError:
+            errors.append("NetSuite integration requires 'requests-oauthlib' library. Please install it.")
+        except requests.exceptions.RequestException as e:
+            errors.append(f"API request error: {str(e)}")
+        
+        return {
+            "synced": synced_count,
+            "updated": updated_count,
+            "errors": errors if errors else []
+        }
+            
+    except Exception as e:
+        return {"synced": 0, "updated": 0, "errors": [str(e)]}
+
+
 # ==================== ADMIN GAMIFICATION MANAGEMENT ====================
 
 # Achievement Management
