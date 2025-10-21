@@ -241,6 +241,35 @@ function ChatWithSpaces() {
     }
   };
 
+  const handleFileUploaded = (fileData) => {
+    if (!socket || !selectedChat) return;
+    
+    // Send file message through socket
+    socket.emit('send_message', {
+      chat_id: selectedChat.id,
+      content: fileData.filename,
+      type: fileData.category, // 'image', 'document', or 'video'
+      file_url: fileData.url,
+      file_id: fileData.id
+    });
+    
+    setShowFileUpload(false);
+  };
+
+  const handleGifSelected = (gifUrl) => {
+    if (!socket || !selectedChat) return;
+    
+    // Send GIF as image message
+    socket.emit('send_message', {
+      chat_id: selectedChat.id,
+      content: 'GIF',
+      type: 'image',
+      file_url: gifUrl
+    });
+    
+    setShowGifPicker(false);
+  };
+
   const handleTyping = (e) => {
     setNewMessage(e.target.value);
     
