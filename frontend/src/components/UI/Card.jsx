@@ -8,14 +8,17 @@ const Card = ({
   footer,
   padding = true,
   hover = false,
+  gradient = false,
   className = '',
   ...props 
 }) => {
+  const baseClasses = 'bg-white dark:bg-primary-800 rounded-xl border border-gray-200 dark:border-primary-700 shadow-soft';
+  const hoverClasses = hover ? 'hover:shadow-large hover:-translate-y-1 transition-all duration-300 hover-lift' : '';
+  const gradientClasses = gradient ? 'bg-gradient-to-br from-white to-gray-50 dark:from-primary-800 dark:to-primary-900' : '';
+  
   return (
     <div 
-      className={`bg-white dark:bg-primary-800 rounded-lg border border-gray-200 dark:border-primary-700 shadow-sm ${
-        hover ? 'hover:shadow-medium transition-shadow duration-200' : ''
-      } ${className}`}
+      className={`${baseClasses} ${hoverClasses} ${gradientClasses} ${className}`}
       {...props}
     >
       {(title || headerAction) && (
@@ -41,7 +44,7 @@ const Card = ({
       </div>
       
       {footer && (
-        <div className="px-6 py-4 border-t border-gray-200 dark:border-primary-700 bg-gray-50 dark:bg-primary-900 rounded-b-lg">
+        <div className="px-6 py-4 border-t border-gray-200 dark:border-primary-700 bg-gray-50 dark:bg-primary-900 rounded-b-xl">
           {footer}
         </div>
       )}
