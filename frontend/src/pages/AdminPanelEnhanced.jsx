@@ -1241,4 +1241,295 @@ const EditRewardModal = ({ reward, darkMode, onSave, onClose }) => {
   );
 };
 
+// Create User Modal
+const CreateUserModal = ({ darkMode, onSave, onClose }) => {
+  const [formData, setFormData] = useState({
+    username: '',
+    email: '',
+    password: '',
+    full_name: '',
+    role: 'employee',
+    department: '',
+    team: '',
+    points: 0
+  });
+
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const newErrors = {};
+    
+    if (!formData.username) newErrors.username = 'Username is required';
+    if (!formData.email) newErrors.email = 'Email is required';
+    if (!formData.password) newErrors.password = 'Password is required';
+    if (formData.password && formData.password.length < 8) newErrors.password = 'Password must be at least 8 characters';
+    if (!formData.full_name) newErrors.full_name = 'Full name is required';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (validate()) {
+      onSave(formData);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" data-testid="create-user-modal">
+      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl max-w-2xl w-full mx-4 p-6 max-h-[90vh] overflow-y-auto`}>
+        <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Create New User</h2>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Username *
+            </label>
+            <input
+              type="text"
+              value={formData.username}
+              onChange={(e) => setFormData({...formData, username: e.target.value})}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
+              placeholder="john_doe"
+            />
+            {errors.username && <p className="text-red-500 text-xs mt-1">{errors.username}</p>}
+          </div>
+
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Email *
+            </label>
+            <input
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({...formData, email: e.target.value})}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
+              placeholder="john@company.com"
+            />
+            {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+          </div>
+
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Password *
+            </label>
+            <input
+              type="password"
+              value={formData.password}
+              onChange={(e) => setFormData({...formData, password: e.target.value})}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
+              placeholder="Min 8 characters"
+            />
+            {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+          </div>
+
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Full Name *
+            </label>
+            <input
+              type="text"
+              value={formData.full_name}
+              onChange={(e) => setFormData({...formData, full_name: e.target.value})}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
+              placeholder="John Doe"
+            />
+            {errors.full_name && <p className="text-red-500 text-xs mt-1">{errors.full_name}</p>}
+          </div>
+
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Role
+            </label>
+            <select
+              value={formData.role}
+              onChange={(e) => setFormData({...formData, role: e.target.value})}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
+            >
+              <option value="employee">Employee</option>
+              <option value="team_lead">Team Lead</option>
+              <option value="manager">Manager</option>
+              <option value="department_head">Department Head</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Department
+            </label>
+            <input
+              type="text"
+              value={formData.department}
+              onChange={(e) => setFormData({...formData, department: e.target.value})}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
+              placeholder="Engineering"
+            />
+          </div>
+
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Team
+            </label>
+            <input
+              type="text"
+              value={formData.team}
+              onChange={(e) => setFormData({...formData, team: e.target.value})}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
+              placeholder="Alpha"
+            />
+          </div>
+
+          <div>
+            <label className={`block text-sm font-medium mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              Initial Points
+            </label>
+            <input
+              type="number"
+              value={formData.points}
+              onChange={(e) => setFormData({...formData, points: parseInt(e.target.value) || 0})}
+              className={`w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'border-gray-300'}`}
+              placeholder="0"
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-3 mt-6">
+          <button
+            onClick={handleSubmit}
+            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+            data-testid="save-user-button"
+          >
+            Create User
+          </button>
+          <button
+            onClick={onClose}
+            className={`flex-1 px-4 py-2 rounded-lg transition ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Import Users Modal
+const ImportUsersModal = ({ darkMode, onImport, onDownloadTemplate, onClose }) => {
+  const [file, setFile] = useState(null);
+  const [dragActive, setDragActive] = useState(false);
+
+  const handleDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      setFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleChange = (e) => {
+    e.preventDefault();
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0]);
+    }
+  };
+
+  const handleImport = () => {
+    if (file) {
+      onImport(file);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-2xl max-w-lg w-full mx-4 p-6`}>
+        <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>Import Users</h2>
+        
+        <div className="mb-6">
+          <p className={`text-sm mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+            Upload a CSV file with user information. Need a template?
+          </p>
+          <button
+            onClick={onDownloadTemplate}
+            className="text-blue-500 hover:text-blue-600 text-sm font-medium"
+          >
+            Download CSV Template
+          </button>
+        </div>
+
+        <div
+          className={`border-2 border-dashed rounded-lg p-8 text-center ${
+            dragActive 
+              ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20' 
+              : darkMode 
+                ? 'border-gray-600 bg-gray-700' 
+                : 'border-gray-300 bg-gray-50'
+          }`}
+          onDragEnter={handleDrag}
+          onDragLeave={handleDrag}
+          onDragOver={handleDrag}
+          onDrop={handleDrop}
+        >
+          <input
+            type="file"
+            accept=".csv"
+            onChange={handleChange}
+            className="hidden"
+            id="file-upload"
+          />
+          <label htmlFor="file-upload" className="cursor-pointer">
+            <FaUsers className={`mx-auto text-4xl mb-4 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`} />
+            <p className={`text-sm mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              {file ? file.name : 'Drag & drop CSV file here or click to browse'}
+            </p>
+            <p className={`text-xs ${darkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+              CSV files only
+            </p>
+          </label>
+        </div>
+
+        <div className={`mt-4 p-4 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-blue-50'}`}>
+          <p className={`text-xs ${darkMode ? 'text-gray-400' : 'text-blue-800'}`}>
+            <strong>CSV Format:</strong> username, email, password, full_name, role, department, team, points
+          </p>
+        </div>
+
+        <div className="flex items-center space-x-3 mt-6">
+          <button
+            onClick={handleImport}
+            disabled={!file}
+            className={`flex-1 px-4 py-2 rounded-lg transition ${
+              file 
+                ? 'bg-green-500 text-white hover:bg-green-600' 
+                : darkMode 
+                  ? 'bg-gray-700 text-gray-500 cursor-not-allowed' 
+                  : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            Import Users
+          </button>
+          <button
+            onClick={onClose}
+            className={`flex-1 px-4 py-2 rounded-lg transition ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default AdminPanelEnhanced;
