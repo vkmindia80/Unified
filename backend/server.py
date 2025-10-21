@@ -1959,13 +1959,22 @@ async def get_integrations(current_user = Depends(get_current_user)):
                 "description": "Invoicing and accounting for small businesses",
                 "type": "accounting_system",
                 "api_key": "",
-                "config": {"client_secret": "", "account_id": "", "redirect_uri": ""},
+                "config": {
+                    "client_secret": "", 
+                    "account_id": "", 
+                    "redirect_uri": "",
+                    "access_token": "",
+                    "refresh_token": "",
+                    "token_expiry": ""
+                },
                 "enabled": False,
                 "fields": [
                     {"name": "api_key", "label": "Client ID", "type": "text", "required": True},
                     {"name": "client_secret", "label": "Client Secret", "type": "password", "required": True},
                     {"name": "account_id", "label": "Account ID", "type": "text", "required": True},
-                    {"name": "redirect_uri", "label": "Redirect URI", "type": "text", "required": True, "placeholder": "https://yourapp.com/freshbooks/callback"}
+                    {"name": "redirect_uri", "label": "Redirect URI", "type": "text", "required": False, "placeholder": "https://yourapp.com/freshbooks/callback"},
+                    {"name": "access_token", "label": "Access Token", "type": "password", "required": False, "placeholder": "Paste your OAuth access token here"},
+                    {"name": "refresh_token", "label": "Refresh Token", "type": "password", "required": False, "placeholder": "Paste your OAuth refresh token here"}
                 ],
                 "updated_at": datetime.utcnow().isoformat()
             },
