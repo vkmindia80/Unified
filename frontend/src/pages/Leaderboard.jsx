@@ -48,7 +48,7 @@ function Leaderboard() {
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-3">
             <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center">
-              <FiTrophy className="w-7 h-7 text-white" />
+              <FaTrophy className="w-7 h-7 text-white" />
             </div>
             <div>
               <h1 className="text-3xl font-bold text-primary-900 dark:text-white">Leaderboard</h1>
