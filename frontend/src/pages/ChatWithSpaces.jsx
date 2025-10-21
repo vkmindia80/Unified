@@ -715,6 +715,24 @@ function ChatWithSpaces() {
           </div>
         </div>
       )}
+
+      {/* File Upload Modal */}
+      {showFileUpload && selectedChat && (
+        <FileUpload
+          chatId={selectedChat.id}
+          onClose={() => setShowFileUpload(false)}
+          onFileUploaded={handleFileUploaded}
+        />
+      )}
+
+      {/* GIF Picker Modal */}
+      {showGifPicker && selectedChat && (
+        <GifPicker
+          chatId={selectedChat.id}
+          onClose={() => setShowGifPicker(false)}
+          onGifSelected={handleGifSelected}
+        />
+      )}
     </div>
   );
 }
