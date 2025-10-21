@@ -1985,6 +1985,404 @@ async def comment_on_recognition(recognition_id: str, comment_data: dict, curren
     return {"success": True, "comment": comment}
 
 
+
+# ==================== POLLS & SURVEYS ====================
+
+@app.post("/api/polls")
+async def create_poll(poll: PollCreate, current_user = Depends(get_current_user)):
+    """Create a new poll (admin only)"""
+    # Check permissions
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Only admins can create polls")
+    
+    poll_id = str(uuid.uuid4())
+    
+    # Convert questions to dict format
+    questions_data = []
+    for q in poll.questions:
+        question_dict = {
+            "question": q.question,
+            "type": q.type,
+            "required": q.required
+        }
+        if q.options:
+            question_dict["options"] = [{"id": opt.id, "text": opt.text} for opt in q.options]
+        if q.rating_scale:
+            question_dict["rating_scale"] = q.rating_scale
+        questions_data.append(question_dict)
+    
+    poll_doc = {
+        "id": poll_id,
+        "title": poll.title,
+        "description": poll.description,
+        "questions": questions_data,
+        "anonymous_voting": poll.anonymous_voting,
+        "show_results_before_close": poll.show_results_before_close,
+        "expires_at": poll.expires_at,
+        "target_audience": poll.target_audience,
+        "target_value": poll.target_value,
+        "created_by": current_user["id"],
+        "created_at": datetime.utcnow().isoformat(),
+        "status": "active",  # "active", "closed"
+        "total_votes": 0
+    }
+    
+    polls_collection.insert_one(poll_doc)
+    poll_doc["_id"] = str(poll_doc["_id"])
+    
+    # Get creator details
+    creator = users_collection.find_one({"id": current_user["id"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1, "role": 1})
+    if creator:
+        creator["_id"] = str(creator["_id"])
+        poll_doc["created_by_user"] = creator
+    
+    # Award points for creating poll
+    award_points(current_user["id"], 3, "Created poll", "poll_creation")
+    
+    # Broadcast new poll via Socket.IO
+    await sio.emit("new_poll", poll_doc)
+    
+    return poll_doc
+
+@app.get("/api/polls")
+async def get_polls(
+    current_user = Depends(get_current_user),
+    status: Optional[str] = None,
+    show_expired: bool = False
+):
+    """Get polls visible to current user"""
+    query = {}
+    
+    # Filter by target audience
+    or_conditions = [
+        {"target_audience": "all"},
+        {"target_audience": "department", "target_value": current_user.get("department")},
+        {"target_audience": "team", "target_value": current_user.get("team")},
+        {"target_audience": "role", "target_value": current_user.get("role")}
+    ]
+    query["$or"] = or_conditions
+    
+    # Filter by status if specified
+    if status:
+        query["status"] = status
+    
+    # Filter expired polls
+    if not show_expired:
+        current_time = datetime.utcnow().isoformat()
+        query["$and"] = [
+            {"$or": [
+                {"expires_at": None},
+                {"expires_at": {"$gte": current_time}}
+            ]}
+        ]
+    
+    polls = list(polls_collection.find(query).sort("created_at", -1).limit(100))
+    
+    for poll in polls:
+        poll["_id"] = str(poll["_id"])
+        
+        # Get creator details
+        creator = users_collection.find_one({"id": poll["created_by"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1, "role": 1})
+        if creator:
+            creator["_id"] = str(creator["_id"])
+            poll["created_by_user"] = creator
+        
+        # Check if current user has voted
+        user_response = poll_responses_collection.find_one({
+            "poll_id": poll["id"],
+            "user_id": current_user["id"]
+        })
+        poll["has_voted"] = bool(user_response)
+        
+        # Get vote count
+        vote_count = poll_responses_collection.count_documents({"poll_id": poll["id"]})
+        poll["total_votes"] = vote_count
+    
+    return polls
+
+@app.get("/api/polls/{poll_id}")
+async def get_poll(poll_id: str, current_user = Depends(get_current_user)):
+    """Get a specific poll with details"""
+    poll = polls_collection.find_one({"id": poll_id})
+    if not poll:
+        raise HTTPException(status_code=404, detail="Poll not found")
+    
+    poll["_id"] = str(poll["_id"])
+    
+    # Get creator details
+    creator = users_collection.find_one({"id": poll["created_by"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1, "role": 1})
+    if creator:
+        creator["_id"] = str(creator["_id"])
+        poll["created_by_user"] = creator
+    
+    # Check if current user has voted
+    user_response = poll_responses_collection.find_one({
+        "poll_id": poll_id,
+        "user_id": current_user["id"]
+    })
+    poll["has_voted"] = bool(user_response)
+    if user_response:
+        user_response["_id"] = str(user_response["_id"])
+        poll["user_response"] = user_response
+    
+    # Get vote count
+    vote_count = poll_responses_collection.count_documents({"poll_id": poll_id})
+    poll["total_votes"] = vote_count
+    
+    return poll
+
+@app.put("/api/polls/{poll_id}")
+async def update_poll(
+    poll_id: str,
+    update_data: PollUpdate,
+    current_user = Depends(get_current_user)
+):
+    """Update a poll (creator or admin only)"""
+    poll = polls_collection.find_one({"id": poll_id})
+    if not poll:
+        raise HTTPException(status_code=404, detail="Poll not found")
+    
+    # Check permissions
+    if poll["created_by"] != current_user["id"] and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized to update this poll")
+    
+    update_fields = {k: v for k, v in update_data.dict().items() if v is not None}
+    
+    if update_fields:
+        polls_collection.update_one(
+            {"id": poll_id},
+            {"$set": update_fields}
+        )
+    
+    updated = polls_collection.find_one({"id": poll_id})
+    updated["_id"] = str(updated["_id"])
+    
+    return updated
+
+@app.delete("/api/polls/{poll_id}")
+async def delete_poll(poll_id: str, current_user = Depends(get_current_user)):
+    """Delete a poll (creator or admin only)"""
+    poll = polls_collection.find_one({"id": poll_id})
+    if not poll:
+        raise HTTPException(status_code=404, detail="Poll not found")
+    
+    # Check permissions
+    if poll["created_by"] != current_user["id"] and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized to delete this poll")
+    
+    # Delete poll and all responses
+    polls_collection.delete_one({"id": poll_id})
+    poll_responses_collection.delete_many({"poll_id": poll_id})
+    
+    return {"success": True, "message": "Poll deleted"}
+
+@app.post("/api/polls/{poll_id}/vote")
+async def vote_on_poll(poll_id: str, vote: PollVoteCreate, current_user = Depends(get_current_user)):
+    """Submit a vote on a poll"""
+    poll = polls_collection.find_one({"id": poll_id})
+    if not poll:
+        raise HTTPException(status_code=404, detail="Poll not found")
+    
+    # Check if poll is still active
+    if poll.get("status") == "closed":
+        raise HTTPException(status_code=400, detail="Poll is closed")
+    
+    # Check if poll has expired
+    if poll.get("expires_at"):
+        if datetime.utcnow().isoformat() > poll["expires_at"]:
+            # Auto-close expired poll
+            polls_collection.update_one(
+                {"id": poll_id},
+                {"$set": {"status": "closed"}}
+            )
+            raise HTTPException(status_code=400, detail="Poll has expired")
+    
+    # Check if user has already voted (unless anonymous voting is enabled)
+    if not poll.get("anonymous_voting"):
+        existing_vote = poll_responses_collection.find_one({
+            "poll_id": poll_id,
+            "user_id": current_user["id"]
+        })
+        if existing_vote:
+            raise HTTPException(status_code=400, detail="You have already voted on this poll")
+    
+    # Validate answers match poll questions
+    if len(vote.answers) != len(poll["questions"]):
+        raise HTTPException(status_code=400, detail="Number of answers doesn't match number of questions")
+    
+    # Convert answers to dict format
+    answers_data = []
+    for answer in vote.answers:
+        answer_dict = {
+            "question_index": answer.question_index,
+            "answer_type": answer.answer_type
+        }
+        if answer.selected_option_ids:
+            answer_dict["selected_option_ids"] = answer.selected_option_ids
+        if answer.rating_value is not None:
+            answer_dict["rating_value"] = answer.rating_value
+        if answer.text_answer:
+            answer_dict["text_answer"] = answer.text_answer
+        answers_data.append(answer_dict)
+    
+    # Create response document
+    response_id = str(uuid.uuid4())
+    response_doc = {
+        "id": response_id,
+        "poll_id": poll_id,
+        "user_id": current_user["id"] if not vote.is_anonymous else "anonymous",
+        "is_anonymous": vote.is_anonymous,
+        "answers": answers_data,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    
+    poll_responses_collection.insert_one(response_doc)
+    
+    # Update poll total_votes
+    vote_count = poll_responses_collection.count_documents({"poll_id": poll_id})
+    polls_collection.update_one(
+        {"id": poll_id},
+        {"$set": {"total_votes": vote_count}}
+    )
+    
+    # Award points for voting (only if not anonymous)
+    if not vote.is_anonymous:
+        award_points(current_user["id"], 1, f"Voted on poll: {poll['title']}", "poll_vote")
+    
+    # Broadcast vote via Socket.IO
+    await sio.emit("poll_voted", {
+        "poll_id": poll_id,
+        "total_votes": vote_count
+    })
+    
+    return {"success": True, "message": "Vote submitted successfully", "points_awarded": 1 if not vote.is_anonymous else 0}
+
+@app.get("/api/polls/{poll_id}/results")
+async def get_poll_results(poll_id: str, current_user = Depends(get_current_user)):
+    """Get poll results and analytics"""
+    poll = polls_collection.find_one({"id": poll_id})
+    if not poll:
+        raise HTTPException(status_code=404, detail="Poll not found")
+    
+    # Check if results should be shown
+    if not poll.get("show_results_before_close") and poll.get("status") != "closed":
+        # Check if user is admin or poll creator
+        if current_user["role"] != "admin" and poll["created_by"] != current_user["id"]:
+            raise HTTPException(status_code=403, detail="Results are hidden until poll closes")
+    
+    # Get all responses
+    responses = list(poll_responses_collection.find({"poll_id": poll_id}))
+    
+    # Aggregate results for each question
+    results = []
+    for q_idx, question in enumerate(poll["questions"]):
+        question_result = {
+            "question": question["question"],
+            "type": question["type"],
+            "total_responses": 0
+        }
+        
+        if question["type"] in ["single_choice", "multiple_choice"]:
+            # Count votes for each option
+            option_counts = {}
+            for option in question.get("options", []):
+                option_counts[option["id"]] = {
+                    "text": option["text"],
+                    "count": 0,
+                    "percentage": 0
+                }
+            
+            for response in responses:
+                for answer in response.get("answers", []):
+                    if answer["question_index"] == q_idx:
+                        if answer.get("selected_option_ids"):
+                            for option_id in answer["selected_option_ids"]:
+                                if option_id in option_counts:
+                                    option_counts[option_id]["count"] += 1
+            
+            # Calculate percentages
+            total_votes = sum(opt["count"] for opt in option_counts.values())
+            for option_id in option_counts:
+                if total_votes > 0:
+                    option_counts[option_id]["percentage"] = round((option_counts[option_id]["count"] / total_votes) * 100, 1)
+            
+            question_result["options"] = option_counts
+            question_result["total_responses"] = total_votes
+            
+        elif question["type"] == "rating":
+            # Aggregate rating values
+            ratings = []
+            for response in responses:
+                for answer in response.get("answers", []):
+                    if answer["question_index"] == q_idx and answer.get("rating_value"):
+                        ratings.append(answer["rating_value"])
+            
+            if ratings:
+                question_result["average_rating"] = round(sum(ratings) / len(ratings), 2)
+                question_result["rating_distribution"] = {}
+                for i in range(1, question.get("rating_scale", 5) + 1):
+                    count = ratings.count(i)
+                    question_result["rating_distribution"][str(i)] = {
+                        "count": count,
+                        "percentage": round((count / len(ratings)) * 100, 1) if len(ratings) > 0 else 0
+                    }
+                question_result["total_responses"] = len(ratings)
+            else:
+                question_result["average_rating"] = 0
+                question_result["rating_distribution"] = {}
+                question_result["total_responses"] = 0
+                
+        elif question["type"] == "open_ended":
+            # Collect text responses
+            text_responses = []
+            for response in responses:
+                for answer in response.get("answers", []):
+                    if answer["question_index"] == q_idx and answer.get("text_answer"):
+                        text_response = {
+                            "text": answer["text_answer"],
+                            "created_at": response.get("created_at")
+                        }
+                        # Add user info if not anonymous
+                        if not response.get("is_anonymous"):
+                            user = users_collection.find_one({"id": response["user_id"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1})
+                            if user:
+                                user["_id"] = str(user["_id"])
+                                text_response["user"] = user
+                        text_responses.append(text_response)
+            
+            question_result["text_responses"] = text_responses
+            question_result["total_responses"] = len(text_responses)
+        
+        results.append(question_result)
+    
+    return {
+        "poll_id": poll_id,
+        "poll_title": poll["title"],
+        "total_votes": len(responses),
+        "results": results
+    }
+
+@app.post("/api/polls/{poll_id}/close")
+async def close_poll(poll_id: str, current_user = Depends(get_current_user)):
+    """Close a poll manually (creator or admin only)"""
+    poll = polls_collection.find_one({"id": poll_id})
+    if not poll:
+        raise HTTPException(status_code=404, detail="Poll not found")
+    
+    # Check permissions
+    if poll["created_by"] != current_user["id"] and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized to close this poll")
+    
+    polls_collection.update_one(
+        {"id": poll_id},
+        {"$set": {"status": "closed"}}
+    )
+    
+    # Broadcast poll closed event
+    await sio.emit("poll_closed", {"poll_id": poll_id})
+    
+    return {"success": True, "message": "Poll closed successfully"}
+
 # ==================== SPACES & SUBSPACES ====================
 
 @app.post("/api/spaces")
