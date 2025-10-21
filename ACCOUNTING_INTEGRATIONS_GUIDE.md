@@ -260,28 +260,40 @@ All accounting integrations are now ready to:
 
 ### Common Issues
 
-#### 1. "OAuth flow needs to be implemented"
-- **Cause**: Full OAuth implementation not yet complete
-- **Solution**: Framework is ready; requires OAuth middleware
-- **Workaround**: Store tokens manually if available
+#### 1. "Missing Access Token"
+- **Cause**: Access token not provided
+- **Solution**: Obtain OAuth access token from accounting system developer portal
+- **How to get token**: Use OAuth Playground, Postman, or the system's developer console
+- **Steps**: Complete OAuth flow manually and paste the access token in the configuration
 
 #### 2. "Connection test failed"
-- Verify all required fields are filled
-- Check OAuth credentials are correct
-- Ensure redirect URI matches exactly
-- Verify API access is enabled in accounting system
+- Verify access token is valid and not expired
+- Check all required fields are filled (Client ID, Company ID, Tenant ID, etc.)
+- Ensure API access is enabled in your accounting system
+- Verify you have the correct permissions/scopes
 
-#### 3. "Sync failed"
+#### 3. "Access token expired"
+- **Cause**: OAuth tokens have limited lifespan (1 hour for QuickBooks, 30 min for Xero, etc.)
+- **Solution**: Provide a refresh token for automatic renewal
+- **Alternative**: Manually obtain a new access token and update configuration
+
+#### 4. "Sync failed"
 - Check if accounting system API is accessible
-- Verify OAuth tokens haven't expired
-- Review API rate limits
-- Check network/firewall settings
+- Verify you have read permissions for financial data
+- Review API rate limits (may need to wait before retrying)
+- Check error messages in sync response for specific issues
 
-#### 4. "No data synced"
-- Verify API permissions allow reading financial data
+#### 5. "No data synced"
+- Verify API permissions/scopes allow reading financial data
 - Check if accounting system has data to sync
-- Review error messages in sync response
-- Ensure correct scopes are granted
+- Ensure your account has access to the data (e.g., chart of accounts)
+- Review error messages for permission issues
+
+#### 6. "NetSuite authentication failed"
+- NetSuite uses Token-Based Authentication (TBA), not OAuth
+- Ensure all 5 credentials are provided: Account ID, Consumer Key, Consumer Secret, Token ID, Token Secret
+- Verify TBA is enabled in NetSuite: Setup > Company > Enable Features
+- Check that the integration record is active
 
 ## Security Best Practices
 
