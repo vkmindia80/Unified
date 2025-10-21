@@ -210,9 +210,9 @@ const Register = () => {
 
           {/* Sign In Link */}
           <div className="mt-6 text-center">
-            <p className="text-sm text-primary-600">
+            <p className="text-sm text-primary-600 dark:text-primary-400">
               Already have an account?{' '}
-              <Link to="/login" className="font-medium text-corporate-600 hover:text-corporate-700" data-testid="login-link">
+              <Link to="/login" className="font-semibold text-corporate-600 hover:text-corporate-700 dark:text-corporate-400 dark:hover:text-corporate-300 transition-colors" data-testid="login-link">
                 Sign in
               </Link>
             </p>
@@ -220,7 +220,7 @@ const Register = () => {
         </div>
 
         {/* Footer */}
-        <p className="mt-8 text-center text-xs text-primary-500">
+        <p className="mt-8 text-center text-xs text-primary-500 dark:text-primary-400 animate-fade-in">
           By creating an account, you agree to our Terms of Service and Privacy Policy.
         </p>
       </div>
