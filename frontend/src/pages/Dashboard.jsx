@@ -237,11 +237,11 @@ const Dashboard = () => {
   return (
     <Layout>
       {/* Welcome Section */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-primary-900 dark:text-white mb-2">
+      <div className="mb-8 animate-slide-up">
+        <h1 className="text-4xl font-bold text-primary-900 dark:text-white mb-2">
           Welcome back, {user?.full_name?.split(' ')[0] || 'User'}! 👋
         </h1>
-        <p className="text-primary-600 dark:text-primary-400">
+        <p className="text-lg text-primary-600 dark:text-primary-400">
           Here's what's happening with your team today.
         </p>
       </div>
