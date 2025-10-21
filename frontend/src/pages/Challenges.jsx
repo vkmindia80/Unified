@@ -105,7 +105,7 @@ function Challenges() {
               <p className="text-sm font-medium text-blue-700 dark:text-blue-400 mb-1">Active</p>
               <p className="text-3xl font-bold text-blue-900 dark:text-blue-300">{activeCount}</p>
             </div>
-            <FiFire className="w-12 h-12 text-blue-500" />
+            <FaFire className="w-12 h-12 text-blue-500" />
           </div>
         </Card>
       </div>
@@ -123,7 +123,7 @@ function Challenges() {
             data-testid="filter-active"
           >
             <span className="flex items-center justify-center space-x-2">
-              <FiFire className="w-4 h-4" />
+              <FaFire className="w-4 h-4" />
               <span>Active ({activeCount})</span>
             </span>
           </button>
