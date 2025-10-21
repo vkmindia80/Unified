@@ -31,6 +31,10 @@ function Chat() {
   const [callTarget, setCallTarget] = useState(null);
   const [callType, setCallType] = useState('video');
   const [incomingCall, setIncomingCall] = useState(null);
+  const [showFileUpload, setShowFileUpload] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState([]);
+  const [imageGallery, setImageGallery] = useState(null);
   
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
