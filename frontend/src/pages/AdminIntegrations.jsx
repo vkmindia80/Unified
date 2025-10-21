@@ -226,6 +226,72 @@ function AdminIntegrations() {
           </ol>
         </div>
       ),
+      'slack': (
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+          <p className="mb-1 font-semibold">Setup Instructions:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Visit <a href="https://api.slack.com/apps" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">api.slack.com/apps</a></li>
+            <li>Create a new app or select an existing one</li>
+            <li>Go to "OAuth & Permissions" and add scopes: <code className="bg-gray-700 px-1 rounded">chat:write</code>, <code className="bg-gray-700 px-1 rounded">channels:read</code></li>
+            <li>Install the app to your workspace and copy the "Bot User OAuth Token"</li>
+            <li>Optional: Set up an Incoming Webhook for simpler messaging</li>
+          </ol>
+          <p className="mt-2 text-xs italic">💡 Tip: Use webhook URL for quick setup, or bot token for advanced features.</p>
+        </div>
+      ),
+      'microsoft_teams': (
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+          <p className="mb-1 font-semibold">Setup Instructions:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Open Microsoft Teams and navigate to the channel you want to post to</li>
+            <li>Click the "..." menu next to the channel name {'>'} Connectors</li>
+            <li>Search for "Incoming Webhook" and click "Configure"</li>
+            <li>Give it a name (e.g., "Enterprise Bot") and optionally upload an image</li>
+            <li>Copy the webhook URL and paste it above</li>
+          </ol>
+          <p className="mt-2 text-xs italic">💡 Tip: You can create multiple webhooks for different channels.</p>
+        </div>
+      ),
+      'discord': (
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+          <p className="mb-1 font-semibold">Setup Instructions:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li><strong>Option A (Webhook - Easiest):</strong> Edit channel {'>'} Integrations {'>'} Webhooks {'>'} New Webhook</li>
+            <li><strong>Option B (Bot):</strong> Visit <a href="https://discord.com/developers/applications" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">discord.com/developers</a></li>
+            <li>Create a new application {'>'} Bot {'>'} Add Bot</li>
+            <li>Copy the bot token and enable required intents (Message Content Intent)</li>
+            <li>Invite bot to your server using OAuth2 URL Generator</li>
+          </ol>
+          <p className="mt-2 text-xs italic">💡 Tip: Webhooks are simpler for one-way messaging; bots offer more control.</p>
+        </div>
+      ),
+      'telegram': (
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+          <p className="mb-1 font-semibold">Setup Instructions:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Open Telegram and search for <strong>@BotFather</strong></li>
+            <li>Send <code className="bg-gray-700 px-1 rounded">/newbot</code> and follow instructions</li>
+            <li>Copy the bot token (format: 123456:ABC-DEF1234ghIkl...)</li>
+            <li>Add your bot to a group or channel</li>
+            <li>To get Chat ID: Add <strong>@userinfobot</strong> to get your chat/group ID</li>
+            <li>Or use: <code className="bg-gray-700 px-1 rounded">https://api.telegram.org/bot{'<token>'}/getUpdates</code></li>
+          </ol>
+          <p className="mt-2 text-xs italic">💡 Tip: For channels, Chat ID starts with -100. For groups, it starts with -.</p>
+        </div>
+      ),
+      'twilio': (
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+          <p className="mb-1 font-semibold">Setup Instructions:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Visit <a href="https://www.twilio.com/console" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">twilio.com/console</a></li>
+            <li>Sign up for a free trial or log in to your account</li>
+            <li>Copy your Account SID and Auth Token from the dashboard</li>
+            <li>Go to Phone Numbers {'>'} Buy a Number (or use trial number)</li>
+            <li>For WhatsApp: Join the Twilio Sandbox or request WhatsApp Business approval</li>
+          </ol>
+          <p className="mt-2 text-xs italic">💡 Tip: Trial accounts can only send to verified numbers. Upgrade for production use.</p>
+        </div>
+      ),
       'bamboohr': (
         <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
           <p className="mb-1">To get BambooHR API credentials:</p>
