@@ -175,11 +175,11 @@ function Leaderboard() {
       )}
 
       {/* Full Leaderboard Table */}
-      <Card title="All Rankings" className="overflow-hidden">
+      <Card title="All Rankings" className="overflow-hidden animate-slide-up">
         {loading ? (
           <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading leaderboard...</div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto scrollbar-thin">
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-primary-800 border-b border-gray-200 dark:border-primary-700">
                 <tr>
