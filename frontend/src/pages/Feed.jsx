@@ -270,41 +270,33 @@ function Feed() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-primary-800 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+              <h2 className="text-2xl font-bold mb-4 text-primary-900 dark:text-white">
                 Create Announcement
               </h2>
               <form onSubmit={handleCreateAnnouncement} className="space-y-4">
                 <div>
-                  <label className={`block mb-2 font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
                     Title *
                   </label>
                   <input
                     type="text"
                     value={newAnnouncement.title}
                     onChange={(e) => setNewAnnouncement({...newAnnouncement, title: e.target.value})}
-                    className={`w-full px-4 py-2 rounded-lg border ${
-                      darkMode 
-                        ? 'bg-gray-700 border-gray-600 text-white' 
-                        : 'bg-white border-gray-300 text-gray-900'
-                    } focus:ring-2 focus:ring-blue-500`}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-primary-600 focus:ring-2 focus:ring-corporate-500 dark:bg-primary-700 dark:text-white"
                     required
                     data-testid="announcement-title-input"
                   />
                 </div>
 
                 <div>
-                  <label className={`block mb-2 font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
                     Message *
                   </label>
                   <textarea
                     value={newAnnouncement.content}
                     onChange={(e) => setNewAnnouncement({...newAnnouncement, content: e.target.value})}
                     rows={6}
-                    className={`w-full px-4 py-2 rounded-lg border ${
-                      darkMode 
-                        ? 'bg-gray-700 border-gray-600 text-white' 
-                        : 'bg-white border-gray-300 text-gray-900'
-                    } focus:ring-2 focus:ring-blue-500`}
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-primary-600 focus:ring-2 focus:ring-corporate-500 dark:bg-primary-700 dark:text-white"
                     required
                     data-testid="announcement-content-input"
                   />
@@ -312,17 +304,13 @@ function Feed() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className={`block mb-2 font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
                       Priority
                     </label>
                     <select
                       value={newAnnouncement.priority}
                       onChange={(e) => setNewAnnouncement({...newAnnouncement, priority: e.target.value})}
-                      className={`w-full px-4 py-2 rounded-lg border ${
-                        darkMode 
-                          ? 'bg-gray-700 border-gray-600 text-white' 
-                          : 'bg-white border-gray-300 text-gray-900'
-                      }`}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-primary-600 dark:bg-primary-700 dark:text-white"
                       data-testid="announcement-priority-select"
                     >
                       <option value="normal">Normal</option>
@@ -333,17 +321,13 @@ function Feed() {
                   </div>
 
                   <div>
-                    <label className={`block mb-2 font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                    <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
                       Target Audience
                     </label>
                     <select
                       value={newAnnouncement.target_audience}
                       onChange={(e) => setNewAnnouncement({...newAnnouncement, target_audience: e.target.value})}
-                      className={`w-full px-4 py-2 rounded-lg border ${
-                        darkMode 
-                          ? 'bg-gray-700 border-gray-600 text-white' 
-                          : 'bg-white border-gray-300 text-gray-900'
-                      }`}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-primary-600 dark:bg-primary-700 dark:text-white"
                     >
                       <option value="all">Everyone</option>
                       <option value="department">Department</option>
@@ -361,7 +345,7 @@ function Feed() {
                     onChange={(e) => setNewAnnouncement({...newAnnouncement, requires_acknowledgement: e.target.checked})}
                     className="w-4 h-4"
                   />
-                  <label htmlFor="requireAck" className={darkMode ? 'text-gray-300' : 'text-gray-700'}>
+                  <label htmlFor="requireAck" className="text-gray-700 dark:text-gray-300">
                     Require acknowledgement
                   </label>
                 </div>
@@ -369,7 +353,7 @@ function Feed() {
                 <div className="flex space-x-3 pt-4">
                   <button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 rounded-lg hover:shadow-lg transition"
+                    className="flex-1 bg-gradient-to-r from-corporate-600 to-corporate-700 text-white py-2.5 rounded-lg hover:shadow-lg transition font-medium"
                     data-testid="submit-announcement-button"
                   >
                     Post Announcement
@@ -377,7 +361,7 @@ function Feed() {
                   <button
                     type="button"
                     onClick={() => setShowCreateModal(false)}
-                    className={`flex-1 ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-200 hover:bg-gray-300'} py-2 rounded-lg transition`}
+                    className="flex-1 bg-gray-200 dark:bg-primary-700 text-gray-800 dark:text-gray-300 py-2.5 rounded-lg hover:bg-gray-300 dark:hover:bg-primary-600 transition font-medium"
                   >
                     Cancel
                   </button>
@@ -387,7 +371,7 @@ function Feed() {
           </div>
         </div>
       )}
-    </div>
+    </Layout>
   );
 }
 
