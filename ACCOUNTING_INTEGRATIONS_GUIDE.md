@@ -101,11 +101,43 @@ The following 5 popular accounting systems have been integrated into the platfor
 ### What Gets Synced?
 
 #### From Accounting Systems:
-- **Chart of Accounts**: Account categories and types
-- **Expense Categories**: For expense tracking and gamification
-- **Vendors/Suppliers**: Business relationships
-- **Customers/Clients**: Revenue sources
-- **Financial Metadata**: For reporting and analytics
+
+**QuickBooks Online:**
+- Chart of Accounts (up to 100 accounts)
+- Expense categories (from expense-type accounts)
+- Vendors (up to 50)
+- Customers (up to 50)
+- Account balances and types
+
+**Xero:**
+- Chart of Accounts (all accounts)
+- Tracking Categories (for expense categorization)
+- Contacts (customers and suppliers)
+- Account codes and tax types
+
+**FreshBooks:**
+- Expense Categories
+- Clients
+- Projects (synced as categories)
+- Client organizations
+
+**Sage Business Cloud:**
+- Ledger Accounts (chart of accounts)
+- Contacts (customers and suppliers)
+- Account balances and types
+- Regional data based on configuration
+
+**NetSuite:**
+- Chart of Accounts
+- Vendors
+- Customers
+- Account numbers and types
+
+#### MongoDB Collections:
+All synced data is stored in:
+- `financial_accounts`: Chart of accounts from all systems
+- `expense_categories`: Expense categories for gamification
+- `vendors_customers`: Vendors and customers from all systems
 
 #### Use Cases for Synced Data:
 - **Expense Gamification**: Reward employees for staying under budget
@@ -113,6 +145,8 @@ The following 5 popular accounting systems have been integrated into the platfor
 - **Reporting**: Financial performance dashboards
 - **Rewards**: Link points to company performance
 - **Analytics**: Combine HR and financial data
+- **Budget Challenges**: Create challenges based on department spending
+- **Financial Transparency**: Display company financial health to employees
 
 ## Features
 
