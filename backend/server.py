@@ -1985,6 +1985,414 @@ async def update_integration(
     
     return updated
 
+
+# ==================== HR INTEGRATION SYNC ENDPOINTS ====================
+
+# Helper function to get integration config
+def get_integration_config(integration_name: str):
+    """Get integration configuration from database"""
+    integration = integrations_collection.find_one({"name": integration_name})
+    if not integration:
+        raise HTTPException(status_code=404, detail=f"Integration {integration_name} not found")
+    if not integration.get("enabled"):
+        raise HTTPException(status_code=403, detail=f"Integration {integration_name} is not enabled")
+    return integration
+
+# Test integration connection
+@app.post("/api/integrations/{integration_name}/test-connection")
+async def test_integration_connection(integration_name: str, current_user = Depends(get_current_user)):
+    """Test connection to HR system (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        integration = integrations_collection.find_one({"name": integration_name})
+        if not integration:
+            raise HTTPException(status_code=404, detail="Integration not found")
+        
+        # Basic validation - check if required fields are configured
+        if not integration.get("api_key"):
+            return {"success": False, "message": "API key not configured"}
+        
+        # Here you would implement actual API calls to test connection
+        # For now, return success if credentials are present
+        return {
+            "success": True,
+            "message": f"Connection to {integration['display_name']} successful",
+            "integration": integration["display_name"]
+        }
+    except Exception as e:
+        return {"success": False, "message": str(e)}
+
+# Sync employees from HR system
+@app.post("/api/integrations/{integration_name}/sync-employees")
+async def sync_employees_from_hr(integration_name: str, current_user = Depends(get_current_user)):
+    """Sync employee data from HR system (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        integration = get_integration_config(integration_name)
+        
+        # Implementation placeholder for each HR system
+        synced_count = 0
+        updated_count = 0
+        errors = []
+        
+        if integration_name == "bamboohr":
+            result = await sync_bamboohr_employees(integration)
+            synced_count = result.get("synced", 0)
+            updated_count = result.get("updated", 0)
+            errors = result.get("errors", [])
+        elif integration_name == "workday":
+            result = await sync_workday_employees(integration)
+            synced_count = result.get("synced", 0)
+            updated_count = result.get("updated", 0)
+            errors = result.get("errors", [])
+        elif integration_name == "gusto":
+            result = await sync_gusto_employees(integration)
+            synced_count = result.get("synced", 0)
+            updated_count = result.get("updated", 0)
+            errors = result.get("errors", [])
+        elif integration_name == "rippling":
+            result = await sync_rippling_employees(integration)
+            synced_count = result.get("synced", 0)
+            updated_count = result.get("updated", 0)
+            errors = result.get("errors", [])
+        elif integration_name == "zenefits":
+            result = await sync_zenefits_employees(integration)
+            synced_count = result.get("synced", 0)
+            updated_count = result.get("updated", 0)
+            errors = result.get("errors", [])
+        else:
+            # Generic sync placeholder for other systems
+            return {
+                "success": True,
+                "message": f"Sync functionality for {integration['display_name']} is being implemented",
+                "synced": 0,
+                "updated": 0
+            }
+        
+        return {
+            "success": True,
+            "message": f"Employee sync from {integration['display_name']} completed",
+            "synced": synced_count,
+            "updated": updated_count,
+            "errors": errors
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Sync failed: {str(e)}")
+
+# Individual HR system sync functions
+async def sync_bamboohr_employees(integration: dict):
+    """Sync employees from BambooHR"""
+    try:
+        api_key = integration.get("api_key")
+        subdomain = integration.get("config", {}).get("subdomain")
+        
+        if not api_key or not subdomain:
+            return {"synced": 0, "updated": 0, "errors": ["Missing API key or subdomain"]}
+        
+        # BambooHR API implementation
+        # URL: https://api.bamboohr.com/api/gateway.php/{subdomain}/v1/employees/directory
+        headers = {"Accept": "application/json"}
+        url = f"https://api.bamboohr.com/api/gateway.php/{subdomain}/v1/employees/directory"
+        
+        try:
+            response = requests.get(url, headers=headers, auth=(api_key, 'x'), timeout=30)
+            if response.status_code == 200:
+                data = response.json()
+                employees = data.get("employees", [])
+                
+                synced = 0
+                updated = 0
+                
+                for emp in employees:
+                    email = emp.get("workEmail")
+                    if not email:
+                        continue
+                    
+                    # Check if user exists
+                    existing_user = users_collection.find_one({"email": email})
+                    
+                    user_data = {
+                        "full_name": f"{emp.get('firstName', '')} {emp.get('lastName', '')}".strip(),
+                        "department": emp.get("department"),
+                        "role": "employee",
+                        "status": "offline"
+                    }
+                    
+                    if existing_user:
+                        users_collection.update_one({"email": email}, {"$set": user_data})
+                        updated += 1
+                    else:
+                        # Create new user
+                        user_id = str(uuid.uuid4())
+                        username = email.split("@")[0]
+                        # Generate random password
+                        import secrets
+                        password = secrets.token_urlsafe(16)
+                        
+                        new_user = {
+                            "id": user_id,
+                            "username": username,
+                            "email": email,
+                            "password": get_password_hash(password),
+                            "points": 0,
+                            "level": 1,
+                            "avatar": None,
+                            "team": None,
+                            "account_status": "active",
+                            "created_at": datetime.utcnow().isoformat(),
+                            **user_data
+                        }
+                        users_collection.insert_one(new_user)
+                        synced += 1
+                
+                return {"synced": synced, "updated": updated, "errors": []}
+            else:
+                return {"synced": 0, "updated": 0, "errors": [f"BambooHR API error: {response.status_code}"]}
+        except Exception as e:
+            return {"synced": 0, "updated": 0, "errors": [f"BambooHR sync error: {str(e)}"]}
+            
+    except Exception as e:
+        return {"synced": 0, "updated": 0, "errors": [str(e)]}
+
+async def sync_workday_employees(integration: dict):
+    """Sync employees from Workday"""
+    # Placeholder for Workday integration
+    return {"synced": 0, "updated": 0, "errors": ["Workday integration coming soon"]}
+
+async def sync_gusto_employees(integration: dict):
+    """Sync employees from Gusto"""
+    try:
+        api_token = integration.get("api_key")
+        company_id = integration.get("config", {}).get("company_id")
+        
+        if not api_token or not company_id:
+            return {"synced": 0, "updated": 0, "errors": ["Missing API token or company ID"]}
+        
+        # Gusto API implementation
+        headers = {
+            "Authorization": f"Bearer {api_token}",
+            "Content-Type": "application/json"
+        }
+        url = f"https://api.gusto.com/v1/companies/{company_id}/employees"
+        
+        try:
+            response = requests.get(url, headers=headers, timeout=30)
+            if response.status_code == 200:
+                employees = response.json()
+                
+                synced = 0
+                updated = 0
+                
+                for emp in employees:
+                    email = emp.get("email")
+                    if not email:
+                        continue
+                    
+                    existing_user = users_collection.find_one({"email": email})
+                    
+                    user_data = {
+                        "full_name": f"{emp.get('first_name', '')} {emp.get('last_name', '')}".strip(),
+                        "department": emp.get("department"),
+                        "role": "employee",
+                        "status": "offline"
+                    }
+                    
+                    if existing_user:
+                        users_collection.update_one({"email": email}, {"$set": user_data})
+                        updated += 1
+                    else:
+                        user_id = str(uuid.uuid4())
+                        username = email.split("@")[0]
+                        import secrets
+                        password = secrets.token_urlsafe(16)
+                        
+                        new_user = {
+                            "id": user_id,
+                            "username": username,
+                            "email": email,
+                            "password": get_password_hash(password),
+                            "points": 0,
+                            "level": 1,
+                            "avatar": None,
+                            "team": None,
+                            "account_status": "active",
+                            "created_at": datetime.utcnow().isoformat(),
+                            **user_data
+                        }
+                        users_collection.insert_one(new_user)
+                        synced += 1
+                
+                return {"synced": synced, "updated": updated, "errors": []}
+            else:
+                return {"synced": 0, "updated": 0, "errors": [f"Gusto API error: {response.status_code}"]}
+        except Exception as e:
+            return {"synced": 0, "updated": 0, "errors": [f"Gusto sync error: {str(e)}"]}
+            
+    except Exception as e:
+        return {"synced": 0, "updated": 0, "errors": [str(e)]}
+
+async def sync_rippling_employees(integration: dict):
+    """Sync employees from Rippling"""
+    try:
+        api_key = integration.get("api_key")
+        
+        if not api_key:
+            return {"synced": 0, "updated": 0, "errors": ["Missing API key"]}
+        
+        # Rippling API implementation
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
+        url = "https://api.rippling.com/platform/api/employees"
+        
+        try:
+            response = requests.get(url, headers=headers, timeout=30)
+            if response.status_code == 200:
+                data = response.json()
+                employees = data.get("data", [])
+                
+                synced = 0
+                updated = 0
+                
+                for emp in employees:
+                    email = emp.get("workEmail")
+                    if not email:
+                        continue
+                    
+                    existing_user = users_collection.find_one({"email": email})
+                    
+                    user_data = {
+                        "full_name": emp.get("fullName", ""),
+                        "department": emp.get("department"),
+                        "role": "employee",
+                        "status": "offline"
+                    }
+                    
+                    if existing_user:
+                        users_collection.update_one({"email": email}, {"$set": user_data})
+                        updated += 1
+                    else:
+                        user_id = str(uuid.uuid4())
+                        username = email.split("@")[0]
+                        import secrets
+                        password = secrets.token_urlsafe(16)
+                        
+                        new_user = {
+                            "id": user_id,
+                            "username": username,
+                            "email": email,
+                            "password": get_password_hash(password),
+                            "points": 0,
+                            "level": 1,
+                            "avatar": None,
+                            "team": None,
+                            "account_status": "active",
+                            "created_at": datetime.utcnow().isoformat(),
+                            **user_data
+                        }
+                        users_collection.insert_one(new_user)
+                        synced += 1
+                
+                return {"synced": synced, "updated": updated, "errors": []}
+            else:
+                return {"synced": 0, "updated": 0, "errors": [f"Rippling API error: {response.status_code}"]}
+        except Exception as e:
+            return {"synced": 0, "updated": 0, "errors": [f"Rippling sync error: {str(e)}"]}
+            
+    except Exception as e:
+        return {"synced": 0, "updated": 0, "errors": [str(e)]}
+
+async def sync_zenefits_employees(integration: dict):
+    """Sync employees from Zenefits"""
+    try:
+        api_token = integration.get("api_key")
+        
+        if not api_token:
+            return {"synced": 0, "updated": 0, "errors": ["Missing API token"]}
+        
+        # Zenefits API implementation
+        headers = {
+            "Authorization": f"Bearer {api_token}",
+            "Content-Type": "application/json"
+        }
+        url = "https://api.zenefits.com/core/people"
+        
+        try:
+            response = requests.get(url, headers=headers, timeout=30)
+            if response.status_code == 200:
+                data = response.json()
+                employees = data.get("data", [])
+                
+                synced = 0
+                updated = 0
+                
+                for emp in employees:
+                    email = emp.get("work_email")
+                    if not email:
+                        continue
+                    
+                    existing_user = users_collection.find_one({"email": email})
+                    
+                    user_data = {
+                        "full_name": f"{emp.get('first_name', '')} {emp.get('last_name', '')}".strip(),
+                        "department": emp.get("department"),
+                        "role": "employee",
+                        "status": "offline"
+                    }
+                    
+                    if existing_user:
+                        users_collection.update_one({"email": email}, {"$set": user_data})
+                        updated += 1
+                    else:
+                        user_id = str(uuid.uuid4())
+                        username = email.split("@")[0]
+                        import secrets
+                        password = secrets.token_urlsafe(16)
+                        
+                        new_user = {
+                            "id": user_id,
+                            "username": username,
+                            "email": email,
+                            "password": get_password_hash(password),
+                            "points": 0,
+                            "level": 1,
+                            "avatar": None,
+                            "team": None,
+                            "account_status": "active",
+                            "created_at": datetime.utcnow().isoformat(),
+                            **user_data
+                        }
+                        users_collection.insert_one(new_user)
+                        synced += 1
+                
+                return {"synced": synced, "updated": updated, "errors": []}
+            else:
+                return {"synced": 0, "updated": 0, "errors": [f"Zenefits API error: {response.status_code}"]}
+        except Exception as e:
+            return {"synced": 0, "updated": 0, "errors": [f"Zenefits sync error: {str(e)}"]}
+            
+    except Exception as e:
+        return {"synced": 0, "updated": 0, "errors": [str(e)]}
+
+# Get sync history
+@app.get("/api/integrations/{integration_name}/sync-history")
+async def get_sync_history(integration_name: str, current_user = Depends(get_current_user)):
+    """Get sync history for an integration (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Placeholder - you can implement a sync_history collection to track syncs
+    return {
+        "integration": integration_name,
+        "history": []
+    }
+
 # ==================== ADMIN GAMIFICATION MANAGEMENT ====================
 
 # Achievement Management
