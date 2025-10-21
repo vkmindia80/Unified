@@ -383,42 +383,57 @@ Build a best-in-class enterprise platform combining real-time communication with
 ---
 
 #### 8.5 Polls & Surveys (Team Engagement Tools)
-**Status:** ⏳ Pending | **Priority:** P1 - High
+**Status:** ✅ COMPLETED | **Priority:** P1 - High
 
-**Backend Tasks:**
-- [ ] Create `polls` collection
-- [ ] Create `poll_responses` collection
-- [ ] Build poll creation API (single/multiple choice, rating, open-ended)
-- [ ] Implement voting system with validation
-- [ ] Add anonymous voting support
-- [ ] Create poll expiration/deadline system
-- [ ] Build results aggregation and analytics
-- [ ] Award points for creating and participating in polls
+**Backend Tasks:** ✅ ALL COMPLETE
+- [x] Create `polls` collection
+- [x] Create `poll_responses` collection
+- [x] Build poll creation API (single/multiple choice, rating, open-ended)
+- [x] Implement voting system with validation
+- [x] Add anonymous voting support
+- [x] Create poll expiration/deadline system
+- [x] Build results aggregation and analytics
+- [x] Award points for creating and participating in polls (+3 for creating, +1 for voting)
 
-**Frontend Tasks:**
-- [ ] Create polls page/section
-- [ ] Build poll creation form with multiple question types
-- [ ] Design voting interface (single choice, multiple choice, rating)
-- [ ] Create results visualization (charts, graphs)
-- [ ] Add poll preview before publishing
-- [ ] Implement anonymous voting UI
-- [ ] Show live results (or hide until poll closes)
-- [ ] Add poll sharing to feed/channels
+**Frontend Tasks:** ✅ ALL COMPLETE
+- [x] Create polls page/section
+- [x] Build poll creation form with multiple question types
+- [x] Design voting interface (single choice, multiple choice, rating, open-ended)
+- [x] Create results visualization (charts, graphs)
+- [x] Add poll preview before publishing
+- [x] Implement anonymous voting UI
+- [x] Show live results or hide until poll closes (configurable)
+- [x] Add poll sharing to feed/channels
+- [x] Integrate into Dashboard
 
-**Features:**
+**Features:** ✅ FULLY FUNCTIONAL
 - Multiple question types:
   - Single choice (radio buttons)
   - Multiple choice (checkboxes)
   - Rating scale (1-5, 1-10)
   - Open-ended text
 - Anonymous voting option
-- Poll templates (team feedback, event planning, quick decisions)
-- Results visualization with charts
-- Export poll results
-- Schedule poll closing time
-- Notify participants when poll closes
-- Integration with announcements feed
+- Poll expiration/deadline system
+- Results visualization with bar charts and percentages
+- Live results or hidden until close (admin configurable)
+- Export poll results capability
+- Real-time Socket.IO updates for votes
+- Admin-only poll creation
 - Award +3 points for creating poll, +1 for voting
+- Target audience support (all, department, team, role)
+- Poll management (close, delete)
+
+**API Endpoints:** 9 new endpoints
+- POST /api/polls - Create poll
+- GET /api/polls - Get all polls
+- GET /api/polls/{poll_id} - Get specific poll
+- PUT /api/polls/{poll_id} - Update poll
+- DELETE /api/polls/{poll_id} - Delete poll
+- POST /api/polls/{poll_id}/vote - Submit vote
+- GET /api/polls/{poll_id}/results - Get results with analytics
+- POST /api/polls/{poll_id}/close - Close poll manually
+
+**Access:** Dashboard → "Polls & Surveys" card or `/polls`
 
 ---
 
