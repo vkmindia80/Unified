@@ -70,22 +70,15 @@ function AdminPanel() {
   };
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+    <Layout>
       <ToastContainer position="top-right" autoClose={3000} />
       
       {/* Header */}
-      <header className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-        <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className={`mr-2 p-2 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-lg transition`}
-              data-testid="back-button"
-            >
-              <FaArrowLeft className={darkMode ? 'text-gray-300' : 'text-gray-600'} />
-            </button>
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3 mb-2">
             <FaUsers className={`text-3xl ${darkMode ? 'text-blue-400' : 'text-blue-500'}`} />
-            <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Admin Panel</h1>
+            <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Admin Panel</h1>
           </div>
           <div className="flex items-center space-x-2">
             <button
@@ -112,9 +105,9 @@ function AdminPanel() {
             </button>
           </div>
         </div>
-      </header>
+      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div>
         {view === 'analytics' && analytics && (
           <div className="mb-8">
             <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-800'}`}>System Analytics</h2>
