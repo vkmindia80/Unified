@@ -170,7 +170,7 @@ function DigitalHQ() {
       )}
 
       {/* Widgets Grid */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div>
         {layout.length > 0 ? (
           <GridLayout
             className="layout"
