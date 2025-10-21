@@ -119,6 +119,19 @@ function AdminPanelEnhanced() {
   };
 
   // User Management
+  const handleCreateUser = async (userData) => {
+    try {
+      await api.post('/admin/users/create', userData);
+      toast.success('User created successfully');
+      fetchUsers();
+      fetchAnalytics();
+      setCreatingUser(false);
+    } catch (error) {
+      console.error('Failed to create user:', error);
+      toast.error(error.response?.data?.detail || 'Failed to create user');
+    }
+  };
+
   const handleUpdateUser = async (userId, updates) => {
     try {
       await api.put(`/admin/users/${userId}`, updates);
@@ -141,6 +154,52 @@ function AdminPanelEnhanced() {
     } catch (error) {
       console.error('Failed to delete user:', error);
       toast.error('Failed to delete user');
+    }
+  };
+
+  const handleImportCSV = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    try {
+      const response = await api.post('/admin/users/import-csv', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      
+      toast.success(`Imported ${response.data.imported} users successfully!`);
+      
+      if (response.data.failed > 0) {
+        toast.warning(`${response.data.failed} users failed to import. Check console for details.`);
+        console.log('Failed imports:', response.data.details.failed);
+      }
+      
+      fetchUsers();
+      fetchAnalytics();
+      setImportingUsers(false);
+    } catch (error) {
+      console.error('Failed to import users:', error);
+      toast.error(error.response?.data?.detail || 'Failed to import users');
+    }
+  };
+
+  const handleDownloadTemplate = async () => {
+    try {
+      const response = await api.get('/admin/users/csv-template', {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'user_import_template.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      toast.success('Template downloaded successfully');
+    } catch (error) {
+      console.error('Failed to download template:', error);
+      toast.error('Failed to download template');
     }
   };
 
