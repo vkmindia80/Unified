@@ -3013,6 +3013,248 @@ async def get_sync_history(integration_name: str, current_user = Depends(get_cur
 
 # ==================== ACCOUNTING INTEGRATION SYNC ENDPOINTS ====================
 
+# Send message via communication system
+class CommunicationMessage(BaseModel):
+    message: str
+    title: Optional[str] = None
+    channel: Optional[str] = None
+    phone_numbers: Optional[List[str]] = None  # For Twilio SMS/WhatsApp
+
+@app.post("/api/integrations/{integration_name}/send-message")
+async def send_communication_message(
+    integration_name: str,
+    message_data: CommunicationMessage,
+    current_user = Depends(get_current_user)
+):
+    """Send a message via communication system (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        integration = integrations_collection.find_one({"name": integration_name})
+        if not integration:
+            raise HTTPException(status_code=404, detail="Integration not found")
+        
+        if not integration.get("enabled"):
+            raise HTTPException(status_code=400, detail="Integration is not enabled")
+        
+        config = integration.get("config", {})
+        api_key = integration.get("api_key", "")
+        
+        # Slack
+        if integration_name == "slack":
+            if not api_key:
+                return {"success": False, "message": "Bot Token not configured"}
+            
+            channel = message_data.channel or config.get("default_channel", "#general")
+            
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            payload = {
+                "channel": channel,
+                "text": message_data.message,
+                "username": "Enterprise Bot",
+                "icon_emoji": ":robot_face:"
+            }
+            
+            if message_data.title:
+                payload["blocks"] = [
+                    {
+                        "type": "header",
+                        "text": {"type": "plain_text", "text": message_data.title}
+                    },
+                    {
+                        "type": "section",
+                        "text": {"type": "mrkdwn", "text": message_data.message}
+                    }
+                ]
+            
+            response = requests.post(
+                "https://slack.com/api/chat.postMessage",
+                headers=headers,
+                json=payload,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("ok"):
+                    return {"success": True, "message": f"Message sent to Slack channel: {channel}"}
+                else:
+                    return {"success": False, "message": f"Slack error: {data.get('error')}"}
+            else:
+                return {"success": False, "message": f"Slack API error: {response.status_code}"}
+        
+        # Microsoft Teams
+        elif integration_name == "microsoft_teams":
+            webhook_url = config.get("webhook_url", "")
+            if not webhook_url:
+                return {"success": False, "message": "Webhook URL not configured"}
+            
+            payload = {
+                "@type": "MessageCard",
+                "@context": "https://schema.org/extensions",
+                "summary": message_data.title or "New Message",
+                "themeColor": "0078D4",
+                "title": message_data.title or "Notification",
+                "text": message_data.message
+            }
+            
+            response = requests.post(webhook_url, json=payload, timeout=10)
+            
+            if response.status_code == 200:
+                return {"success": True, "message": "Message sent to Microsoft Teams"}
+            else:
+                return {"success": False, "message": f"Teams webhook error: {response.status_code}"}
+        
+        # Discord
+        elif integration_name == "discord":
+            webhook_url = config.get("webhook_url", "")
+            
+            if webhook_url:
+                # Use webhook
+                payload = {"content": message_data.message}
+                
+                if message_data.title:
+                    payload["embeds"] = [{
+                        "title": message_data.title,
+                        "description": message_data.message,
+                        "color": 5814783  # Blue color
+                    }]
+                    payload["content"] = ""
+                
+                response = requests.post(webhook_url, json=payload, timeout=10)
+                
+                if response.status_code in [200, 204]:
+                    return {"success": True, "message": "Message sent to Discord"}
+                else:
+                    return {"success": False, "message": f"Discord webhook error: {response.status_code}"}
+            elif api_key:
+                # Use bot to send to channel
+                channel_id = message_data.channel or config.get("guild_id")
+                if not channel_id:
+                    return {"success": False, "message": "Channel ID required when using bot token"}
+                
+                headers = {
+                    "Authorization": f"Bot {api_key}",
+                    "Content-Type": "application/json"
+                }
+                
+                payload = {"content": message_data.message}
+                
+                if message_data.title:
+                    payload["embeds"] = [{
+                        "title": message_data.title,
+                        "description": message_data.message,
+                        "color": 5814783
+                    }]
+                    payload["content"] = ""
+                
+                response = requests.post(
+                    f"https://discord.com/api/v10/channels/{channel_id}/messages",
+                    headers=headers,
+                    json=payload,
+                    timeout=10
+                )
+                
+                if response.status_code == 200:
+                    return {"success": True, "message": "Message sent to Discord channel"}
+                else:
+                    return {"success": False, "message": f"Discord API error: {response.status_code}"}
+            else:
+                return {"success": False, "message": "Either Bot Token or Webhook URL must be configured"}
+        
+        # Telegram
+        elif integration_name == "telegram":
+            if not api_key:
+                return {"success": False, "message": "Bot Token not configured"}
+            
+            chat_id = config.get("chat_id", "")
+            if not chat_id:
+                return {"success": False, "message": "Chat ID not configured"}
+            
+            parse_mode = config.get("parse_mode", "HTML")
+            
+            text = message_data.message
+            if message_data.title:
+                if parse_mode == "HTML":
+                    text = f"<b>{message_data.title}</b>\n\n{message_data.message}"
+                else:
+                    text = f"*{message_data.title}*\n\n{message_data.message}"
+            
+            payload = {
+                "chat_id": chat_id,
+                "text": text,
+                "parse_mode": parse_mode
+            }
+            
+            response = requests.post(
+                f"https://api.telegram.org/bot{api_key}/sendMessage",
+                json=payload,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("ok"):
+                    return {"success": True, "message": "Message sent to Telegram"}
+                else:
+                    return {"success": False, "message": f"Telegram error: {data.get('description')}"}
+            else:
+                return {"success": False, "message": f"Telegram API error: {response.status_code}"}
+        
+        # Twilio
+        elif integration_name == "twilio":
+            account_sid = api_key
+            auth_token = config.get("auth_token", "")
+            from_number = config.get("phone_number", "")
+            
+            if not account_sid or not auth_token or not from_number:
+                return {"success": False, "message": "Account SID, Auth Token, and Phone Number are required"}
+            
+            if not message_data.phone_numbers or len(message_data.phone_numbers) == 0:
+                return {"success": False, "message": "At least one phone number is required"}
+            
+            from requests.auth import HTTPBasicAuth
+            
+            success_count = 0
+            failed_count = 0
+            
+            for to_number in message_data.phone_numbers:
+                payload = {
+                    "From": from_number,
+                    "To": to_number,
+                    "Body": message_data.message
+                }
+                
+                response = requests.post(
+                    f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}/Messages.json",
+                    auth=HTTPBasicAuth(account_sid, auth_token),
+                    data=payload,
+                    timeout=10
+                )
+                
+                if response.status_code in [200, 201]:
+                    success_count += 1
+                else:
+                    failed_count += 1
+            
+            return {
+                "success": True,
+                "message": f"SMS sent to {success_count} recipient(s). Failed: {failed_count}",
+                "sent": success_count,
+                "failed": failed_count
+            }
+        
+        else:
+            return {"success": False, "message": f"Unknown communication system: {integration_name}"}
+        
+    except Exception as e:
+        return {"success": False, "message": f"Failed to send message: {str(e)}"}
+
 # Sync financial data from accounting system
 @app.post("/api/integrations/{integration_name}/sync-financials")
 async def sync_financials_from_accounting(integration_name: str, current_user = Depends(get_current_user)):
