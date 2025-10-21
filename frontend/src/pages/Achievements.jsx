@@ -4,7 +4,8 @@ import api from '../services/api';
 import Layout from '../components/Layout/Layout';
 import Card from '../components/UI/Card';
 import Badge from '../components/UI/Badge';
-import { FiAward, FiTrophy, FiStar, FiLock, FiUnlock, FiTarget } from 'react-icons/fi';
+import { FiAward, FiStar, FiLock, FiUnlock, FiTarget } from 'react-icons/fi';
+import { FaTrophy } from 'react-icons/fa';
 
 function Achievements() {
   const { user } = useAuth();
