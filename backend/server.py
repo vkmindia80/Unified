@@ -1401,6 +1401,100 @@ async def admin_analytics(current_user = Depends(get_current_user)):
         "top_users": top_users
     }
 
+# Admin Integration Settings Routes
+@app.get("/api/admin/integrations")
+async def get_integrations(current_user = Depends(get_current_user)):
+    """Get all integration settings (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Get all integrations from database
+    integrations = list(integrations_collection.find({}))
+    
+    # If no integrations exist, initialize with defaults
+    if not integrations:
+        default_integrations = [
+            {
+                "id": str(uuid.uuid4()),
+                "name": "giphy",
+                "display_name": "GIPHY API",
+                "description": "GIF search and trending functionality",
+                "api_key": GIPHY_API_KEY or "",
+                "enabled": bool(GIPHY_API_KEY),
+                "updated_at": datetime.utcnow().isoformat()
+            }
+        ]
+        
+        for integration in default_integrations:
+            integrations_collection.insert_one(integration)
+        
+        integrations = default_integrations
+    
+    # Format response (hide partial API keys for security)
+    for integration in integrations:
+        integration["_id"] = str(integration["_id"])
+        # Mask API key (show only first 8 and last 4 characters)
+        if integration.get("api_key"):
+            key = integration["api_key"]
+            if len(key) > 12:
+                integration["api_key_masked"] = f"{key[:8]}...{key[-4:]}"
+            else:
+                integration["api_key_masked"] = "***"
+    
+    return integrations
+
+@app.put("/api/admin/integrations/{integration_name}")
+async def update_integration(
+    integration_name: str,
+    update_data: dict,
+    current_user = Depends(get_current_user)
+):
+    """Update integration settings (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Find integration
+    integration = integrations_collection.find_one({"name": integration_name})
+    
+    if not integration:
+        # Create new integration
+        integration_id = str(uuid.uuid4())
+        integration_doc = {
+            "id": integration_id,
+            "name": integration_name,
+            "display_name": update_data.get("display_name", integration_name.upper()),
+            "description": update_data.get("description", ""),
+            "api_key": update_data.get("api_key", ""),
+            "enabled": update_data.get("enabled", True),
+            "updated_at": datetime.utcnow().isoformat(),
+            "updated_by": current_user["id"]
+        }
+        integrations_collection.insert_one(integration_doc)
+        integration_doc["_id"] = str(integration_doc["_id"])
+        return integration_doc
+    
+    # Update existing integration
+    update_fields = {}
+    if "api_key" in update_data:
+        update_fields["api_key"] = update_data["api_key"]
+    if "enabled" in update_data:
+        update_fields["enabled"] = update_data["enabled"]
+    if "description" in update_data:
+        update_fields["description"] = update_data["description"]
+    
+    update_fields["updated_at"] = datetime.utcnow().isoformat()
+    update_fields["updated_by"] = current_user["id"]
+    
+    integrations_collection.update_one(
+        {"name": integration_name},
+        {"$set": update_fields}
+    )
+    
+    updated = integrations_collection.find_one({"name": integration_name})
+    updated["_id"] = str(updated["_id"])
+    
+    return updated
+
 # Call History Routes
 @app.get("/api/calls/history")
 async def get_call_history(current_user = Depends(get_current_user)):
