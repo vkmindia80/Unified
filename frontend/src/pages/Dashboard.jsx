@@ -296,11 +296,12 @@ const Dashboard = () => {
 
       {/* Admin Features (if applicable) */}
       {user?.role && ['admin', 'manager', 'department_head', 'team_lead'].includes(user.role) && (
-        <div className="mb-8">
-          <h2 className="text-xl font-bold text-primary-900 dark:text-white mb-4">
+        <div className="mb-8 animate-slide-up">
+          <h2 className="text-2xl font-bold text-primary-900 dark:text-white mb-6 flex items-center">
+            <span className="w-1 h-8 bg-gradient-to-b from-slate-600 to-slate-800 rounded-full mr-3"></span>
             Management Tools
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {adminFeatures.map((feature) => (
               <FeatureCard key={feature.id} feature={feature} />
             ))}
