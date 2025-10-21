@@ -154,19 +154,19 @@ function Leaderboard() {
               </div>
 
               {/* 3rd Place */}
-              <div className="flex flex-col items-center" data-testid="rank-3">
-                <div className="relative mb-4">
-                  <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-4 ring-orange-200">
+              <div className="flex flex-col items-center transform hover:scale-105 transition-transform duration-300" data-testid="rank-3">
+                <div className="relative mb-4 animate-float" style={{ animationDelay: '2s' }}>
+                  <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-2xl md:text-3xl shadow-2xl ring-4 ring-orange-200 dark:ring-orange-700">
                     {leaderboard[2]?.full_name?.charAt(0) || '3'}
                   </div>
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg">
+                  <div className="absolute -top-2 -right-2 w-9 h-9 bg-white dark:bg-primary-800 rounded-full flex items-center justify-center shadow-xl animate-pulse">
                     <FaMedal className="text-orange-500 w-5 h-5" />
                   </div>
                 </div>
-                <p className="font-bold text-gray-800 dark:text-white text-center mb-1">{leaderboard[2]?.full_name}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{leaderboard[2]?.points} points</p>
-                <div className="w-32 h-16 bg-gradient-to-t from-orange-400 to-orange-600 rounded-t-xl flex items-start justify-center pt-3">
-                  <span className="text-white font-bold text-xl">3rd</span>
+                <p className="font-bold text-gray-800 dark:text-white text-center mb-1 text-sm md:text-base">{leaderboard[2]?.full_name}</p>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 mb-2 font-semibold">{leaderboard[2]?.points} points</p>
+                <div className="w-28 md:w-32 h-16 bg-gradient-to-t from-orange-500 to-orange-600 rounded-t-xl flex items-start justify-center pt-3 shadow-lg">
+                  <span className="text-white font-bold text-lg md:text-xl">3rd</span>
                 </div>
               </div>
             </div>
