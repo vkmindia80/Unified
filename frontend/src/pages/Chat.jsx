@@ -4,12 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
+import Sidebar from '../components/Layout/Sidebar';
 import WebRTC from '../components/WebRTC';
 import FileUpload from '../components/FileUpload';
 import GifPicker from '../components/GifPicker';
 import ImageGallery from '../components/ImageGallery';
 import MessageFileAttachment from '../components/MessageFileAttachment';
-import { FaArrowLeft, FaComments, FaPlus, FaSearch, FaPaperPlane, FaVideo, FaPhone, FaCircle, FaPaperclip, FaSmile } from 'react-icons/fa';
+import { FaComments, FaPlus, FaSearch, FaPaperPlane, FaVideo, FaPhone, FaCircle, FaPaperclip, FaSmile } from 'react-icons/fa';
 
 function Chat() {
   const { user } = useAuth();
