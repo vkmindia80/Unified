@@ -273,7 +273,7 @@ function AdminIntegrations() {
           </p>
         </div>
       </div>
-    </div>
+    </Layout>
   );
 }
 
