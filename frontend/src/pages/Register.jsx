@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { FaEnvelope, FaLock, FaUser, FaRocket, FaBuilding, FaUsers } from 'react-icons/fa';
+import { FiMail, FiLock, FiUser, FiAlertCircle, FiCheckCircle, FiBriefcase, FiUsers } from 'react-icons/fi';
+import Button from '../components/UI/Button';
+import Input from '../components/UI/Input';
+import Select from '../components/UI/Select';
 
-function Register() {
+const Register = () => {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
@@ -11,7 +14,7 @@ function Register() {
     full_name: '',
     role: 'employee',
     department: '',
-    team: ''
+    team: '',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -21,7 +24,7 @@ function Register() {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
@@ -30,183 +33,193 @@ function Register() {
     setError('');
     setLoading(true);
 
-    const result = await register(formData);
-    
-    if (result.success) {
+    try {
+      await register(formData);
       navigate('/dashboard');
-    } else {
-      setError(result.error);
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Failed to create account. Please try again.');
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   };
 
+  const roleOptions = [
+    { value: 'employee', label: 'Employee' },
+    { value: 'team_lead', label: 'Team Lead' },
+    { value: 'manager', label: 'Manager' },
+    { value: 'department_head', label: 'Department Head' },
+  ];
+
+  const departmentOptions = [
+    { value: '', label: 'Select Department' },
+    { value: 'Engineering', label: 'Engineering' },
+    { value: 'Marketing', label: 'Marketing' },
+    { value: 'Sales', label: 'Sales' },
+    { value: 'HR', label: 'Human Resources' },
+    { value: 'Operations', label: 'Operations' },
+    { value: 'Design', label: 'Design' },
+    { value: 'Finance', label: 'Finance' },
+  ];
+
+  const teamOptions = [
+    { value: '', label: 'Select Team' },
+    { value: 'Alpha', label: 'Alpha' },
+    { value: 'Beta', label: 'Beta' },
+    { value: 'Gamma', label: 'Gamma' },
+    { value: 'Delta', label: 'Delta' },
+    { value: 'Omega', label: 'Omega' },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-corporate-50 via-white to-accent-50 flex items-center justify-center px-4 py-12">
       <div className="max-w-2xl w-full">
-        {/* Logo/Brand */}
+        {/* Logo & Title */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full mb-4 shadow-lg">
-            <FaRocket className="text-3xl text-purple-600" />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-corporate-600 to-corporate-800 rounded-2xl mb-4 shadow-lg">
+            <span className="text-white font-bold text-2xl">EC</span>
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">Join Enterprise Hub</h1>
-          <p className="text-blue-100">Start your journey to excellence</p>
+          <h1 className="text-3xl font-bold text-primary-900 mb-2">Create Your Account</h1>
+          <p className="text-primary-600">Join your team on Enterprise Communications</p>
         </div>
 
-        {/* Register Form */}
-        <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">Create Account</h2>
-          
+        {/* Register Card */}
+        <div className="bg-white rounded-2xl shadow-large p-8 border border-gray-200">
           {error && (
-            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg mb-4">
-              {error}
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3" data-testid="register-error">
+              <FiAlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-red-800">{error}</p>
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
-                <div className="relative">
-                  <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                    placeholder="johndoe"
-                    required
-                    data-testid="register-username-input"
-                  />
-                </div>
-              </div>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <Input
+                label="Full Name"
+                type="text"
+                name="full_name"
+                icon={FiUser}
+                placeholder="John Doe"
+                value={formData.full_name}
+                onChange={handleChange}
+                required
+                fullWidth
+                data-testid="full-name-input"
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
-                <div className="relative">
-                  <FaUser className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    name="full_name"
-                    value={formData.full_name}
-                    onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                    placeholder="John Doe"
-                    required
-                    data-testid="register-fullname-input"
-                  />
-                </div>
-              </div>
+              <Input
+                label="Username"
+                type="text"
+                name="username"
+                icon={FiUser}
+                placeholder="johndoe"
+                value={formData.username}
+                onChange={handleChange}
+                required
+                fullWidth
+                data-testid="username-input"
+              />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-              <div className="relative">
-                <FaEnvelope className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                  placeholder="john@company.com"
-                  required
-                  data-testid="register-email-input"
-                />
-              </div>
+            <Input
+              label="Email Address"
+              type="email"
+              name="email"
+              icon={FiMail}
+              placeholder="john.doe@company.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              fullWidth
+              data-testid="email-input"
+            />
+
+            <Input
+              label="Password"
+              type="password"
+              name="password"
+              icon={FiLock}
+              placeholder="Create a strong password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              fullWidth
+              helperText="Minimum 8 characters"
+              data-testid="password-input"
+            />
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              <Select
+                label="Role"
+                name="role"
+                options={roleOptions}
+                value={formData.role}
+                onChange={handleChange}
+                fullWidth
+                data-testid="role-select"
+              />
+
+              <Select
+                label="Department"
+                name="department"
+                options={departmentOptions}
+                value={formData.department}
+                onChange={handleChange}
+                fullWidth
+                data-testid="department-select"
+              />
+
+              <Select
+                label="Team"
+                name="team"
+                options={teamOptions}
+                value={formData.team}
+                onChange={handleChange}
+                fullWidth
+                data-testid="team-select"
+              />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-              <div className="relative">
-                <FaLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                  placeholder="••••••••"
-                  required
-                  data-testid="register-password-input"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                <select
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                  data-testid="register-role-select"
-                >
-                  <option value="employee">Employee</option>
-                  <option value="team_lead">Team Lead</option>
-                  <option value="manager">Manager</option>
-                  <option value="department_head">Department Head</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
-                <div className="relative">
-                  <FaBuilding className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    name="department"
-                    value={formData.department}
-                    onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                    placeholder="Engineering"
-                    data-testid="register-department-input"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Team</label>
-                <div className="relative">
-                  <FaUsers className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    name="team"
-                    value={formData.team}
-                    onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-                    placeholder="Frontend"
-                    data-testid="register-team-input"
-                  />
+            <div className="bg-accent-50 border border-accent-200 rounded-lg p-4">
+              <div className="flex items-start space-x-3">
+                <FiCheckCircle className="w-5 h-5 text-accent-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-accent-900">Welcome Bonus</p>
+                  <p className="text-xs text-accent-700 mt-1">Get 50 points instantly when you create your account!</p>
                 </div>
               </div>
             </div>
 
-            <button
+            <Button
               type="submit"
+              variant="primary"
+              fullWidth
+              size="lg"
+              loading={loading}
               disabled={loading}
-              className="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-3 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              data-testid="register-submit-button"
+              data-testid="register-button"
             >
-              {loading ? 'Creating account...' : 'Create Account'}
-            </button>
+              Create Account
+            </Button>
           </form>
 
+          {/* Sign In Link */}
           <div className="mt-6 text-center">
-            <p className="text-gray-600">
+            <p className="text-sm text-primary-600">
               Already have an account?{' '}
-              <Link to="/login" className="text-purple-600 font-semibold hover:underline">
-                Sign In
+              <Link to="/login" className="font-medium text-corporate-600 hover:text-corporate-700" data-testid="login-link">
+                Sign in
               </Link>
             </p>
           </div>
         </div>
+
+        {/* Footer */}
+        <p className="mt-8 text-center text-xs text-primary-500">
+          By creating an account, you agree to our Terms of Service and Privacy Policy.
+        </p>
       </div>
     </div>
   );
-}
+};
 
 export default Register;
