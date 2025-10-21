@@ -175,12 +175,21 @@ function AdminIntegrations() {
       'paycor': '💳'
     };
 
+    // Accounting System specific icons
+    const accountingIcons = {
+      'quickbooks': '📗',
+      'xero': '💙',
+      'freshbooks': '📘',
+      'sage': '🌿',
+      'netsuite': '🔷'
+    };
+
     // Communication icons
     const commIcons = {
       'giphy': '🎬'
     };
 
-    return hrIcons[name] || commIcons[name] || '🔌';
+    return hrIcons[name] || accountingIcons[name] || commIcons[name] || '🔌';
   };
 
   const getIntegrationInstructions = (name) => {
