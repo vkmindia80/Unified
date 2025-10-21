@@ -496,7 +496,7 @@ function Chat() {
               </div>
 
               {/* Messages */}
-              <div className={`flex-1 overflow-y-auto p-6 space-y-4 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`} data-testid="messages-container">
+              <div className={`flex-1 overflow-y-auto p-6 space-y-4 ${darkMode ? 'bg-gradient-to-br from-primary-900 to-primary-800' : 'bg-gradient-to-br from-gray-50 to-gray-100'}`} data-testid="messages-container">
                 {messages.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
