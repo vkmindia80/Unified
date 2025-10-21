@@ -228,7 +228,7 @@ const Polls = () => {
           }}
         />
       )}
-    </div>
+    </Layout>
   );
 };
 
