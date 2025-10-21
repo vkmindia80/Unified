@@ -132,28 +132,22 @@ function AdminIntegrations() {
   }
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+    <Layout>
       {/* Header */}
-      <header className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-        <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => navigate('/admin')}
-              className={`mr-2 p-2 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-lg transition`}
-              data-testid="back-button"
-            >
-              <FaArrowLeft className={darkMode ? 'text-gray-300' : 'text-gray-600'} />
-            </button>
-            <FaCog className={`text-3xl ${darkMode ? 'text-blue-400' : 'text-blue-500'}`} />
-            <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-              Integration Settings
-            </h1>
-          </div>
+      <div className="mb-8">
+        <div className="flex items-center space-x-3 mb-2">
+          <FaCog className={`text-3xl ${darkMode ? 'text-blue-400' : 'text-blue-500'}`} />
+          <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+            Integration Settings
+          </h1>
         </div>
-      </header>
+        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          Configure third-party integrations
+        </p>
+      </div>
 
       {/* Content */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-4xl">
         <div className="space-y-6">
           {integrations.map((integration) => (
             <div
