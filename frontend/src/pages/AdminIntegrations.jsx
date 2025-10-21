@@ -269,13 +269,15 @@ function AdminIntegrations() {
       ),
       'quickbooks': (
         <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
-          <p className="mb-1">To get QuickBooks Online credentials:</p>
+          <p className="mb-1 font-semibold">Setup Instructions:</p>
           <ol className="list-decimal list-inside space-y-1">
             <li>Visit <a href="https://developer.intuit.com/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">developer.intuit.com</a></li>
-            <li>Create an app and get OAuth 2.0 credentials</li>
+            <li>Create an app and get OAuth 2.0 Client ID and Client Secret</li>
             <li>Find your Company ID (Realm ID) in QuickBooks settings</li>
-            <li>Configure your redirect URI in the app settings</li>
+            <li>Use OAuth Playground or Postman to obtain Access Token and Refresh Token</li>
+            <li>Paste tokens below to enable sync functionality</li>
           </ol>
+          <p className="mt-2 text-xs italic">💡 Tip: Access tokens expire in 1 hour. Provide a refresh token for automatic renewal.</p>
         </div>
       ),
       'xero': (
