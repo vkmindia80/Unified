@@ -126,75 +126,64 @@ function Feed() {
 
   const canCreateAnnouncement = user?.role && ['admin', 'manager', 'department_head', 'team_lead'].includes(user.role);
 
-  if (loading) {
-    return (
-      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} flex items-center justify-center`}>
-        <div className="text-xl">Loading...</div>
-      </div>
-    );
-  }
+  const getPriorityBadge = (priority) => {
+    switch (priority) {
+      case 'urgent': return 'danger';
+      case 'high': return 'warning';
+      case 'low': return 'secondary';
+      default: return 'primary';
+    }
+  };
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
-      {/* Header */}
-      <header className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md sticky top-0 z-10`}>
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/dashboard')}
-                className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                data-testid="back-button"
-              >
-                <FaArrowLeft className={darkMode ? 'text-gray-300' : 'text-gray-600'} />
-              </button>
-              <div>
-                <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                  📢 Company Feed
-                </h1>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Stay updated with company announcements
-                </p>
-              </div>
+    <Layout>
+      {/* Page Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center space-x-3">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center">
+              <FiFileText className="w-7 h-7 text-white" />
             </div>
-            {canCreateAnnouncement && (
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition"
-                data-testid="create-announcement-button"
-              >
-                <FaPlus />
-                <span>New Announcement</span>
-              </button>
-            )}
+            <div>
+              <h1 className="text-3xl font-bold text-primary-900 dark:text-white">Company Feed</h1>
+              <p className="text-primary-600 dark:text-primary-400">Stay updated with announcements</p>
+            </div>
           </div>
-        </div>
-      </header>
-
-      {/* Filter Tabs */}
-      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-        <div className="max-w-4xl mx-auto px-4">
-          <div className="flex space-x-4 overflow-x-auto">
-            {['all', 'urgent', 'high', 'normal', 'low'].map(priority => (
-              <button
-                key={priority}
-                onClick={() => setSelectedPriority(priority)}
-                className={`py-3 px-4 font-medium border-b-2 transition whitespace-nowrap ${
-                  selectedPriority === priority
-                    ? `${darkMode ? 'border-blue-500 text-blue-500' : 'border-blue-600 text-blue-600'}`
-                    : `${darkMode ? 'border-transparent text-gray-400 hover:text-gray-300' : 'border-transparent text-gray-500 hover:text-gray-700'}`
-                }`}
-                data-testid={`filter-${priority}`}
-              >
-                {priority.charAt(0).toUpperCase() + priority.slice(1)}
-              </button>
-            ))}
-          </div>
+          {canCreateAnnouncement && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-corporate-600 to-corporate-700 text-white rounded-lg hover:shadow-lg transition"
+              data-testid="create-announcement-button"
+            >
+              <FiPlus className="w-5 h-5" />
+              <span>New Post</span>
+            </button>
+          )}
         </div>
       </div>
 
+      {/* Filter Tabs */}
+      <Card className="mb-6">
+        <div className="flex space-x-2 flex-wrap">
+          {['all', 'urgent', 'high', 'normal', 'low'].map(priority => (
+            <button
+              key={priority}
+              onClick={() => setSelectedPriority(priority)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                selectedPriority === priority
+                  ? 'bg-corporate-600 text-white shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-primary-700'
+              }`}
+              data-testid={`filter-${priority}`}
+            >
+              {priority.charAt(0).toUpperCase() + priority.slice(1)}
+            </button>
+          ))}
+        </div>
+      </Card>
+
       {/* Announcements List */}
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+      <div className="space-y-4">
         {announcements.length === 0 ? (
           <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-12 text-center`}>
             <FaBell className={`text-6xl mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
