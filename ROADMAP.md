@@ -954,10 +954,22 @@ Build a best-in-class enterprise platform combining real-time communication with
 ---
 
 **Last Updated:** January 21, 2025
-**Version:** 2.4.0 - Comprehensive Approval, Invitation & Member Management System
-**Current Status:** Phase 8 in progress - 4 of 10 features complete (40%)
+**Version:** 2.5.0 - Polls & Surveys + Enhanced File Uploads & GIF Sharing
+**Current Status:** Phase 8 in progress - 6 of 10 features complete (60%)
 
-**Recent Completions (v2.4.0):**
+**Recent Completions (v2.5.0):**
+- ✅ Polls & Surveys (Phase 8.5) - Complete polling system with multiple question types
+- ✅ Enhanced File Uploads (Phase 8.6) - File upload with drag-and-drop, multiple file types
+- ✅ GIF Sharing (Phase 8.6) - GIPHY integration with search and trending
+- ✅ Poll creation with admin controls (single/multiple choice, rating, open-ended)
+- ✅ Anonymous voting option and live/hidden results toggle
+- ✅ Results visualization with charts and analytics
+- ✅ File attachment in Chat and Spaces (images, documents, videos)
+- ✅ GIF picker in messaging with GIPHY search
+- ✅ Points integration (+3 for creating polls, +1 for voting, +10 for file uploads)
+- ✅ 15 new API endpoints (9 polls + 6 file/GIF endpoints)
+
+**Previous Completions (v2.4.0):**
 - ✅ Approval System (Phase 8.10) - All approval types fully functional
 - ✅ Invitation System (Phase 8.10) - Space, organization, and event invitations
 - ✅ Member Management UI (Phase 8.10) - Complete CRUD for space members
