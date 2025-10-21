@@ -823,13 +823,14 @@ async def search_giphy(q: str, limit: int = 20, offset: int = 0, current_user = 
 @app.get("/api/giphy/trending")
 async def trending_giphy(limit: int = 20, offset: int = 0, current_user = Depends(get_current_user)):
     """Get trending GIFs from GIPHY"""
-    if not GIPHY_API_KEY:
+    api_key = get_giphy_api_key()
+    if not api_key:
         raise HTTPException(status_code=503, detail="GIPHY API key not configured")
     
     try:
         url = "https://api.giphy.com/v1/gifs/trending"
         params = {
-            "api_key": GIPHY_API_KEY,
+            "api_key": api_key,
             "limit": limit,
             "offset": offset,
             "rating": "g"
