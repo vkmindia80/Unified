@@ -101,6 +101,14 @@ function AdminPanel() {
             >
               Analytics
             </button>
+            <button
+              onClick={() => navigate('/admin/integrations')}
+              className={`px-4 py-2 rounded-lg transition flex items-center space-x-2 ${darkMode ? 'bg-gray-700 text-gray-300 hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'}`}
+              data-testid="integrations-button"
+            >
+              <FaCog />
+              <span>Integrations</span>
+            </button>
           </div>
         </div>
       </header>
