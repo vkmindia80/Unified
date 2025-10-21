@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
+import Sidebar from '../components/Layout/Sidebar';
 import WebRTC from '../components/WebRTC';
 import SpaceNavigation from '../components/SpaceNavigation';
 import CreateSpaceModal from '../components/CreateSpaceModal';
@@ -11,7 +12,7 @@ import CreateSubspaceModal from '../components/CreateSubspaceModal';
 import FileUpload from '../components/FileUpload';
 import GifPicker from '../components/GifPicker';
 import MessageFileAttachment from '../components/MessageFileAttachment';
-import { FaArrowLeft, FaComments, FaPlus, FaSearch, FaPaperPlane, FaPaperclip, FaSmile, FaVideo, FaPhone, FaCircle, FaCog } from 'react-icons/fa';
+import { FaComments, FaPlus, FaSearch, FaPaperPlane, FaPaperclip, FaSmile, FaVideo, FaPhone, FaCircle, FaCog } from 'react-icons/fa';
 
 function ChatWithSpaces() {
   const { user } = useAuth();
