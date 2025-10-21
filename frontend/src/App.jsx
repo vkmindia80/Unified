@@ -20,6 +20,7 @@ import RecognitionWall from './pages/RecognitionWall';
 import ApprovalCenter from './pages/ApprovalCenter';
 import Invitations from './pages/Invitations';
 import Polls from './pages/Polls';
+import DigitalHQ from './pages/DigitalHQ';
 import './App.css';
 
 const PrivateRoute = ({ children }) => {
