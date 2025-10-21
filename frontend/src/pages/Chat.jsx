@@ -461,10 +461,10 @@ function Chat() {
           {selectedChat ? (
             <>
               {/* Chat Header */}
-              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} px-6 py-4`}>
+              <div className={`${darkMode ? 'bg-primary-800/80 backdrop-blur-xl' : 'bg-white/80 backdrop-blur-xl'} border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'} px-6 py-4 shadow-sm`}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold shadow-md">
                       {getChatName(selectedChat).charAt(0)}
                     </div>
                     <div>
