@@ -2818,36 +2818,132 @@ async def sync_quickbooks_data(integration: dict):
 async def sync_xero_data(integration: dict):
     """Sync data from Xero"""
     try:
-        client_id = integration.get("api_key")
-        client_secret = integration.get("config", {}).get("client_secret")
-        tenant_id = integration.get("config", {}).get("tenant_id")
+        config = integration.get("config", {})
+        tenant_id = config.get("tenant_id")
+        access_token = config.get("access_token")
         
-        if not client_id or not client_secret or not tenant_id:
-            return {"synced": 0, "updated": 0, "errors": ["Missing required credentials"]}
+        if not tenant_id:
+            return {"synced": 0, "updated": 0, "errors": ["Missing Tenant ID"]}
         
-        # Xero API implementation
-        # Note: Xero uses OAuth 2.0
+        if not access_token:
+            return {"synced": 0, "updated": 0, "errors": ["Missing Access Token. Please provide your OAuth access token."]}
+        
+        # Check if token is expired and refresh if needed
+        token_expiry = config.get("token_expiry")
+        if token_expiry:
+            expiry_dt = datetime.fromisoformat(token_expiry)
+            if datetime.utcnow() >= expiry_dt:
+                new_token = await refresh_oauth_token("xero", integration)
+                if new_token:
+                    access_token = new_token
+                else:
+                    return {"synced": 0, "updated": 0, "errors": ["Access token expired. Please provide a new token or refresh token."]}
         
         headers = {
             "Accept": "application/json",
             "Content-Type": "application/json",
+            "Authorization": f"Bearer {access_token}",
             "Xero-tenant-id": tenant_id
         }
         
-        # Example API endpoint (requires OAuth token)
-        url = "https://api.xero.com/api.xro/2.0/Organisation"
+        synced_count = 0
+        updated_count = 0
+        errors = []
         
-        # Placeholder implementation
-        # In production, you would:
-        # 1. Implement OAuth 2.0 flow
-        # 2. Fetch organization details
-        # 3. Fetch accounts and tracking categories
-        # 4. Sync expense data for gamification
+        try:
+            # 1. Fetch Chart of Accounts
+            accounts_url = "https://api.xero.com/api.xro/2.0/Accounts"
+            accounts_response = requests.get(accounts_url, headers=headers, timeout=30)
+            
+            if accounts_response.status_code == 200:
+                accounts_data = accounts_response.json()
+                accounts = accounts_data.get("Accounts", [])
+                
+                for account in accounts:
+                    account_doc = {
+                        "integration_name": "xero",
+                        "account_id": account.get("AccountID"),
+                        "account_name": account.get("Name"),
+                        "account_type": account.get("Type"),
+                        "account_code": account.get("Code"),
+                        "tax_type": account.get("TaxType"),
+                        "status": account.get("Status"),
+                        "synced_at": datetime.utcnow().isoformat()
+                    }
+                    
+                    result = financial_accounts_collection.update_one(
+                        {"integration_name": "xero", "account_id": account.get("AccountID")},
+                        {"$set": account_doc},
+                        upsert=True
+                    )
+                    
+                    if result.upserted_id:
+                        synced_count += 1
+                    else:
+                        updated_count += 1
+            else:
+                errors.append(f"Failed to fetch accounts: {accounts_response.status_code} - {accounts_response.text}")
+            
+            # 2. Fetch Tracking Categories (for expense categorization)
+            tracking_url = "https://api.xero.com/api.xro/2.0/TrackingCategories"
+            tracking_response = requests.get(tracking_url, headers=headers, timeout=30)
+            
+            if tracking_response.status_code == 200:
+                tracking_data = tracking_response.json()
+                categories = tracking_data.get("TrackingCategories", [])
+                
+                for category in categories:
+                    for option in category.get("Options", []):
+                        category_doc = {
+                            "integration_name": "xero",
+                            "category_id": option.get("TrackingOptionID"),
+                            "category_name": option.get("Name"),
+                            "category_type": category.get("Name"),
+                            "status": option.get("Status"),
+                            "synced_at": datetime.utcnow().isoformat()
+                        }
+                        
+                        expense_categories_collection.update_one(
+                            {"integration_name": "xero", "category_id": option.get("TrackingOptionID")},
+                            {"$set": category_doc},
+                            upsert=True
+                        )
+            
+            # 3. Fetch Contacts (Vendors and Customers)
+            contacts_url = "https://api.xero.com/api.xro/2.0/Contacts"
+            contacts_response = requests.get(contacts_url, headers=headers, timeout=30)
+            
+            if contacts_response.status_code == 200:
+                contacts_data = contacts_response.json()
+                contacts = contacts_data.get("Contacts", [])
+                
+                for contact in contacts:
+                    contact_type = "customer" if contact.get("IsCustomer") else "vendor" if contact.get("IsSupplier") else "contact"
+                    
+                    contact_doc = {
+                        "integration_name": "xero",
+                        "entity_id": contact.get("ContactID"),
+                        "entity_name": contact.get("Name"),
+                        "entity_type": contact_type,
+                        "email": contact.get("EmailAddress"),
+                        "status": contact.get("ContactStatus"),
+                        "synced_at": datetime.utcnow().isoformat()
+                    }
+                    
+                    vendors_customers_collection.update_one(
+                        {"integration_name": "xero", "entity_id": contact.get("ContactID")},
+                        {"$set": contact_doc},
+                        upsert=True
+                    )
+                    synced_count += 1
+            
+        except requests.exceptions.RequestException as e:
+            errors.append(f"API request error: {str(e)}")
         
         return {
-            "synced": 0,
-            "updated": 0,
-            "errors": ["Xero OAuth flow needs to be implemented"]
+            "synced": synced_count,
+            "updated": updated_count,
+            "errors": errors if errors else []
         }
             
     except Exception as e:
