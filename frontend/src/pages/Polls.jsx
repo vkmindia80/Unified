@@ -110,77 +110,75 @@ const Polls = () => {
   };
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <Layout>
       {/* Header */}
-      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-sm border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-                📊 Polls & Surveys
-              </h1>
-              <p className={`mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                Participate in team polls and see what others think
-              </p>
-            </div>
-            {user?.role === 'admin' && (
-              <button
-                onClick={() => setShowCreateModal(true)}
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
-                data-testid="create-poll-btn"
-              >
-                + Create Poll
-              </button>
-            )}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              📊 Polls & Surveys
+            </h1>
+            <p className={`mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+              Participate in team polls and see what others think
+            </p>
           </div>
+          {user?.role === 'admin' && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 shadow-md hover:shadow-lg"
+              data-testid="create-poll-btn"
+            >
+              + Create Poll
+            </button>
+          )}
+        </div>
 
-          {/* Filters */}
-          <div className="mt-6 flex gap-3">
-            <button
-              onClick={() => setFilter('all')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                filter === 'all'
-                  ? 'bg-blue-500 text-white'
-                  : darkMode
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-              data-testid="filter-all"
-            >
-              All Polls
-            </button>
-            <button
-              onClick={() => setFilter('active')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                filter === 'active'
-                  ? 'bg-green-500 text-white'
-                  : darkMode
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-              data-testid="filter-active"
-            >
-              Active
-            </button>
-            <button
-              onClick={() => setFilter('closed')}
-              className={`px-4 py-2 rounded-lg font-medium transition-all ${
-                filter === 'closed'
-                  ? 'bg-gray-500 text-white'
-                  : darkMode
-                  ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-              }`}
-              data-testid="filter-closed"
-            >
-              Closed
-            </button>
-          </div>
+        {/* Filters */}
+        <div className="flex gap-3">
+          <button
+            onClick={() => setFilter('all')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              filter === 'all'
+                ? 'bg-blue-500 text-white'
+                : darkMode
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+            data-testid="filter-all"
+          >
+            All Polls
+          </button>
+          <button
+            onClick={() => setFilter('active')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              filter === 'active'
+                ? 'bg-green-500 text-white'
+                : darkMode
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+            data-testid="filter-active"
+          >
+            Active
+          </button>
+          <button
+            onClick={() => setFilter('closed')}
+            className={`px-4 py-2 rounded-lg font-medium transition-all ${
+              filter === 'closed'
+                ? 'bg-gray-500 text-white'
+                : darkMode
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+            data-testid="filter-closed"
+          >
+            Closed
+          </button>
         </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div>
         {loading ? (
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
