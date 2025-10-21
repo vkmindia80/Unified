@@ -537,6 +537,34 @@ function ChatWithSpaces() {
               {/* Message Input */}
               <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} px-6 py-4`}>
                 <form onSubmit={sendMessage} className="flex items-center space-x-2">
+                  {/* File Upload Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowFileUpload(true)}
+                    className={`p-3 rounded-lg transition ${
+                      darkMode
+                        ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-300'
+                        : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+                    }`}
+                    title="Attach file"
+                  >
+                    <FaPaperclip />
+                  </button>
+                  
+                  {/* GIF Button */}
+                  <button
+                    type="button"
+                    onClick={() => setShowGifPicker(true)}
+                    className={`p-3 rounded-lg transition ${
+                      darkMode
+                        ? 'hover:bg-gray-700 text-gray-400 hover:text-gray-300'
+                        : 'hover:bg-gray-100 text-gray-600 hover:text-gray-800'
+                    }`}
+                    title="Send GIF"
+                  >
+                    <FaSmile />
+                  </button>
+                  
                   <input
                     type="text"
                     value={newMessage}
