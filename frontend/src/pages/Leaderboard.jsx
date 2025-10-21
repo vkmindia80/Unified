@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
-import { FaArrowLeft, FaTrophy, FaMedal, FaCrown, FaStar } from 'react-icons/fa';
+import Layout from '../components/Layout/Layout';
+import Card from '../components/UI/Card';
+import { FiTrendingUp, FiAward, FiCrown, FiMedal, FiTrophy, FiUsers, FiTarget } from 'react-icons/fi';
 
 function Leaderboard() {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [timeFilter, setTimeFilter] = useState('all'); // 'all', 'monthly', 'weekly'
 
   useEffect(() => {
     fetchLeaderboard();
-  }, []);
+  }, [timeFilter]);
 
   const fetchLeaderboard = async () => {
     try {
@@ -26,141 +27,216 @@ function Leaderboard() {
   };
 
   const getRankIcon = (rank) => {
-    if (rank === 1) return <FaCrown className="text-yellow-500 text-2xl" />;
-    if (rank === 2) return <FaMedal className="text-gray-400 text-2xl" />;
-    if (rank === 3) return <FaMedal className="text-orange-600 text-2xl" />;
-    return <span className="text-gray-500 font-bold text-lg">{rank}</span>;
+    if (rank === 1) return <FiCrown className="text-yellow-500 w-6 h-6" />;
+    if (rank === 2) return <FiMedal className="text-gray-400 w-6 h-6" />;
+    if (rank === 3) return <FiMedal className="text-orange-500 w-6 h-6" />;
+    return null;
   };
 
   const getRankColor = (rank) => {
     if (rank === 1) return 'from-yellow-400 to-yellow-600';
     if (rank === 2) return 'from-gray-300 to-gray-500';
     if (rank === 3) return 'from-orange-400 to-orange-600';
-    return 'from-blue-400 to-blue-600';
+    return 'from-corporate-400 to-corporate-600';
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-yellow-50 to-orange-50">
-      {/* Header */}
-      <header className="bg-white shadow-md">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="mr-4 p-2 hover:bg-gray-100 rounded-lg transition"
-            data-testid="back-button"
-          >
-            <FaArrowLeft className="text-gray-600" />
-          </button>
+    <Layout>
+      {/* Page Header */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-3">
-            <FaTrophy className="text-3xl text-yellow-500" />
-            <h1 className="text-2xl font-bold text-gray-800">Leaderboard</h1>
+            <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center">
+              <FiTrophy className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-primary-900 dark:text-white">Leaderboard</h1>
+              <p className="text-primary-600 dark:text-primary-400">Top performers and achievers</p>
+            </div>
+          </div>
+          
+          {/* Time Filter */}
+          <div className="flex items-center space-x-2 bg-white dark:bg-primary-800 rounded-lg shadow-sm border border-gray-200 dark:border-primary-700 p-1">
+            {['all', 'monthly', 'weekly'].map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setTimeFilter(filter)}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                  timeFilter === filter
+                    ? 'bg-corporate-600 text-white shadow-sm'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-primary-700'
+                }`}
+              >
+                {filter.charAt(0).toUpperCase() + filter.slice(1)} Time
+              </button>
+            ))}
           </div>
         </div>
-      </header>
+      </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Top 3 Podium */}
-        {leaderboard.length >= 3 && (
-          <div className="mb-12">
-            <div className="flex items-end justify-center space-x-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200 dark:border-amber-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-amber-700 dark:text-amber-400 mb-1">Your Rank</p>
+              <p className="text-3xl font-bold text-amber-900 dark:text-amber-300">#{leaderboard.findIndex(p => p.id === user?.id) + 1 || '-'}</p>
+            </div>
+            <FiTarget className="w-12 h-12 text-amber-500" />
+          </div>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-corporate-50 to-corporate-100 dark:from-corporate-900/20 dark:to-corporate-800/20 border-corporate-200 dark:border-corporate-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-corporate-700 dark:text-corporate-400 mb-1">Your Points</p>
+              <p className="text-3xl font-bold text-corporate-900 dark:text-corporate-300">{user?.points || 0}</p>
+            </div>
+            <FiAward className="w-12 h-12 text-corporate-500" />
+          </div>
+        </Card>
+
+        <Card className="bg-gradient-to-br from-accent-50 to-accent-100 dark:from-accent-900/20 dark:to-accent-800/20 border-accent-200 dark:border-accent-700">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-accent-700 dark:text-accent-400 mb-1">Total Players</p>
+              <p className="text-3xl font-bold text-accent-900 dark:text-accent-300">{leaderboard.length}</p>
+            </div>
+            <FiUsers className="w-12 h-12 text-accent-500" />
+          </div>
+        </Card>
+      </div>
+
+      {/* Top 3 Podium */}
+      {leaderboard.length >= 3 && (
+        <div className="mb-8">
+          <Card>
+            <div className="flex items-end justify-center space-x-8 py-8">
               {/* 2nd Place */}
               <div className="flex flex-col items-center" data-testid="rank-2">
-                <div className="w-24 h-24 bg-gradient-to-br from-gray-300 to-gray-500 rounded-full flex items-center justify-center text-white font-bold text-3xl mb-2 shadow-lg">
-                  {leaderboard[1]?.full_name?.charAt(0) || '2'}
+                <div className="relative mb-4">
+                  <div className="w-20 h-20 bg-gradient-to-br from-gray-300 to-gray-500 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-4 ring-gray-200">
+                    {leaderboard[1]?.full_name?.charAt(0) || '2'}
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg">
+                    <FiMedal className="text-gray-500 w-5 h-5" />
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="font-bold text-gray-800">{leaderboard[1]?.full_name}</p>
-                  <p className="text-sm text-gray-600">{leaderboard[1]?.points} points</p>
-                  <FaMedal className="text-gray-400 text-3xl mx-auto mt-2" />
-                </div>
-                <div className="w-32 h-24 bg-gradient-to-br from-gray-300 to-gray-400 rounded-t-lg mt-4 flex items-center justify-center">
-                  <span className="text-white font-bold text-2xl">2</span>
+                <p className="font-bold text-gray-800 dark:text-white text-center mb-1">{leaderboard[1]?.full_name}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{leaderboard[1]?.points} points</p>
+                <div className="w-32 h-20 bg-gradient-to-t from-gray-300 to-gray-400 rounded-t-xl flex items-start justify-center pt-3">
+                  <span className="text-white font-bold text-xl">2nd</span>
                 </div>
               </div>
 
               {/* 1st Place */}
-              <div className="flex flex-col items-center" data-testid="rank-1">
-                <div className="w-32 h-32 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold text-4xl mb-2 shadow-2xl ring-4 ring-yellow-300">
-                  {leaderboard[0]?.full_name?.charAt(0) || '1'}
+              <div className="flex flex-col items-center -mt-4" data-testid="rank-1">
+                <div className="relative mb-4">
+                  <div className="w-28 h-28 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold text-3xl shadow-2xl ring-4 ring-yellow-200 animate-pulse">
+                    {leaderboard[0]?.full_name?.charAt(0) || '1'}
+                  </div>
+                  <div className="absolute -top-3 -right-3 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg">
+                    <FiCrown className="text-yellow-500 w-6 h-6" />
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="font-bold text-gray-800 text-lg">{leaderboard[0]?.full_name}</p>
-                  <p className="text-sm text-gray-600">{leaderboard[0]?.points} points</p>
-                  <FaCrown className="text-yellow-500 text-4xl mx-auto mt-2" />
-                </div>
-                <div className="w-32 h-32 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-t-lg mt-4 flex items-center justify-center">
-                  <span className="text-white font-bold text-3xl">1</span>
+                <p className="font-bold text-gray-900 dark:text-white text-center mb-1 text-lg">{leaderboard[0]?.full_name}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{leaderboard[0]?.points} points</p>
+                <div className="w-32 h-28 bg-gradient-to-t from-yellow-400 to-yellow-600 rounded-t-xl flex items-start justify-center pt-3 shadow-lg">
+                  <span className="text-white font-bold text-2xl">1st</span>
                 </div>
               </div>
 
               {/* 3rd Place */}
               <div className="flex flex-col items-center" data-testid="rank-3">
-                <div className="w-24 h-24 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-3xl mb-2 shadow-lg">
-                  {leaderboard[2]?.full_name?.charAt(0) || '3'}
+                <div className="relative mb-4">
+                  <div className="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-4 ring-orange-200">
+                    {leaderboard[2]?.full_name?.charAt(0) || '3'}
+                  </div>
+                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg">
+                    <FiMedal className="text-orange-500 w-5 h-5" />
+                  </div>
                 </div>
-                <div className="text-center">
-                  <p className="font-bold text-gray-800">{leaderboard[2]?.full_name}</p>
-                  <p className="text-sm text-gray-600">{leaderboard[2]?.points} points</p>
-                  <FaMedal className="text-orange-600 text-3xl mx-auto mt-2" />
-                </div>
-                <div className="w-32 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-t-lg mt-4 flex items-center justify-center">
-                  <span className="text-white font-bold text-2xl">3</span>
+                <p className="font-bold text-gray-800 dark:text-white text-center mb-1">{leaderboard[2]?.full_name}</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{leaderboard[2]?.points} points</p>
+                <div className="w-32 h-16 bg-gradient-to-t from-orange-400 to-orange-600 rounded-t-xl flex items-start justify-center pt-3">
+                  <span className="text-white font-bold text-xl">3rd</span>
                 </div>
               </div>
             </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Full Leaderboard Table */}
+      <Card title="All Rankings" className="overflow-hidden">
+        {loading ? (
+          <div className="p-8 text-center text-gray-500 dark:text-gray-400">Loading leaderboard...</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 dark:bg-primary-800 border-b border-gray-200 dark:border-primary-700">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Rank</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Player</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Department</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Level</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Points</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-primary-700">
+                {leaderboard.map((player, index) => (
+                  <tr
+                    key={player.id}
+                    className={`hover:bg-gray-50 dark:hover:bg-primary-800 transition ${
+                      player.id === user?.id ? 'bg-corporate-50 dark:bg-corporate-900/20 border-l-4 border-corporate-600' : ''
+                    }`}
+                    data-testid={`leaderboard-item-${index}`}
+                  >
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-2">
+                        {getRankIcon(player.rank)}
+                        <span className={`font-semibold ${
+                          player.rank <= 3 ? 'text-lg' : ''
+                        } text-gray-900 dark:text-white`}>
+                          #{player.rank}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-10 h-10 bg-gradient-to-br ${getRankColor(player.rank)} rounded-full flex items-center justify-center text-white font-bold`}>
+                          {player.full_name?.charAt(0) || 'U'}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            {player.full_name}
+                            {player.id === user?.id && (
+                              <span className="ml-2 text-xs bg-corporate-600 text-white px-2 py-1 rounded">You</span>
+                            )}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{player.role}</p>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                      {player.department || 'N/A'}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-corporate-100 text-corporate-800 dark:bg-corporate-900/30 dark:text-corporate-400">
+                        Level {player.level}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right">
+                      <span className="text-xl font-bold text-gray-900 dark:text-white">{player.points}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
-
-        {/* Rest of Leaderboard */}
-        <div className="bg-white rounded-xl shadow-lg overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-4">
-            <h2 className="text-xl font-bold text-white">All Rankings</h2>
-          </div>
-          
-          {loading ? (
-            <div className="p-8 text-center text-gray-500">Loading leaderboard...</div>
-          ) : (
-            <div className="divide-y divide-gray-200">
-              {leaderboard.map((player, index) => (
-                <div
-                  key={player.id}
-                  className={`px-6 py-4 hover:bg-gray-50 transition ${
-                    player.id === user?.id ? 'bg-blue-50 border-l-4 border-blue-500' : ''
-                  }`}
-                  data-testid={`leaderboard-item-${index}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-12 h-12 flex items-center justify-center">
-                        {getRankIcon(player.rank)}
-                      </div>
-                      <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                        {player.full_name?.charAt(0) || 'U'}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-gray-800">
-                          {player.full_name}
-                          {player.id === user?.id && (
-                            <span className="ml-2 text-xs bg-blue-500 text-white px-2 py-1 rounded">You</span>
-                          )}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          {player.role} • {player.department || 'No department'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-gray-800">{player.points}</p>
-                      <p className="text-sm text-gray-500">Level {player.level}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
+      </Card>
+    </Layout>
   );
 }
 
