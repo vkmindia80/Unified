@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { useTheme } from '../context/ThemeContext';
 import axios from 'axios';
+import Layout from '../components/Layout/Layout';
 import CreatePollModal from '../components/CreatePollModal';
 import PollCard from '../components/PollCard';
 import PollResults from '../components/PollResults';
