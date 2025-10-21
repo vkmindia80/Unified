@@ -207,7 +207,12 @@ function AdminIntegrations() {
 
     // Communication icons
     const commIcons = {
-      'giphy': '🎬'
+      'giphy': '🎬',
+      'slack': '💬',
+      'microsoft_teams': '👥',
+      'discord': '🎮',
+      'telegram': '✈️',
+      'twilio': '📱'
     };
 
     return hrIcons[name] || accountingIcons[name] || commIcons[name] || '🔌';
