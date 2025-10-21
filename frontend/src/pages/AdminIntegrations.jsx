@@ -321,13 +321,17 @@ function AdminIntegrations() {
       ),
       'netsuite': (
         <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
-          <p className="mb-1">To get NetSuite credentials:</p>
+          <p className="mb-1 font-semibold">Setup Instructions:</p>
           <ol className="list-decimal list-inside space-y-1">
             <li>Log in to NetSuite as administrator</li>
-            <li>Enable Token-Based Authentication (TBA)</li>
-            <li>Create integration record and get Consumer Key/Secret</li>
-            <li>Create access token and get Token ID/Secret</li>
+            <li>Enable Token-Based Authentication (TBA) in Setup {'>'} Company {'>'} Enable Features</li>
+            <li>Create integration record: Setup {'>'} Integration {'>'} Manage Integrations</li>
+            <li>Note Consumer Key and Consumer Secret from integration record</li>
+            <li>Create access token: Setup {'>'} Users/Roles {'>'} Access Tokens {'>'} New</li>
+            <li>Note Token ID and Token Secret</li>
+            <li>Enter all credentials below (NetSuite uses TBA, not OAuth)</li>
           </ol>
+          <p className="mt-2 text-xs italic">💡 Tip: NetSuite tokens don't expire unless manually revoked.</p>
         </div>
       )
     };
