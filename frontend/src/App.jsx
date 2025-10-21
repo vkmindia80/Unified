@@ -67,6 +67,7 @@ function AppRoutes() {
         <Route path="/challenges" element={<PrivateRoute><Challenges /></PrivateRoute>} />
         <Route path="/rewards" element={<PrivateRoute><Rewards /></PrivateRoute>} />
         <Route path="/admin" element={<PrivateRoute><AdminPanel /></PrivateRoute>} />
+        <Route path="/admin/integrations" element={<PrivateRoute><AdminIntegrations /></PrivateRoute>} />
         <Route path="/calls" element={<PrivateRoute><CallHistory /></PrivateRoute>} />
         <Route path="/" element={<Navigate to="/dashboard" />} />
       </Routes>
