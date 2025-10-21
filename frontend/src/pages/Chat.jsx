@@ -601,36 +601,36 @@ function Chat() {
                   <button
                     type="button"
                     onClick={() => setShowFileUpload(true)}
-                    className={`p-3 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-lg transition`}
+                    className={`p-3 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-xl transition-all duration-200 transform hover:scale-110`}
                     title="Attach file"
                     data-testid="attach-file-button"
                   >
-                    <FaPaperclip className={darkMode ? 'text-gray-400' : 'text-gray-600'} />
+                    <FaPaperclip className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} w-5 h-5`} />
                   </button>
                   <button
                     type="button"
                     onClick={() => setShowGifPicker(true)}
-                    className={`p-3 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-lg transition`}
+                    className={`p-3 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-xl transition-all duration-200 transform hover:scale-110`}
                     title="Send GIF"
                     data-testid="gif-picker-button"
                   >
-                    <FaSmile className={darkMode ? 'text-gray-400' : 'text-gray-600'} />
+                    <FaSmile className={`${darkMode ? 'text-gray-400' : 'text-gray-600'} w-5 h-5`} />
                   </button>
                   <input
                     type="text"
                     value={newMessage}
                     onChange={handleTyping}
                     placeholder="Type a message..."
-                    className={`flex-1 px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none ${darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'}`}
+                    className={`flex-1 px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all shadow-sm hover:shadow-md ${darkMode ? 'bg-gray-700/50 border-gray-600 text-white placeholder-gray-400' : 'bg-white border-gray-300'}`}
                     data-testid="message-input"
                   />
                   <button
                     type="submit"
                     disabled={!newMessage.trim() && pendingFiles.length === 0}
-                    className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="p-3.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
                     data-testid="send-message-button"
                   >
-                    <FaPaperPlane />
+                    <FaPaperPlane className="w-5 h-5" />
                   </button>
                 </form>
               </div>
