@@ -312,7 +312,7 @@ function AdminPanel() {
           </div>
         </div>
       )}
-    </div>
+    </Layout>
   );
 }
 
