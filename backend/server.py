@@ -2129,7 +2129,7 @@ def get_integration_config(integration_name: str):
 # Test integration connection
 @app.post("/api/integrations/{integration_name}/test-connection")
 async def test_integration_connection(integration_name: str, current_user = Depends(get_current_user)):
-    """Test connection to HR system (admin only)"""
+    """Test connection to integration system (admin only)"""
     if current_user["role"] != "admin":
         raise HTTPException(status_code=403, detail="Admin access required")
     
@@ -2138,12 +2138,16 @@ async def test_integration_connection(integration_name: str, current_user = Depe
         if not integration:
             raise HTTPException(status_code=404, detail="Integration not found")
         
-        # Basic validation - check if required fields are configured
+        integration_type = integration.get("type")
+        
+        # Test accounting system connections
+        if integration_type == "accounting_system":
+            return await test_accounting_connection(integration_name, integration)
+        
+        # Test HR system connections (existing logic)
         if not integration.get("api_key"):
             return {"success": False, "message": "API key not configured"}
         
-        # Here you would implement actual API calls to test connection
-        # For now, return success if credentials are present
         return {
             "success": True,
             "message": f"Connection to {integration['display_name']} successful",
@@ -2151,6 +2155,200 @@ async def test_integration_connection(integration_name: str, current_user = Depe
         }
     except Exception as e:
         return {"success": False, "message": str(e)}
+
+async def test_accounting_connection(integration_name: str, integration: dict):
+    """Test connection to accounting systems"""
+    try:
+        config = integration.get("config", {})
+        access_token = config.get("access_token")
+        
+        if not access_token:
+            return {
+                "success": False,
+                "message": "Access Token not configured. Please provide your OAuth access token."
+            }
+        
+        # Test connection based on integration type
+        if integration_name == "quickbooks":
+            company_id = config.get("company_id")
+            if not company_id:
+                return {"success": False, "message": "Company ID (Realm ID) not configured"}
+            
+            environment = config.get("environment", "production")
+            base_url = "https://sandbox-quickbooks.api.intuit.com" if environment == "sandbox" else "https://quickbooks.api.intuit.com"
+            
+            headers = {
+                "Authorization": f"Bearer {access_token}",
+                "Accept": "application/json"
+            }
+            
+            url = f"{base_url}/v3/company/{company_id}/companyinfo/{company_id}"
+            response = requests.get(url, headers=headers, timeout=30)
+            
+            if response.status_code == 200:
+                company_data = response.json()
+                company_name = company_data.get("CompanyInfo", {}).get("CompanyName", "Unknown")
+                return {
+                    "success": True,
+                    "message": f"Successfully connected to QuickBooks: {company_name}",
+                    "details": {"company_name": company_name}
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"QuickBooks API error: {response.status_code}. Please check your credentials and token."
+                }
+        
+        elif integration_name == "xero":
+            tenant_id = config.get("tenant_id")
+            if not tenant_id:
+                return {"success": False, "message": "Tenant ID not configured"}
+            
+            headers = {
+                "Authorization": f"Bearer {access_token}",
+                "Xero-tenant-id": tenant_id,
+                "Accept": "application/json"
+            }
+            
+            url = "https://api.xero.com/api.xro/2.0/Organisation"
+            response = requests.get(url, headers=headers, timeout=30)
+            
+            if response.status_code == 200:
+                org_data = response.json()
+                org_name = org_data.get("Organisations", [{}])[0].get("Name", "Unknown")
+                return {
+                    "success": True,
+                    "message": f"Successfully connected to Xero: {org_name}",
+                    "details": {"organization_name": org_name}
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"Xero API error: {response.status_code}. Please check your credentials and token."
+                }
+        
+        elif integration_name == "freshbooks":
+            account_id = config.get("account_id")
+            if not account_id:
+                return {"success": False, "message": "Account ID not configured"}
+            
+            headers = {
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            url = f"https://api.freshbooks.com/accounting/account/{account_id}/users/me"
+            response = requests.get(url, headers=headers, timeout=30)
+            
+            if response.status_code == 200:
+                user_data = response.json()
+                user_email = user_data.get("response", {}).get("result", {}).get("email", "Unknown")
+                return {
+                    "success": True,
+                    "message": f"Successfully connected to FreshBooks: {user_email}",
+                    "details": {"user_email": user_email}
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"FreshBooks API error: {response.status_code}. Please check your credentials and token."
+                }
+        
+        elif integration_name == "sage":
+            region = config.get("region", "us")
+            region_urls = {
+                "us": "https://api.sageone.com",
+                "uk": "https://api.accounting.sage.com",
+                "ca": "https://api.sageone.com"
+            }
+            base_url = region_urls.get(region.lower(), "https://api.accounting.sage.com")
+            
+            headers = {
+                "Authorization": f"Bearer {access_token}",
+                "Content-Type": "application/json"
+            }
+            
+            url = f"{base_url}/v3.1/businesses"
+            response = requests.get(url, headers=headers, timeout=30)
+            
+            if response.status_code == 200:
+                return {
+                    "success": True,
+                    "message": "Successfully connected to Sage Business Cloud"
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"Sage API error: {response.status_code}. Please check your credentials and token."
+                }
+        
+        elif integration_name == "netsuite":
+            account_id = config.get("account_id")
+            consumer_key = config.get("consumer_key")
+            consumer_secret = config.get("consumer_secret")
+            token_id = config.get("token_id")
+            token_secret = config.get("token_secret")
+            
+            if not all([account_id, consumer_key, consumer_secret, token_id, token_secret]):
+                return {
+                    "success": False,
+                    "message": "Missing credentials. NetSuite requires Account ID, Consumer Key, Consumer Secret, Token ID, and Token Secret."
+                }
+            
+            try:
+                from requests_oauthlib import OAuth1
+                
+                oauth = OAuth1(
+                    consumer_key,
+                    client_secret=consumer_secret,
+                    resource_owner_key=token_id,
+                    resource_owner_secret=token_secret,
+                    realm=account_id,
+                    signature_method='HMAC-SHA256'
+                )
+                
+                base_url = f"https://{account_id}.suitetalk.api.netsuite.com/services/rest"
+                url = f"{base_url}/record/v1/account?limit=1"
+                
+                headers = {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                }
+                
+                response = requests.get(url, auth=oauth, headers=headers, timeout=30)
+                
+                if response.status_code == 200:
+                    return {
+                        "success": True,
+                        "message": "Successfully connected to NetSuite"
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "message": f"NetSuite API error: {response.status_code}. Please check your credentials."
+                    }
+            except ImportError:
+                return {
+                    "success": False,
+                    "message": "NetSuite integration requires 'requests-oauthlib' library."
+                }
+        
+        else:
+            return {
+                "success": False,
+                "message": f"Connection test not implemented for {integration_name}"
+            }
+            
+    except requests.exceptions.RequestException as e:
+        return {
+            "success": False,
+            "message": f"Connection failed: {str(e)}"
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "message": f"Error: {str(e)}"
+        }
 
 # Sync employees from HR system
 @app.post("/api/integrations/{integration_name}/sync-employees")
