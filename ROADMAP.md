@@ -728,6 +728,8 @@ Build a best-in-class enterprise platform combining real-time communication with
 - **Smart Feed System**: Company-wide announcements with priority levels, acknowledgements
 - **Recognition Wall**: Public appreciation posts with likes, comments, and categories
 - **Spaces & Subspaces**: Hierarchical workspace organization (Spaces → Subspaces → Channels)
+- **Polls & Surveys**: Complete polling system with multiple question types, voting, and results visualization
+- **File Uploads & GIF Sharing**: Upload files (images, documents, videos) and share GIFs in chats
 - **Approval Center**: Comprehensive approval workflow for space joins, registrations, rewards, content
 - **Invitations**: Space and organization invitations with accept/reject functionality
 - **Member Management**: Add, remove, and manage space members with role controls
