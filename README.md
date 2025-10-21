@@ -9,6 +9,7 @@ A best-in-class enterprise platform that combines **real-time communication** wi
 - **Video & Voice Calls**: WebRTC-powered video conferencing (UI ready)
 - **File Sharing**: Share documents and media with your team
 - **Screen Sharing**: Collaborate effectively (planned)
+- **External Integrations**: Connect with Slack, Microsoft Teams, Discord, Telegram, and Twilio (SMS/WhatsApp)
 
 ### 🎮 Gamification
 - **Points System**: Earn points for every activity
