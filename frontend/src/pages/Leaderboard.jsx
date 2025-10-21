@@ -137,19 +137,19 @@ function Leaderboard() {
               </div>
 
               {/* 1st Place */}
-              <div className="flex flex-col items-center -mt-4" data-testid="rank-1">
-                <div className="relative mb-4">
-                  <div className="w-28 h-28 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold text-3xl shadow-2xl ring-4 ring-yellow-200 animate-pulse">
+              <div className="flex flex-col items-center -mt-4 md:-mt-6 transform hover:scale-110 transition-transform duration-300" data-testid="rank-1">
+                <div className="relative mb-4 animate-float">
+                  <div className="w-28 h-28 md:w-36 md:h-36 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center text-white font-bold text-3xl md:text-4xl shadow-2xl ring-4 md:ring-6 ring-yellow-200 dark:ring-yellow-700 animate-pulse-slow">
                     {leaderboard[0]?.full_name?.charAt(0) || '1'}
                   </div>
-                  <div className="absolute -top-3 -right-3 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg">
-                    <FaTrophy className="text-yellow-500 w-6 h-6" />
+                  <div className="absolute -top-3 -right-3 w-12 h-12 bg-white dark:bg-primary-800 rounded-full flex items-center justify-center shadow-2xl animate-pulse">
+                    <FaTrophy className="text-yellow-500 w-7 h-7" />
                   </div>
                 </div>
-                <p className="font-bold text-gray-900 dark:text-white text-center mb-1 text-lg">{leaderboard[0]?.full_name}</p>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">{leaderboard[0]?.points} points</p>
-                <div className="w-32 h-28 bg-gradient-to-t from-yellow-400 to-yellow-600 rounded-t-xl flex items-start justify-center pt-3 shadow-lg">
-                  <span className="text-white font-bold text-2xl">1st</span>
+                <p className="font-bold text-gray-900 dark:text-white text-center mb-1 text-base md:text-xl">{leaderboard[0]?.full_name}</p>
+                <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-2 font-semibold">{leaderboard[0]?.points} points</p>
+                <div className="w-32 md:w-40 h-28 md:h-32 bg-gradient-to-t from-yellow-500 to-yellow-600 rounded-t-xl flex items-start justify-center pt-3 shadow-2xl">
+                  <span className="text-white font-bold text-2xl md:text-3xl">1st</span>
                 </div>
               </div>
 
