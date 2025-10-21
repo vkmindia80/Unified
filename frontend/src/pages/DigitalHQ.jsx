@@ -140,7 +140,7 @@ function DigitalHQ() {
 
       {/* Settings Panel */}
       {showSettings && (
-        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4`}>
+        <div className="mb-6">
           <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6 mb-6`}>
             <h3 className={`text-lg font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
               Widget Visibility
