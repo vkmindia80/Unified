@@ -19,6 +19,7 @@ import Feed from './pages/Feed';
 import RecognitionWall from './pages/RecognitionWall';
 import ApprovalCenter from './pages/ApprovalCenter';
 import Invitations from './pages/Invitations';
+import Polls from './pages/Polls';
 import './App.css';
 
 const PrivateRoute = ({ children }) => {
