@@ -435,7 +435,7 @@ function RecognitionWall() {
           </div>
         </div>
       )}
-    </div>
+    </Layout>
   );
 }
 
