@@ -4,7 +4,8 @@ import api from '../services/api';
 import Layout from '../components/Layout/Layout';
 import Card from '../components/UI/Card';
 import Badge from '../components/UI/Badge';
-import { FiTarget, FiFire, FiClock, FiCheckCircle, FiTrendingUp, FiAward } from 'react-icons/fi';
+import { FiTarget, FiClock, FiCheckCircle, FiTrendingUp, FiAward } from 'react-icons/fi';
+import { FaFire } from 'react-icons/fa';
 
 function Challenges() {
   const { user } = useAuth();
