@@ -1947,7 +1947,9 @@ async def update_integration(
             "name": integration_name,
             "display_name": update_data.get("display_name", integration_name.upper()),
             "description": update_data.get("description", ""),
+            "type": update_data.get("type", "other"),
             "api_key": update_data.get("api_key", ""),
+            "config": update_data.get("config", {}),
             "enabled": update_data.get("enabled", True),
             "updated_at": datetime.utcnow().isoformat(),
             "updated_by": current_user["id"]
@@ -1960,6 +1962,11 @@ async def update_integration(
     update_fields = {}
     if "api_key" in update_data:
         update_fields["api_key"] = update_data["api_key"]
+    if "config" in update_data:
+        # Merge config instead of replacing
+        existing_config = integration.get("config", {})
+        existing_config.update(update_data["config"])
+        update_fields["config"] = existing_config
     if "enabled" in update_data:
         update_fields["enabled"] = update_data["enabled"]
     if "description" in update_data:
