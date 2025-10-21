@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
-import { FaArrowLeft, FaUsers, FaEdit, FaTrash, FaPlus, FaChartLine, FaComments, FaMedal, FaCog } from 'react-icons/fa';
+import Layout from '../components/Layout/Layout';
+import { FaUsers, FaEdit, FaTrash, FaPlus, FaChartLine, FaComments, FaMedal, FaCog } from 'react-icons/fa';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
