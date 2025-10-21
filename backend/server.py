@@ -84,6 +84,7 @@ approvals_collection = db["approvals"]
 invitations_collection = db["invitations"]
 reward_redemptions_collection = db["reward_redemptions"]
 files_collection = db["files"]  # New collection for file metadata
+integrations_collection = db["integrations"]  # New collection for integration settings
 
 # Create indexes
 users_collection.create_index("email", unique=True)
