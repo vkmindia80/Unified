@@ -8,7 +8,10 @@ import WebRTC from '../components/WebRTC';
 import SpaceNavigation from '../components/SpaceNavigation';
 import CreateSpaceModal from '../components/CreateSpaceModal';
 import CreateSubspaceModal from '../components/CreateSubspaceModal';
-import { FaArrowLeft, FaComments, FaPlus, FaSearch, FaPaperPlane, FaVideo, FaPhone, FaCircle, FaCog } from 'react-icons/fa';
+import FileUpload from '../components/FileUpload';
+import GifPicker from '../components/GifPicker';
+import MessageFileAttachment from '../components/MessageFileAttachment';
+import { FaArrowLeft, FaComments, FaPlus, FaSearch, FaPaperPlane, FaPaperclip, FaSmile, FaVideo, FaPhone, FaCircle, FaCog } from 'react-icons/fa';
 
 function ChatWithSpaces() {
   const { user } = useAuth();
