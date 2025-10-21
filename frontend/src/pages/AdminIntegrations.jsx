@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
-import { FaArrowLeft, FaCog, FaKey, FaCheck, FaTimes, FaEye, FaEyeSlash, FaSave } from 'react-icons/fa';
+import Layout from '../components/Layout/Layout';
+import { FaCog, FaKey, FaCheck, FaTimes, FaEye, FaEyeSlash, FaSave } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 function AdminIntegrations() {
