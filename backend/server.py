@@ -3491,7 +3491,513 @@ async def get_my_redemptions(current_user = Depends(get_current_user)):
 
 
 
-# Socket.IO Events
+# ==================== DIGITAL HQ APIS ====================
+
+# Quick Links Collection
+quick_links_collection = db["quick_links"]
+
+# Events/Calendar Collection  
+events_collection = db["events"]
+
+# User Preferences Collection
+user_preferences_collection = db["user_preferences"]
+
+# Pydantic Models for Digital HQ
+class QuickLinkCreate(BaseModel):
+    title: str
+    url: str
+    icon: Optional[str] = "🔗"
+    description: Optional[str] = None
+    category: Optional[str] = "general"  # general, docs, tools, internal
+    is_external: bool = False
+    order: Optional[int] = 0
+
+class QuickLinkUpdate(BaseModel):
+    title: Optional[str] = None
+    url: Optional[str] = None
+    icon: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[str] = None
+    order: Optional[int] = None
+
+class EventCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    event_type: str  # "meeting", "deadline", "company_event"
+    start_time: str
+    end_time: Optional[str] = None
+    location: Optional[str] = None
+    participants: Optional[List[str]] = None
+    all_day: bool = False
+    reminder: Optional[int] = None  # minutes before event
+
+class EventUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    event_type: Optional[str] = None
+    start_time: Optional[str] = None
+    end_time: Optional[str] = None
+    location: Optional[str] = None
+    participants: Optional[List[str]] = None
+    all_day: Optional[bool] = None
+
+class UserPreferencesUpdate(BaseModel):
+    widget_order: Optional[List[str]] = None
+    hidden_widgets: Optional[List[str]] = None
+    theme_preferences: Optional[dict] = None
+
+# Quick Links APIs
+@app.post("/api/quick-links")
+async def create_quick_link(link: QuickLinkCreate, current_user = Depends(get_current_user)):
+    """Create a quick link (admin or assigned user)"""
+    if current_user["role"] not in ["admin", "manager"]:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    link_id = str(uuid.uuid4())
+    link_doc = {
+        "id": link_id,
+        "title": link.title,
+        "url": link.url,
+        "icon": link.icon,
+        "description": link.description,
+        "category": link.category,
+        "is_external": link.is_external,
+        "order": link.order,
+        "created_by": current_user["id"],
+        "created_at": datetime.utcnow().isoformat(),
+        "active": True
+    }
+    
+    quick_links_collection.insert_one(link_doc)
+    link_doc["_id"] = str(link_doc["_id"])
+    
+    # Award points for creating quick link
+    award_points(current_user["id"], 5, "Created quick link", "quick_link")
+    
+    return link_doc
+
+@app.get("/api/quick-links")
+async def get_quick_links(current_user = Depends(get_current_user)):
+    """Get all quick links"""
+    links = list(quick_links_collection.find({"active": True}).sort("order", 1))
+    for link in links:
+        link["_id"] = str(link["_id"])
+        # Get creator details
+        creator = users_collection.find_one({"id": link["created_by"]}, {"_id": 1, "id": 1, "full_name": 1})
+        if creator:
+            creator["_id"] = str(creator["_id"])
+            link["created_by_user"] = creator
+    return links
+
+@app.put("/api/quick-links/{link_id}")
+async def update_quick_link(
+    link_id: str,
+    update_data: QuickLinkUpdate,
+    current_user = Depends(get_current_user)
+):
+    """Update a quick link"""
+    if current_user["role"] not in ["admin", "manager"]:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    link = quick_links_collection.find_one({"id": link_id})
+    if not link:
+        raise HTTPException(status_code=404, detail="Quick link not found")
+    
+    update_fields = {k: v for k, v in update_data.dict().items() if v is not None}
+    if update_fields:
+        update_fields["updated_at"] = datetime.utcnow().isoformat()
+        quick_links_collection.update_one({"id": link_id}, {"$set": update_fields})
+    
+    updated = quick_links_collection.find_one({"id": link_id})
+    updated["_id"] = str(updated["_id"])
+    return updated
+
+@app.delete("/api/quick-links/{link_id}")
+async def delete_quick_link(link_id: str, current_user = Depends(get_current_user)):
+    """Delete a quick link"""
+    if current_user["role"] not in ["admin", "manager"]:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+    
+    link = quick_links_collection.find_one({"id": link_id})
+    if not link:
+        raise HTTPException(status_code=404, detail="Quick link not found")
+    
+    # Soft delete
+    quick_links_collection.update_one({"id": link_id}, {"$set": {"active": False}})
+    return {"success": True, "message": "Quick link deleted"}
+
+# Events/Calendar APIs
+@app.post("/api/events")
+async def create_event(event: EventCreate, current_user = Depends(get_current_user)):
+    """Create a calendar event"""
+    event_id = str(uuid.uuid4())
+    event_doc = {
+        "id": event_id,
+        "title": event.title,
+        "description": event.description,
+        "event_type": event.event_type,
+        "start_time": event.start_time,
+        "end_time": event.end_time,
+        "location": event.location,
+        "participants": event.participants or [],
+        "all_day": event.all_day,
+        "reminder": event.reminder,
+        "created_by": current_user["id"],
+        "created_at": datetime.utcnow().isoformat(),
+        "status": "scheduled"
+    }
+    
+    events_collection.insert_one(event_doc)
+    event_doc["_id"] = str(event_doc["_id"])
+    
+    # Get creator details
+    creator = users_collection.find_one({"id": current_user["id"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1})
+    if creator:
+        creator["_id"] = str(creator["_id"])
+        event_doc["created_by_user"] = creator
+    
+    # Award points for creating event
+    award_points(current_user["id"], 5, f"Created {event.event_type}", "event_create")
+    
+    # Broadcast new event via Socket.IO
+    await sio.emit("new_event", event_doc)
+    
+    return event_doc
+
+@app.get("/api/events")
+async def get_events(
+    current_user = Depends(get_current_user),
+    event_type: Optional[str] = None,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None
+):
+    """Get calendar events"""
+    query = {
+        "$or": [
+            {"participants": current_user["id"]},
+            {"created_by": current_user["id"]},
+            {"participants": {"$size": 0}}  # Public events
+        ]
+    }
+    
+    # Filter by event type
+    if event_type:
+        query["event_type"] = event_type
+    
+    # Filter by date range
+    if start_date and end_date:
+        query["start_time"] = {"$gte": start_date, "$lte": end_date}
+    
+    events = list(events_collection.find(query).sort("start_time", 1))
+    
+    for event in events:
+        event["_id"] = str(event["_id"])
+        # Get creator details
+        creator = users_collection.find_one({"id": event["created_by"]}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1})
+        if creator:
+            creator["_id"] = str(creator["_id"])
+            event["created_by_user"] = creator
+        
+        # Get participant details
+        if event.get("participants"):
+            participants_data = []
+            for p_id in event["participants"]:
+                user = users_collection.find_one({"id": p_id}, {"_id": 1, "id": 1, "full_name": 1, "avatar": 1})
+                if user:
+                    user["_id"] = str(user["_id"])
+                    participants_data.append(user)
+            event["participants_data"] = participants_data
+    
+    return events
+
+@app.get("/api/events/upcoming")
+async def get_upcoming_events(current_user = Depends(get_current_user), limit: int = 10):
+    """Get upcoming events"""
+    current_time = datetime.utcnow().isoformat()
+    
+    query = {
+        "start_time": {"$gte": current_time},
+        "$or": [
+            {"participants": current_user["id"]},
+            {"created_by": current_user["id"]},
+            {"participants": {"$size": 0}}
+        ]
+    }
+    
+    events = list(events_collection.find(query).sort("start_time", 1).limit(limit))
+    
+    for event in events:
+        event["_id"] = str(event["_id"])
+        creator = users_collection.find_one({"id": event["created_by"]}, {"_id": 1, "id": 1, "full_name": 1})
+        if creator:
+            creator["_id"] = str(creator["_id"])
+            event["created_by_user"] = creator
+    
+    return events
+
+@app.put("/api/events/{event_id}")
+async def update_event(
+    event_id: str,
+    update_data: EventUpdate,
+    current_user = Depends(get_current_user)
+):
+    """Update an event"""
+    event = events_collection.find_one({"id": event_id})
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Check permissions
+    if event["created_by"] != current_user["id"] and current_user["role"] not in ["admin", "manager"]:
+        raise HTTPException(status_code=403, detail="Not authorized to update this event")
+    
+    update_fields = {k: v for k, v in update_data.dict().items() if v is not None}
+    if update_fields:
+        update_fields["updated_at"] = datetime.utcnow().isoformat()
+        events_collection.update_one({"id": event_id}, {"$set": update_fields})
+    
+    updated = events_collection.find_one({"id": event_id})
+    updated["_id"] = str(updated["_id"])
+    return updated
+
+@app.delete("/api/events/{event_id}")
+async def delete_event(event_id: str, current_user = Depends(get_current_user)):
+    """Delete an event"""
+    event = events_collection.find_one({"id": event_id})
+    if not event:
+        raise HTTPException(status_code=404, detail="Event not found")
+    
+    # Check permissions
+    if event["created_by"] != current_user["id"] and current_user["role"] not in ["admin", "manager"]:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this event")
+    
+    events_collection.delete_one({"id": event_id})
+    return {"success": True, "message": "Event deleted"}
+
+# Performance Metrics APIs
+@app.get("/api/performance/me")
+async def get_my_performance(current_user = Depends(get_current_user)):
+    """Get current user's performance metrics"""
+    user_id = current_user["id"]
+    
+    # Get message count
+    message_count = messages_collection.count_documents({"sender_id": user_id})
+    
+    # Get achievement count
+    achievement_count = user_achievements_collection.count_documents({"user_id": user_id})
+    
+    # Get recognition count (received)
+    recognition_count = recognitions_collection.count_documents({"recognized_user_id": user_id})
+    
+    # Get points from last 30 days
+    from datetime import timedelta
+    thirty_days_ago = (datetime.utcnow() - timedelta(days=30)).isoformat()
+    recent_points = sum([
+        t.get("points", 0) 
+        for t in points_collection.find({
+            "user_id": user_id,
+            "created_at": {"$gte": thirty_days_ago}
+        })
+    ])
+    
+    # Get user's rank
+    all_users = list(users_collection.find({}, {"id": 1, "points": 1}).sort("points", -1))
+    rank = next((idx + 1 for idx, u in enumerate(all_users) if u["id"] == user_id), None)
+    
+    # Get poll participation
+    poll_votes = poll_responses_collection.count_documents({"user_id": user_id})
+    
+    return {
+        "user_id": user_id,
+        "total_points": current_user.get("points", 0),
+        "level": current_user.get("level", 1),
+        "rank": rank,
+        "total_users": len(all_users),
+        "messages_sent": message_count,
+        "achievements_unlocked": achievement_count,
+        "recognitions_received": recognition_count,
+        "poll_participation": poll_votes,
+        "points_last_30_days": recent_points
+    }
+
+@app.get("/api/performance/team")
+async def get_team_performance(current_user = Depends(get_current_user)):
+    """Get team comparison data"""
+    user_team = current_user.get("team")
+    user_department = current_user.get("department")
+    
+    # Get team members
+    team_query = {}
+    if user_team:
+        team_query["team"] = user_team
+    elif user_department:
+        team_query["department"] = user_department
+    else:
+        # If no team/department, compare with all users
+        team_query = {}
+    
+    team_members = list(users_collection.find(team_query, {
+        "_id": 1, "id": 1, "full_name": 1, "points": 1, "level": 1, "avatar": 1
+    }).sort("points", -1).limit(10))
+    
+    for member in team_members:
+        member["_id"] = str(member["_id"])
+        # Get message count
+        member["messages_sent"] = messages_collection.count_documents({"sender_id": member["id"]})
+        # Get achievement count
+        member["achievements"] = user_achievements_collection.count_documents({"user_id": member["id"]})
+    
+    return {
+        "team": user_team or user_department or "All Users",
+        "members": team_members
+    }
+
+# Team Directory API
+@app.get("/api/team-directory")
+async def get_team_directory(
+    current_user = Depends(get_current_user),
+    search: Optional[str] = None,
+    department: Optional[str] = None,
+    role: Optional[str] = None
+):
+    """Get team directory with contact details"""
+    query = {}
+    
+    # Search by name or email
+    if search:
+        query["$or"] = [
+            {"full_name": {"$regex": search, "$options": "i"}},
+            {"email": {"$regex": search, "$options": "i"}},
+            {"username": {"$regex": search, "$options": "i"}}
+        ]
+    
+    # Filter by department
+    if department:
+        query["department"] = department
+    
+    # Filter by role
+    if role:
+        query["role"] = role
+    
+    users = list(users_collection.find(query, {"password": 0}).sort("full_name", 1))
+    
+    for user in users:
+        user["_id"] = str(user["_id"])
+        # Add is_online status
+        user["is_online"] = user.get("status") == "online"
+    
+    return users
+
+# User Preferences APIs
+@app.get("/api/user-preferences")
+async def get_user_preferences(current_user = Depends(get_current_user)):
+    """Get user's widget preferences"""
+    prefs = user_preferences_collection.find_one({"user_id": current_user["id"]})
+    
+    if not prefs:
+        # Return default preferences
+        default_prefs = {
+            "user_id": current_user["id"],
+            "widget_order": [
+                "quick-links",
+                "calendar",
+                "performance",
+                "team-directory",
+                "company-news",
+                "birthdays",
+                "stats"
+            ],
+            "hidden_widgets": [],
+            "theme_preferences": {}
+        }
+        return default_prefs
+    
+    prefs["_id"] = str(prefs["_id"])
+    return prefs
+
+@app.put("/api/user-preferences")
+async def update_user_preferences(
+    preferences: UserPreferencesUpdate,
+    current_user = Depends(get_current_user)
+):
+    """Update user's widget preferences"""
+    existing = user_preferences_collection.find_one({"user_id": current_user["id"]})
+    
+    update_fields = {k: v for k, v in preferences.dict().items() if v is not None}
+    update_fields["updated_at"] = datetime.utcnow().isoformat()
+    
+    if not existing:
+        # Create new preferences
+        prefs_doc = {
+            "id": str(uuid.uuid4()),
+            "user_id": current_user["id"],
+            **update_fields,
+            "created_at": datetime.utcnow().isoformat()
+        }
+        user_preferences_collection.insert_one(prefs_doc)
+        prefs_doc["_id"] = str(prefs_doc["_id"])
+        return prefs_doc
+    
+    # Update existing preferences
+    user_preferences_collection.update_one(
+        {"user_id": current_user["id"]},
+        {"$set": update_fields}
+    )
+    
+    updated = user_preferences_collection.find_one({"user_id": current_user["id"]})
+    updated["_id"] = str(updated["_id"])
+    return updated
+
+# Birthday Widget API
+@app.get("/api/birthdays/upcoming")
+async def get_upcoming_birthdays(current_user = Depends(get_current_user)):
+    """Get upcoming birthdays and work anniversaries"""
+    from datetime import datetime, timedelta
+    
+    # Get all users with birthday or hire date
+    all_users = list(users_collection.find({}, {
+        "_id": 1, "id": 1, "full_name": 1, "avatar": 1, 
+        "birthday": 1, "hire_date": 1, "created_at": 1
+    }))
+    
+    current_date = datetime.utcnow()
+    upcoming = []
+    
+    for user in all_users:
+        user["_id"] = str(user["_id"])
+        
+        # Check birthday (if exists in user data)
+        if user.get("birthday"):
+            # For demo, we'll use created_at as birthday reference
+            pass
+        
+        # Check work anniversary (using created_at as hire date)
+        if user.get("created_at"):
+            hire_date = datetime.fromisoformat(user["created_at"].replace('Z', '+00:00'))
+            years_diff = current_date.year - hire_date.year
+            
+            # Check if anniversary is within next 30 days
+            anniversary_this_year = hire_date.replace(year=current_date.year)
+            days_until = (anniversary_this_year - current_date).days
+            
+            if 0 <= days_until <= 30 and years_diff > 0:
+                upcoming.append({
+                    "user": {
+                        "id": user["id"],
+                        "full_name": user["full_name"],
+                        "avatar": user.get("avatar")
+                    },
+                    "type": "work_anniversary",
+                    "date": anniversary_this_year.isoformat(),
+                    "days_until": days_until,
+                    "years": years_diff
+                })
+    
+    # Sort by days_until
+    upcoming.sort(key=lambda x: x["days_until"])
+    
+    return upcoming[:10]  # Return top 10
+
+# ==================== SOCKET.IO EVENTS ====================
 @sio.event
 async def connect(sid, environ):
     print(f"Client connected: {sid}")
