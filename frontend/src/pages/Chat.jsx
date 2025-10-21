@@ -516,14 +516,14 @@ function Chat() {
                       return (
                         <div
                           key={message.id}
-                          className={`flex ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
+                          className={`flex ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'} animate-slide-up`}
                           data-testid="message-item"
                         >
                           <div className={`max-w-md ${
                             message.sender_id === user?.id
-                              ? 'bg-blue-500 text-white'
-                              : darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
-                          } rounded-lg px-4 py-2 shadow`}>
+                              ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white'
+                              : darkMode ? 'bg-primary-800 text-white' : 'bg-white text-gray-800'
+                          } rounded-2xl px-4 py-3 shadow-md hover:shadow-lg transition-shadow`}>
                             {message.sender_id !== user?.id && (
                               <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-300' : ''}`}>{message.sender?.full_name}</p>
                             )}
