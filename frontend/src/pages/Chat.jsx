@@ -426,20 +426,20 @@ function Chat() {
                   <div
                     key={chat.id}
                     onClick={() => setSelectedChat(chat)}
-                    className={`p-4 cursor-pointer transition ${
+                    className={`p-4 cursor-pointer transition-all duration-200 ${
                       selectedChat?.id === chat.id 
-                        ? (darkMode ? 'bg-gray-700 border-l-4 border-blue-500' : 'bg-blue-50 border-l-4 border-blue-500')
-                        : (darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-50')
+                        ? (darkMode ? 'bg-blue-600/20 border-l-4 border-blue-500 shadow-md' : 'bg-blue-50 border-l-4 border-blue-500 shadow-md')
+                        : (darkMode ? 'hover:bg-gray-700/50' : 'hover:bg-gray-100/50')
                     }`}
                     data-testid={`chat-item-${chat.id}`}
                   >
                     <div className="flex items-center space-x-3">
                       <div className="relative">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold shadow-md transform transition-transform hover:scale-110">
                           {getChatName(chat).charAt(0)}
                         </div>
                         {isOnline && (
-                          <FaCircle className="absolute bottom-0 right-0 text-green-500 text-xs bg-white rounded-full" />
+                          <FaCircle className="absolute bottom-0 right-0 text-green-500 text-xs bg-white dark:bg-primary-800 rounded-full animate-pulse" />
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
