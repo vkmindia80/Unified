@@ -507,29 +507,51 @@ function Chat() {
                   </div>
                 ) : (
                   <>
-                    {messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className={`flex ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
-                        data-testid="message-item"
-                      >
-                        <div className={`max-w-md ${
-                          message.sender_id === user?.id
-                            ? 'bg-blue-500 text-white'
-                            : darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
-                        } rounded-lg px-4 py-2 shadow`}>
-                          {message.sender_id !== user?.id && (
-                            <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-300' : ''}`}>{message.sender?.full_name}</p>
-                          )}
-                          <p>{message.content}</p>
-                          <p className={`text-xs mt-1 ${
-                            message.sender_id === user?.id ? 'text-blue-100' : darkMode ? 'text-gray-400' : 'text-gray-500'
-                          }`}>
-                            {formatTime(message.created_at)}
-                          </p>
+                    {messages.map((message) => {
+                      // Get all images from message files for gallery
+                      const messageImages = (message.files || []).filter(f => 
+                        f.category === 'image' || f.mime_type?.startsWith('image/')
+                      );
+
+                      return (
+                        <div
+                          key={message.id}
+                          className={`flex ${message.sender_id === user?.id ? 'justify-end' : 'justify-start'}`}
+                          data-testid="message-item"
+                        >
+                          <div className={`max-w-md ${
+                            message.sender_id === user?.id
+                              ? 'bg-blue-500 text-white'
+                              : darkMode ? 'bg-gray-800 text-white' : 'bg-white text-gray-800'
+                          } rounded-lg px-4 py-2 shadow`}>
+                            {message.sender_id !== user?.id && (
+                              <p className={`text-xs font-semibold mb-1 ${darkMode ? 'text-gray-300' : ''}`}>{message.sender?.full_name}</p>
+                            )}
+                            {message.content && <p>{message.content}</p>}
+                            
+                            {/* File Attachments */}
+                            {message.files && message.files.length > 0 && (
+                              <div className="space-y-2">
+                                {message.files.map((file, index) => (
+                                  <MessageFileAttachment
+                                    key={file.id || index}
+                                    file={file}
+                                    darkMode={darkMode}
+                                    onImageClick={(imageFile) => openImageGallery(imageFile, messageImages)}
+                                  />
+                                ))}
+                              </div>
+                            )}
+                            
+                            <p className={`text-xs mt-1 ${
+                              message.sender_id === user?.id ? 'text-blue-100' : darkMode ? 'text-gray-400' : 'text-gray-500'
+                            }`}>
+                              {formatTime(message.created_at)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                     <div ref={messagesEndRef} />
                   </>
                 )}
