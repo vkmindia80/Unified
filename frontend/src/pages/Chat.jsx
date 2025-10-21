@@ -372,20 +372,21 @@ function Chat() {
               </div>
               <div>
                 <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Chat</h1>
-              {connected && (
-                <span className="flex items-center space-x-1 text-sm text-green-500">
-                  <FaCircle className="text-xs" />
-                  <span>Connected</span>
-                </span>
-              )}
+                {connected && (
+                  <span className="flex items-center space-x-1.5 text-sm text-green-500 bg-green-50 dark:bg-green-900/20 px-3 py-1 rounded-full">
+                    <FaCircle className="text-xs animate-pulse" />
+                    <span className="font-medium">Connected</span>
+                  </span>
+                )}
+              </div>
             </div>
             <button
               onClick={() => setShowNewChat(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+              className="flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-md hover:shadow-lg transform hover:scale-105"
               data-testid="new-chat-button"
             >
               <FaPlus />
-              <span>New Chat</span>
+              <span className="font-medium">New Chat</span>
             </button>
           </div>
         </header>
