@@ -44,15 +44,15 @@ function Leaderboard() {
   return (
     <Layout>
       {/* Page Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-amber-700 rounded-xl flex items-center justify-center">
-              <FaTrophy className="w-7 h-7 text-white" />
+      <div className="mb-8 animate-slide-up">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-2">
+          <div className="flex items-center space-x-4">
+            <div className="w-14 h-14 bg-gradient-to-br from-amber-500 to-amber-700 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-110 transition-transform duration-300">
+              <FaTrophy className="w-8 h-8 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-primary-900 dark:text-white">Leaderboard</h1>
-              <p className="text-primary-600 dark:text-primary-400">Top performers and achievers</p>
+              <h1 className="text-4xl font-bold text-primary-900 dark:text-white">Leaderboard</h1>
+              <p className="text-lg text-primary-600 dark:text-primary-400">Top performers and achievers</p>
             </div>
           </div>
           
