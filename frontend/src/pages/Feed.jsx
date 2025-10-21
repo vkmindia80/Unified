@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
-import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
-import { FaBell, FaExclamationCircle, FaCheckCircle, FaPlus, FaArrowLeft, FaClock, FaUsers } from 'react-icons/fa';
+import Layout from '../components/Layout/Layout';
+import Card from '../components/UI/Card';
+import Badge from '../components/UI/Badge';
+import { FiBell, FiAlertCircle, FiCheckCircle, FiPlus, FiClock, FiUsers, FiFileText } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
 function Feed() {
   const { user } = useAuth();
   const { socket } = useSocket();
-  const { darkMode } = useTheme();
-  const navigate = useNavigate();
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
