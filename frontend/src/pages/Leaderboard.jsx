@@ -57,15 +57,15 @@ function Leaderboard() {
           </div>
           
           {/* Time Filter */}
-          <div className="flex items-center space-x-2 bg-white dark:bg-primary-800 rounded-lg shadow-sm border border-gray-200 dark:border-primary-700 p-1">
+          <div className="flex items-center space-x-2 bg-white dark:bg-primary-800 rounded-xl shadow-md border border-gray-200 dark:border-primary-700 p-1.5">
             {['all', 'monthly', 'weekly'].map((filter) => (
               <button
                 key={filter}
                 onClick={() => setTimeFilter(filter)}
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+                className={`px-5 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 transform ${
                   timeFilter === filter
-                    ? 'bg-corporate-600 text-white shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-primary-700'
+                    ? 'bg-gradient-to-r from-corporate-600 to-corporate-700 text-white shadow-md scale-105'
+                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-primary-700 hover:scale-105'
                 }`}
               >
                 {filter.charAt(0).toUpperCase() + filter.slice(1)} Time
