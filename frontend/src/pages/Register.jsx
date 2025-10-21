@@ -71,19 +71,25 @@ const Register = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-corporate-50 via-white to-accent-50 flex items-center justify-center px-4 py-12">
-      <div className="max-w-2xl w-full">
+    <div className="min-h-screen bg-gradient-to-br from-corporate-50 via-white to-accent-50 dark:from-primary-900 dark:via-primary-800 dark:to-primary-900 flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      {/* Animated background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-corporate-300 dark:bg-corporate-800 rounded-full mix-blend-multiply dark:mix-blend-overlay filter blur-xl opacity-30 animate-float"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent-300 dark:bg-accent-800 rounded-full mix-blend-multiply dark:mix-blend-overlay filter blur-xl opacity-30 animate-float" style={{ animationDelay: '2s' }}></div>
+      </div>
+      
+      <div className="max-w-2xl w-full relative z-10">
         {/* Logo & Title */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-corporate-600 to-corporate-800 rounded-2xl mb-4 shadow-lg">
-            <span className="text-white font-bold text-2xl">EC</span>
+        <div className="text-center mb-8 animate-slide-up">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-corporate-600 to-corporate-800 rounded-2xl mb-4 shadow-xl transform hover:scale-105 transition-transform duration-300">
+            <span className="text-white font-bold text-3xl">EC</span>
           </div>
-          <h1 className="text-3xl font-bold text-primary-900 mb-2">Create Your Account</h1>
-          <p className="text-primary-600">Join your team on Enterprise Communications</p>
+          <h1 className="text-4xl font-bold text-primary-900 dark:text-white mb-2">Create Your Account</h1>
+          <p className="text-primary-600 dark:text-primary-400">Join your team on Enterprise Communications</p>
         </div>
 
         {/* Register Card */}
-        <div className="bg-white rounded-2xl shadow-large p-8 border border-gray-200">
+        <div className="bg-white/80 dark:bg-primary-800/80 backdrop-blur-xl rounded-2xl shadow-2xl p-8 border border-gray-200/50 dark:border-primary-700/50 animate-scale-in">
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start space-x-3" data-testid="register-error">
               <FiAlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
