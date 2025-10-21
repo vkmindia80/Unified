@@ -1738,6 +1738,89 @@ async def get_integrations(current_user = Depends(get_current_user)):
                 "fields": [{"name": "api_key", "label": "API Key", "type": "password", "required": True}],
                 "updated_at": datetime.utcnow().isoformat()
             },
+            # Communication System Integrations
+            {
+                "id": str(uuid.uuid4()),
+                "name": "slack",
+                "display_name": "Slack",
+                "description": "Send messages and notifications to Slack channels",
+                "type": "communication",
+                "api_key": "",
+                "config": {"webhook_url": "", "default_channel": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "Bot Token", "type": "password", "required": True, "placeholder": "xoxb-your-bot-token"},
+                    {"name": "webhook_url", "label": "Webhook URL (Optional)", "type": "text", "required": False, "placeholder": "https://hooks.slack.com/services/..."},
+                    {"name": "default_channel", "label": "Default Channel", "type": "text", "required": False, "placeholder": "#general"}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "microsoft_teams",
+                "display_name": "Microsoft Teams",
+                "description": "Post messages and notifications to Teams channels",
+                "type": "communication",
+                "api_key": "",
+                "config": {"webhook_url": "", "tenant_id": "", "client_secret": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "webhook_url", "label": "Webhook URL", "type": "text", "required": True, "placeholder": "https://outlook.office.com/webhook/..."},
+                    {"name": "api_key", "label": "Client ID (Optional)", "type": "text", "required": False, "placeholder": "For advanced features"},
+                    {"name": "client_secret", "label": "Client Secret (Optional)", "type": "password", "required": False},
+                    {"name": "tenant_id", "label": "Tenant ID (Optional)", "type": "text", "required": False}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "discord",
+                "display_name": "Discord",
+                "description": "Send messages to Discord channels and communities",
+                "type": "communication",
+                "api_key": "",
+                "config": {"webhook_url": "", "guild_id": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "Bot Token", "type": "password", "required": True, "placeholder": "Your Discord bot token"},
+                    {"name": "webhook_url", "label": "Webhook URL (Optional)", "type": "text", "required": False, "placeholder": "https://discord.com/api/webhooks/..."},
+                    {"name": "guild_id", "label": "Server ID (Optional)", "type": "text", "required": False, "placeholder": "Your Discord server ID"}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "telegram",
+                "display_name": "Telegram",
+                "description": "Send messages and broadcasts via Telegram bot",
+                "type": "communication",
+                "api_key": "",
+                "config": {"chat_id": "", "parse_mode": "HTML"},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "Bot Token", "type": "password", "required": True, "placeholder": "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"},
+                    {"name": "chat_id", "label": "Chat ID", "type": "text", "required": True, "placeholder": "-1001234567890"},
+                    {"name": "parse_mode", "label": "Parse Mode", "type": "text", "required": False, "placeholder": "HTML or Markdown"}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "twilio",
+                "display_name": "Twilio (SMS & WhatsApp)",
+                "description": "Send SMS and WhatsApp messages via Twilio",
+                "type": "communication",
+                "api_key": "",
+                "config": {"auth_token": "", "phone_number": "", "whatsapp_enabled": False},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "Account SID", "type": "text", "required": True, "placeholder": "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"},
+                    {"name": "auth_token", "label": "Auth Token", "type": "password", "required": True},
+                    {"name": "phone_number", "label": "Twilio Phone Number", "type": "text", "required": True, "placeholder": "+1234567890"},
+                    {"name": "whatsapp_enabled", "label": "WhatsApp Enabled", "type": "text", "required": False, "placeholder": "true or false"}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
             # HR System Integrations
             {
                 "id": str(uuid.uuid4()),
