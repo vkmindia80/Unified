@@ -4,7 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
-import { FaHeart, FaComment, FaPlus, FaArrowLeft, FaTrophy, FaStar, FaHandsHelping, FaLightbulb, FaCrown } from 'react-icons/fa';
+import Layout from '../components/Layout/Layout';
+import { FaHeart, FaComment, FaPlus, FaTrophy, FaStar, FaHandsHelping, FaLightbulb, FaCrown } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 const categories = [
