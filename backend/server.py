@@ -2223,6 +2223,10 @@ async def test_integration_connection(integration_name: str, current_user = Depe
         
         integration_type = integration.get("type")
         
+        # Test communication system connections
+        if integration_type == "communication":
+            return await test_communication_connection(integration_name, integration)
+        
         # Test accounting system connections
         if integration_type == "accounting_system":
             return await test_accounting_connection(integration_name, integration)
@@ -2238,6 +2242,210 @@ async def test_integration_connection(integration_name: str, current_user = Depe
         }
     except Exception as e:
         return {"success": False, "message": str(e)}
+
+async def test_communication_connection(integration_name: str, integration: dict):
+    """Test connection to communication systems"""
+    try:
+        config = integration.get("config", {})
+        api_key = integration.get("api_key", "")
+        
+        # Slack
+        if integration_name == "slack":
+            if not api_key:
+                return {"success": False, "message": "Bot Token not configured"}
+            
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            }
+            
+            # Test auth
+            response = requests.post(
+                "https://slack.com/api/auth.test",
+                headers=headers,
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("ok"):
+                    return {
+                        "success": True,
+                        "message": f"Successfully connected to Slack workspace: {data.get('team', 'Unknown')}",
+                        "details": {
+                            "team": data.get("team"),
+                            "user": data.get("user"),
+                            "bot_id": data.get("bot_id")
+                        }
+                    }
+                else:
+                    return {"success": False, "message": f"Slack API error: {data.get('error', 'Unknown error')}"}
+            else:
+                return {"success": False, "message": f"Slack API returned status {response.status_code}"}
+        
+        # Microsoft Teams
+        elif integration_name == "microsoft_teams":
+            webhook_url = config.get("webhook_url", "")
+            if not webhook_url:
+                return {"success": False, "message": "Webhook URL not configured"}
+            
+            # Test webhook with a simple message
+            test_payload = {
+                "@type": "MessageCard",
+                "@context": "https://schema.org/extensions",
+                "summary": "Connection Test",
+                "themeColor": "0078D4",
+                "title": "Connection Test",
+                "text": "This is a test message from your Enterprise Communication System."
+            }
+            
+            response = requests.post(webhook_url, json=test_payload, timeout=10)
+            
+            if response.status_code == 200:
+                return {
+                    "success": True,
+                    "message": "Successfully connected to Microsoft Teams. Test message sent!"
+                }
+            else:
+                return {"success": False, "message": f"Teams webhook returned status {response.status_code}"}
+        
+        # Discord
+        elif integration_name == "discord":
+            webhook_url = config.get("webhook_url", "")
+            if webhook_url:
+                # Test webhook
+                test_payload = {
+                    "content": "🔌 Connection test from Enterprise Communication System - Integration successful!"
+                }
+                
+                response = requests.post(webhook_url, json=test_payload, timeout=10)
+                
+                if response.status_code in [200, 204]:
+                    return {
+                        "success": True,
+                        "message": "Successfully connected to Discord. Test message sent via webhook!"
+                    }
+                else:
+                    return {"success": False, "message": f"Discord webhook returned status {response.status_code}"}
+            elif api_key:
+                # Test bot token
+                headers = {
+                    "Authorization": f"Bot {api_key}",
+                    "Content-Type": "application/json"
+                }
+                
+                response = requests.get(
+                    "https://discord.com/api/v10/users/@me",
+                    headers=headers,
+                    timeout=10
+                )
+                
+                if response.status_code == 200:
+                    data = response.json()
+                    return {
+                        "success": True,
+                        "message": f"Successfully connected to Discord as bot: {data.get('username', 'Unknown')}",
+                        "details": {
+                            "bot_name": data.get("username"),
+                            "bot_id": data.get("id")
+                        }
+                    }
+                else:
+                    return {"success": False, "message": f"Discord API returned status {response.status_code}"}
+            else:
+                return {"success": False, "message": "Either Bot Token or Webhook URL must be configured"}
+        
+        # Telegram
+        elif integration_name == "telegram":
+            if not api_key:
+                return {"success": False, "message": "Bot Token not configured"}
+            
+            # Test bot token
+            response = requests.get(
+                f"https://api.telegram.org/bot{api_key}/getMe",
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("ok"):
+                    bot_info = data.get("result", {})
+                    return {
+                        "success": True,
+                        "message": f"Successfully connected to Telegram bot: @{bot_info.get('username', 'Unknown')}",
+                        "details": {
+                            "bot_name": bot_info.get("first_name"),
+                            "username": bot_info.get("username"),
+                            "bot_id": bot_info.get("id")
+                        }
+                    }
+                else:
+                    return {"success": False, "message": f"Telegram API error: {data.get('description', 'Unknown error')}"}
+            else:
+                return {"success": False, "message": f"Telegram API returned status {response.status_code}"}
+        
+        # Twilio
+        elif integration_name == "twilio":
+            account_sid = api_key
+            auth_token = config.get("auth_token", "")
+            
+            if not account_sid or not auth_token:
+                return {"success": False, "message": "Account SID and Auth Token are required"}
+            
+            # Test Twilio credentials
+            from requests.auth import HTTPBasicAuth
+            
+            response = requests.get(
+                f"https://api.twilio.com/2010-04-01/Accounts/{account_sid}.json",
+                auth=HTTPBasicAuth(account_sid, auth_token),
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return {
+                    "success": True,
+                    "message": f"Successfully connected to Twilio account: {data.get('friendly_name', 'Unknown')}",
+                    "details": {
+                        "account_name": data.get("friendly_name"),
+                        "account_sid": account_sid,
+                        "status": data.get("status")
+                    }
+                }
+            else:
+                return {"success": False, "message": f"Twilio API returned status {response.status_code}. Check credentials."}
+        
+        # GIPHY (existing)
+        elif integration_name == "giphy":
+            if not api_key:
+                return {"success": False, "message": "API key not configured"}
+            
+            response = requests.get(
+                "https://api.giphy.com/v1/gifs/trending",
+                params={"api_key": api_key, "limit": 1},
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("meta", {}).get("status") == 200:
+                    return {
+                        "success": True,
+                        "message": "Successfully connected to GIPHY API"
+                    }
+                else:
+                    return {"success": False, "message": "Invalid GIPHY API key"}
+            else:
+                return {"success": False, "message": f"GIPHY API returned status {response.status_code}"}
+        
+        return {"success": False, "message": f"Unknown communication system: {integration_name}"}
+        
+    except requests.exceptions.Timeout:
+        return {"success": False, "message": "Connection timeout. Please check your network or credentials."}
+    except requests.exceptions.RequestException as e:
+        return {"success": False, "message": f"Connection error: {str(e)}"}
+    except Exception as e:
+        return {"success": False, "message": f"Test failed: {str(e)}"}
 
 async def test_accounting_connection(integration_name: str, integration: dict):
     """Test connection to accounting systems"""
