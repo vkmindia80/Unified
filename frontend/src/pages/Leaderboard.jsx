@@ -137,7 +137,7 @@ function Leaderboard() {
                     {leaderboard[0]?.full_name?.charAt(0) || '1'}
                   </div>
                   <div className="absolute -top-3 -right-3 w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-lg">
-                    <FiTrophy className="text-yellow-500 w-6 h-6" />
+                    <FaTrophy className="text-yellow-500 w-6 h-6" />
                   </div>
                 </div>
                 <p className="font-bold text-gray-900 dark:text-white text-center mb-1 text-lg">{leaderboard[0]?.full_name}</p>
