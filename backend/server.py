@@ -1728,8 +1728,170 @@ async def get_integrations(current_user = Depends(get_current_user)):
                 "name": "giphy",
                 "display_name": "GIPHY API",
                 "description": "GIF search and trending functionality",
+                "type": "communication",
                 "api_key": GIPHY_API_KEY or "",
+                "config": {},
                 "enabled": bool(GIPHY_API_KEY),
+                "fields": [{"name": "api_key", "label": "API Key", "type": "password", "required": True}],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            # HR System Integrations
+            {
+                "id": str(uuid.uuid4()),
+                "name": "bamboohr",
+                "display_name": "BambooHR",
+                "description": "Sync employee data from BambooHR",
+                "type": "hr_system",
+                "api_key": "",
+                "config": {"subdomain": "", "webhook_url": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "API Key", "type": "password", "required": True},
+                    {"name": "subdomain", "label": "Company Subdomain", "type": "text", "required": True, "placeholder": "yourcompany"},
+                    {"name": "webhook_url", "label": "Webhook URL (Optional)", "type": "text", "required": False}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "workday",
+                "display_name": "Workday",
+                "description": "Enterprise HR and financial management integration",
+                "type": "hr_system",
+                "api_key": "",
+                "config": {"client_secret": "", "tenant_name": "", "base_url": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "Client ID", "type": "text", "required": True},
+                    {"name": "client_secret", "label": "Client Secret", "type": "password", "required": True},
+                    {"name": "tenant_name", "label": "Tenant Name", "type": "text", "required": True},
+                    {"name": "base_url", "label": "Base URL", "type": "text", "required": True, "placeholder": "https://wd2-impl.workday.com"}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "adp",
+                "display_name": "ADP Workforce Now",
+                "description": "Payroll and HR management integration",
+                "type": "hr_system",
+                "api_key": "",
+                "config": {"client_secret": "", "cert_path": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "Client ID", "type": "text", "required": True},
+                    {"name": "client_secret", "label": "Client Secret", "type": "password", "required": True},
+                    {"name": "cert_path", "label": "SSL Certificate Path", "type": "text", "required": True}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "gusto",
+                "display_name": "Gusto",
+                "description": "HR, payroll, and benefits integration",
+                "type": "hr_system",
+                "api_key": "",
+                "config": {"company_id": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "API Token", "type": "password", "required": True},
+                    {"name": "company_id", "label": "Company ID", "type": "text", "required": True}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "namely",
+                "display_name": "Namely",
+                "description": "HR platform for mid-sized companies",
+                "type": "hr_system",
+                "api_key": "",
+                "config": {"subdomain": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "Access Token", "type": "password", "required": True},
+                    {"name": "subdomain", "label": "Company Subdomain", "type": "text", "required": True, "placeholder": "yourcompany"}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "sap_successfactors",
+                "display_name": "SAP SuccessFactors",
+                "description": "Enterprise HR management solution",
+                "type": "hr_system",
+                "api_key": "",
+                "config": {"company_id": "", "user_id": "", "password": "", "data_center": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "company_id", "label": "Company ID", "type": "text", "required": True},
+                    {"name": "user_id", "label": "User ID", "type": "text", "required": True},
+                    {"name": "password", "label": "Password", "type": "password", "required": True},
+                    {"name": "data_center", "label": "Data Center", "type": "text", "required": True, "placeholder": "us2"}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "oracle_hcm",
+                "display_name": "Oracle HCM Cloud",
+                "description": "Human capital management solution",
+                "type": "hr_system",
+                "api_key": "",
+                "config": {"username": "", "password": "", "instance_url": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "username", "label": "Username", "type": "text", "required": True},
+                    {"name": "password", "label": "Password", "type": "password", "required": True},
+                    {"name": "instance_url", "label": "Instance URL", "type": "text", "required": True, "placeholder": "https://your-instance.oraclecloud.com"}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "rippling",
+                "display_name": "Rippling",
+                "description": "HR, IT, and Finance platform",
+                "type": "hr_system",
+                "api_key": "",
+                "config": {"company_id": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "API Key", "type": "password", "required": True},
+                    {"name": "company_id", "label": "Company ID", "type": "text", "required": True}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "zenefits",
+                "display_name": "Zenefits",
+                "description": "HR software platform",
+                "type": "hr_system",
+                "api_key": "",
+                "config": {"company_id": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "Access Token", "type": "password", "required": True},
+                    {"name": "company_id", "label": "Company ID", "type": "text", "required": True}
+                ],
+                "updated_at": datetime.utcnow().isoformat()
+            },
+            {
+                "id": str(uuid.uuid4()),
+                "name": "paycor",
+                "display_name": "Paycor",
+                "description": "HR and payroll solutions",
+                "type": "hr_system",
+                "api_key": "",
+                "config": {"client_secret": "", "company_id": ""},
+                "enabled": False,
+                "fields": [
+                    {"name": "api_key", "label": "Client ID", "type": "text", "required": True},
+                    {"name": "client_secret", "label": "Client Secret", "type": "password", "required": True},
+                    {"name": "company_id", "label": "Company ID", "type": "text", "required": True}
+                ],
                 "updated_at": datetime.utcnow().isoformat()
             }
         ]
@@ -1739,7 +1901,7 @@ async def get_integrations(current_user = Depends(get_current_user)):
         
         integrations = default_integrations
     
-    # Format response (hide partial API keys for security)
+    # Format response (hide partial API keys and sensitive config for security)
     for integration in integrations:
         integration["_id"] = str(integration["_id"])
         # Mask API key (show only first 8 and last 4 characters)
@@ -1749,6 +1911,18 @@ async def get_integrations(current_user = Depends(get_current_user)):
                 integration["api_key_masked"] = f"{key[:8]}...{key[-4:]}"
             else:
                 integration["api_key_masked"] = "***"
+        
+        # Mask sensitive config fields
+        if integration.get("config"):
+            integration["config_masked"] = {}
+            for key, value in integration["config"].items():
+                if value and ("password" in key.lower() or "secret" in key.lower() or "token" in key.lower()):
+                    if len(value) > 8:
+                        integration["config_masked"][key] = f"{value[:4]}...{value[-2:]}"
+                    else:
+                        integration["config_masked"][key] = "***"
+                else:
+                    integration["config_masked"][key] = value
     
     return integrations
 
