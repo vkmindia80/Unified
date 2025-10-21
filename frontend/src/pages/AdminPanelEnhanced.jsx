@@ -488,7 +488,7 @@ function AdminPanelEnhanced() {
       )}
 
       {/* Users View */}
-      {view === 'users' && <UsersView users={users} darkMode={darkMode} onEdit={setEditingUser} onDelete={handleDeleteUser} onAdjustPoints={setShowPointsModal} />}
+      {view === 'users' && <UsersView users={users} darkMode={darkMode} onEdit={setEditingUser} onDelete={handleDeleteUser} onAdjustPoints={setShowPointsModal} onCreate={() => setCreatingUser(true)} onImport={() => setImportingUsers(true)} />}
 
       {/* Achievements View */}
       {view === 'achievements' && <AchievementsView achievements={achievements} darkMode={darkMode} onEdit={setEditingAchievement} onDelete={handleDeleteAchievement} onCreate={() => setEditingAchievement({})} />}
