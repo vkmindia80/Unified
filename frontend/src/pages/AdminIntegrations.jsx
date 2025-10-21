@@ -539,7 +539,7 @@ function AdminIntegrations() {
                   <span>{saving[integration.name] ? 'Saving...' : 'Save'}</span>
                 </button>
 
-                {integration.type === 'hr_system' && integration.enabled && (
+                {(integration.type === 'hr_system' || integration.type === 'accounting_system') && integration.enabled && (
                   <>
                     <button
                       onClick={() => testConnection(integration)}
@@ -555,15 +555,29 @@ function AdminIntegrations() {
                       <span>{testing[integration.name] ? 'Testing...' : 'Test'}</span>
                     </button>
 
-                    <button
-                      onClick={() => syncEmployees(integration)}
-                      disabled={syncing[integration.name]}
-                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50 flex items-center space-x-2"
-                      data-testid={`sync-${integration.name}`}
-                    >
-                      <FaSync className={syncing[integration.name] ? 'animate-spin' : ''} />
-                      <span>{syncing[integration.name] ? 'Syncing...' : 'Sync Now'}</span>
-                    </button>
+                    {integration.type === 'hr_system' && (
+                      <button
+                        onClick={() => syncEmployees(integration)}
+                        disabled={syncing[integration.name]}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50 flex items-center space-x-2"
+                        data-testid={`sync-${integration.name}`}
+                      >
+                        <FaSync className={syncing[integration.name] ? 'animate-spin' : ''} />
+                        <span>{syncing[integration.name] ? 'Syncing...' : 'Sync Employees'}</span>
+                      </button>
+                    )}
+
+                    {integration.type === 'accounting_system' && (
+                      <button
+                        onClick={() => syncFinancials(integration)}
+                        disabled={syncing[integration.name]}
+                        className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50 flex items-center space-x-2"
+                        data-testid={`sync-${integration.name}`}
+                      >
+                        <FaSync className={syncing[integration.name] ? 'animate-spin' : ''} />
+                        <span>{syncing[integration.name] ? 'Syncing...' : 'Sync Data'}</span>
+                      </button>
+                    )}
                   </>
                 )}
               </div>
