@@ -28,6 +28,8 @@ function AdminPanelEnhanced() {
   
   // Modals
   const [editingUser, setEditingUser] = useState(null);
+  const [creatingUser, setCreatingUser] = useState(false);
+  const [importingUsers, setImportingUsers] = useState(false);
   const [editingAchievement, setEditingAchievement] = useState(null);
   const [editingChallenge, setEditingChallenge] = useState(null);
   const [editingReward, setEditingReward] = useState(null);
