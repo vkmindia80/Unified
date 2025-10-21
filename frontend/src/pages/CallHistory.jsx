@@ -50,25 +50,19 @@ function CallHistory() {
   };
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+    <Layout>
       {/* Header */}
-      <header className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-        <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className={`mr-2 p-2 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-lg transition`}
-              data-testid="back-button"
-            >
-              <FaArrowLeft className={darkMode ? 'text-gray-300' : 'text-gray-600'} />
-            </button>
-            <FaPhone className={`text-3xl ${darkMode ? 'text-green-400' : 'text-green-500'}`} />
-            <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Call History</h1>
-          </div>
+      <div className="mb-8">
+        <div className="flex items-center space-x-3 mb-2">
+          <FaPhone className={`text-3xl ${darkMode ? 'text-green-400' : 'text-green-500'}`} />
+          <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Call History</h1>
         </div>
-      </header>
+        <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+          Review your call history
+        </p>
+      </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div>
         {loading ? (
           <div className="text-center py-8">
             <p className={darkMode ? 'text-gray-400' : 'text-gray-500'}>Loading call history...</p>
