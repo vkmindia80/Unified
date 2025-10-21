@@ -147,50 +147,39 @@ function RecognitionWall() {
 
   if (loading) {
     return (
-      <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'} flex items-center justify-center`}>
-        <div className="text-xl">Loading...</div>
-      </div>
+      <Layout>
+        <div className="flex items-center justify-center py-20">
+          <div className="text-xl">Loading...</div>
+        </div>
+      </Layout>
     );
   }
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-50'}`}>
+    <Layout>
       {/* Header */}
-      <header className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md sticky top-0 z-10`}>
-        <div className="max-w-4xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/dashboard')}
-                className={`p-2 rounded-lg ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
-                data-testid="back-button"
-              >
-                <FaArrowLeft className={darkMode ? 'text-gray-300' : 'text-gray-600'} />
-              </button>
-              <div>
-                <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                  🏆 Recognition Wall
-                </h1>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Celebrate team achievements
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition"
-              data-testid="create-recognition-button"
-            >
-              <FaPlus />
-              <span>Recognize Someone</span>
-            </button>
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-2`}>
+              🏆 Recognition Wall
+            </h1>
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              Celebrate team achievements
+            </p>
           </div>
+          <button
+            onClick={() => setShowCreateModal(true)}
+            className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg hover:shadow-lg transition"
+            data-testid="create-recognition-button"
+          >
+            <FaPlus />
+            <span>Recognize Someone</span>
+          </button>
         </div>
-      </header>
 
-      {/* Category Filter */}
-      <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
-        <div className="max-w-4xl mx-auto px-4">
+        {/* Category Filter */}
+        <div>
           <div className="flex space-x-4 overflow-x-auto py-3">
             <button
               onClick={() => setSelectedCategory('all')}
