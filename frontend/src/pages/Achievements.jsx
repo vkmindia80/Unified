@@ -76,7 +76,7 @@ function Achievements() {
               <p className="text-sm font-medium text-amber-700 dark:text-amber-400 mb-1">Unlocked</p>
               <p className="text-3xl font-bold text-amber-900 dark:text-amber-300">{unlockedCount}/{achievements.length}</p>
             </div>
-            <FiTrophy className="w-12 h-12 text-amber-500" />
+            <FaTrophy className="w-12 h-12 text-amber-500" />
           </div>
           <div className="mt-3">
             <div className="w-full bg-amber-200 dark:bg-amber-800 rounded-full h-2">
