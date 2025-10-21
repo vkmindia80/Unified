@@ -456,6 +456,13 @@ function AdminIntegrations() {
                         HR System
                       </span>
                     )}
+                    {integration.type === 'accounting_system' && (
+                      <span className={`inline-block mt-1 px-2 py-1 text-xs rounded-full ${
+                        darkMode ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800'
+                      }`}>
+                        Accounting
+                      </span>
+                    )}
                   </div>
                 </div>
                 
