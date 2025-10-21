@@ -29,8 +29,8 @@ function Leaderboard() {
 
   const getRankIcon = (rank) => {
     if (rank === 1) return <FiTrophy className="text-yellow-500 w-6 h-6" />;
-    if (rank === 2) return <FiMedal className="text-gray-400 w-6 h-6" />;
-    if (rank === 3) return <FiMedal className="text-orange-500 w-6 h-6" />;
+    if (rank === 2) return <FaMedal className="text-gray-400 w-6 h-6" />;
+    if (rank === 3) return <FaMedal className="text-orange-500 w-6 h-6" />;
     return null;
   };
 
