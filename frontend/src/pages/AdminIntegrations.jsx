@@ -295,13 +295,15 @@ function AdminIntegrations() {
       ),
       'freshbooks': (
         <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
-          <p className="mb-1">To get FreshBooks API credentials:</p>
+          <p className="mb-1 font-semibold">Setup Instructions:</p>
           <ol className="list-decimal list-inside space-y-1">
             <li>Visit <a href="https://www.freshbooks.com/api/start" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">FreshBooks API</a></li>
-            <li>Create an application</li>
-            <li>Get your Client ID and Secret</li>
-            <li>Find your Account ID in FreshBooks settings</li>
+            <li>Create an application and get OAuth 2.0 Client ID and Client Secret</li>
+            <li>Find your Account ID in FreshBooks account settings</li>
+            <li>Complete OAuth flow to obtain Access Token and Refresh Token</li>
+            <li>Paste tokens below to enable sync functionality</li>
           </ol>
+          <p className="mt-2 text-xs italic">💡 Tip: Provide refresh token for automatic token renewal when it expires.</p>
         </div>
       ),
       'sage': (
