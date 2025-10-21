@@ -605,8 +605,10 @@ function AdminIntegrations() {
         {/* Help Text */}
         <div className={`mt-8 p-4 rounded-lg ${darkMode ? 'bg-blue-900/20 border border-blue-800' : 'bg-blue-50 border border-blue-200'}`}>
           <p className={`text-sm ${darkMode ? 'text-blue-300' : 'text-blue-800'}`}>
-            <strong>Note:</strong> Integration settings are saved securely and encrypted. For HR systems, use the "Sync Now" button to import employee data into your platform. 
-            All synced employees will receive login credentials via email.
+            <strong>Note:</strong> Integration settings are saved securely and encrypted. 
+            For <strong>HR systems</strong>, use "Sync Employees" to import employee data. 
+            For <strong>Accounting systems</strong>, use "Sync Data" to import financial information and expense categories.
+            All data is synchronized safely and can be used for gamification and reporting.
           </p>
         </div>
       </div>
