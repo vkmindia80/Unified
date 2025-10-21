@@ -85,6 +85,9 @@ invitations_collection = db["invitations"]
 reward_redemptions_collection = db["reward_redemptions"]
 files_collection = db["files"]  # New collection for file metadata
 integrations_collection = db["integrations"]  # New collection for integration settings
+financial_accounts_collection = db["financial_accounts"]  # Chart of accounts from accounting systems
+expense_categories_collection = db["expense_categories"]  # Expense categories for gamification
+vendors_customers_collection = db["vendors_customers"]  # Vendors and customers from accounting systems
 
 # Create indexes
 users_collection.create_index("email", unique=True)
