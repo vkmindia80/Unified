@@ -1,6 +1,8 @@
 from fastapi import FastAPI, HTTPException, Depends, status, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from pymongo import MongoClient
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
@@ -12,6 +14,9 @@ from dotenv import load_dotenv
 import uuid
 import socketio
 import aiofiles
+import mimetypes
+import shutil
+import requests
 
 load_dotenv()
 
