@@ -2952,41 +2952,130 @@ async def sync_xero_data(integration: dict):
 async def sync_freshbooks_data(integration: dict):
     """Sync data from FreshBooks"""
     try:
-        client_id = integration.get("api_key")
-        client_secret = integration.get("config", {}).get("client_secret")
-        account_id = integration.get("config", {}).get("account_id")
+        config = integration.get("config", {})
+        account_id = config.get("account_id")
+        access_token = config.get("access_token")
         
-        if not client_id or not client_secret or not account_id:
-            return {"synced": 0, "updated": 0, "errors": ["Missing required credentials"]}
+        if not account_id:
+            return {"synced": 0, "updated": 0, "errors": ["Missing Account ID"]}
         
-        # FreshBooks API implementation
-        # Note: FreshBooks uses OAuth 2.0
+        if not access_token:
+            return {"synced": 0, "updated": 0, "errors": ["Missing Access Token. Please provide your OAuth access token."]}
+        
+        # Check if token is expired and refresh if needed
+        token_expiry = config.get("token_expiry")
+        if token_expiry:
+            expiry_dt = datetime.fromisoformat(token_expiry)
+            if datetime.utcnow() >= expiry_dt:
+                new_token = await refresh_oauth_token("freshbooks", integration)
+                if new_token:
+                    access_token = new_token
+                else:
+                    return {"synced": 0, "updated": 0, "errors": ["Access token expired. Please provide a new token or refresh token."]}
         
         headers = {
-            "Authorization": f"Bearer {client_id}",
+            "Authorization": f"Bearer {access_token}",
             "Content-Type": "application/json"
         }
         
-        url = f"https://api.freshbooks.com/accounting/account/{account_id}/users/me"
+        synced_count = 0
+        updated_count = 0
+        errors = []
         
         try:
-            response = requests.get(url, headers=headers, timeout=30)
-            if response.status_code == 200:
-                # Successfully connected
-                # In production, you would:
-                # 1. Fetch expense categories
-                # 2. Fetch clients and projects
-                # 3. Sync invoice data for rewards/gamification
+            # 1. Fetch Expense Categories
+            categories_url = f"https://api.freshbooks.com/accounting/account/{account_id}/expenses/categories"
+            categories_response = requests.get(categories_url, headers=headers, timeout=30)
+            
+            if categories_response.status_code == 200:
+                categories_data = categories_response.json()
+                categories = categories_data.get("response", {}).get("result", {}).get("categories", [])
                 
-                return {
-                    "synced": 0,
-                    "updated": 0,
-                    "errors": ["FreshBooks data sync implementation in progress"]
-                }
+                for category in categories:
+                    category_doc = {
+                        "integration_name": "freshbooks",
+                        "category_id": str(category.get("categoryid")),
+                        "category_name": category.get("category"),
+                        "category_type": "expense",
+                        "is_cogs": category.get("is_cogs", False),
+                        "is_editable": category.get("is_editable", True),
+                        "synced_at": datetime.utcnow().isoformat()
+                    }
+                    
+                    result = expense_categories_collection.update_one(
+                        {"integration_name": "freshbooks", "category_id": str(category.get("categoryid"))},
+                        {"$set": category_doc},
+                        upsert=True
+                    )
+                    
+                    if result.upserted_id:
+                        synced_count += 1
+                    else:
+                        updated_count += 1
             else:
-                return {"synced": 0, "updated": 0, "errors": [f"FreshBooks API error: {response.status_code}"]}
-        except Exception as e:
-            return {"synced": 0, "updated": 0, "errors": [f"FreshBooks sync error: {str(e)}"]}
+                errors.append(f"Failed to fetch expense categories: {categories_response.status_code}")
+            
+            # 2. Fetch Clients
+            clients_url = f"https://api.freshbooks.com/accounting/account/{account_id}/users/clients"
+            clients_response = requests.get(clients_url, headers=headers, timeout=30)
+            
+            if clients_response.status_code == 200:
+                clients_data = clients_response.json()
+                clients = clients_data.get("response", {}).get("result", {}).get("clients", [])
+                
+                for client in clients:
+                    client_doc = {
+                        "integration_name": "freshbooks",
+                        "entity_id": str(client.get("id")),
+                        "entity_name": f"{client.get('fname', '')} {client.get('lname', '')}".strip() or client.get("organization"),
+                        "entity_type": "customer",
+                        "email": client.get("email"),
+                        "organization": client.get("organization"),
+                        "synced_at": datetime.utcnow().isoformat()
+                    }
+                    
+                    vendors_customers_collection.update_one(
+                        {"integration_name": "freshbooks", "entity_id": str(client.get("id"))},
+                        {"$set": client_doc},
+                        upsert=True
+                    )
+                    synced_count += 1
+            else:
+                errors.append(f"Failed to fetch clients: {clients_response.status_code}")
+            
+            # 3. Fetch Projects
+            projects_url = f"https://api.freshbooks.com/projects/business/{account_id}/projects"
+            projects_response = requests.get(projects_url, headers=headers, timeout=30)
+            
+            if projects_response.status_code == 200:
+                projects_data = projects_response.json()
+                projects = projects_data.get("projects", [])
+                
+                for project in projects:
+                    project_doc = {
+                        "integration_name": "freshbooks",
+                        "category_id": str(project.get("id")),
+                        "category_name": project.get("title"),
+                        "category_type": "project",
+                        "client_id": str(project.get("client_id")) if project.get("client_id") else None,
+                        "active": project.get("active", True),
+                        "synced_at": datetime.utcnow().isoformat()
+                    }
+                    
+                    expense_categories_collection.update_one(
+                        {"integration_name": "freshbooks", "category_id": str(project.get("id")), "category_type": "project"},
+                        {"$set": project_doc},
+                        upsert=True
+                    )
+            
+        except requests.exceptions.RequestException as e:
+            errors.append(f"API request error: {str(e)}")
+        
+        return {
+            "synced": synced_count,
+            "updated": updated_count,
+            "errors": errors if errors else []
+        }
             
     except Exception as e:
         return {"synced": 0, "updated": 0, "errors": [str(e)]}
