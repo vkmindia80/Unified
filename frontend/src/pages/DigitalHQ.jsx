@@ -5,6 +5,7 @@ import { useTheme } from '../context/ThemeContext';
 import GridLayout from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
+import Layout from '../components/Layout/Layout';
 import QuickLinksWidget from '../components/widgets/QuickLinksWidget';
 import CalendarWidget from '../components/widgets/CalendarWidget';
 import PerformanceDashboardWidget from '../components/widgets/PerformanceDashboardWidget';
@@ -13,7 +14,7 @@ import CompanyNewsWidget from '../components/widgets/CompanyNewsWidget';
 import BirthdaysWidget from '../components/widgets/BirthdaysWidget';
 import AtAGlanceWidget from '../components/widgets/AtAGlanceWidget';
 import api from '../services/api';
-import { FaArrowLeft, FaCog, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { FaCog, FaEye, FaEyeSlash } from 'react-icons/fa';
 
 function DigitalHQ() {
   const { user } = useAuth();
