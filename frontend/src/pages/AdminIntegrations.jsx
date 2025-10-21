@@ -160,6 +160,27 @@ function AdminIntegrations() {
     }
   };
 
+  const syncFinancials = async (integration) => {
+    setSyncing(prev => ({ ...prev, [integration.name]: true }));
+    
+    try {
+      const response = await api.post(`/integrations/${integration.name}/sync-financials`);
+      
+      if (response.data.success) {
+        toast.success(
+          `${response.data.message}. Synced: ${response.data.synced}, Updated: ${response.data.updated}`
+        );
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.error('Failed to sync financials:', error);
+      toast.error('Financial sync failed');
+    } finally {
+      setSyncing(prev => ({ ...prev, [integration.name]: false }));
+    }
+  };
+
   const getIntegrationIcon = (name, type) => {
     // HR System specific icons
     const hrIcons = {
