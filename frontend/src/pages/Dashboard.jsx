@@ -203,28 +203,33 @@ const Dashboard = () => {
   const FeatureCard = ({ feature }) => (
     <button
       onClick={() => navigate(feature.path)}
-      className="group relative bg-white dark:bg-primary-800 rounded-xl p-6 border border-gray-200 dark:border-primary-700 hover:shadow-large hover:-translate-y-1 transition-all duration-200 text-left w-full"
+      className="group relative bg-white dark:bg-primary-800 rounded-xl p-6 border border-gray-200 dark:border-primary-700 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 text-left w-full overflow-hidden"
       data-testid={`feature-${feature.id}`}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className={`w-12 h-12 rounded-lg ${feature.iconBg} flex items-center justify-center`}>
-          <feature.icon className="w-6 h-6 text-white" />
+      {/* Shine effect */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700"></div>
+      
+      <div className="relative">
+        <div className="flex items-start justify-between mb-4">
+          <div className={`w-12 h-12 rounded-xl ${feature.iconBg} flex items-center justify-center shadow-md group-hover:scale-110 transition-transform duration-300`}>
+            <feature.icon className="w-6 h-6 text-white" />
+          </div>
+          {feature.badge > 0 && (
+            <Badge variant="danger" size="sm" rounded>
+              {feature.badge}
+            </Badge>
+          )}
         </div>
-        {feature.badge > 0 && (
-          <Badge variant="danger" size="sm">
-            {feature.badge}
-          </Badge>
-        )}
-      </div>
-      <h3 className="text-lg font-semibold text-primary-900 dark:text-white mb-2 group-hover:text-corporate-600 dark:group-hover:text-corporate-400 transition-colors">
-        {feature.title}
-      </h3>
-      <p className="text-sm text-primary-600 dark:text-primary-400 mb-3">
-        {feature.description}
-      </p>
-      <div className="flex items-center text-sm font-medium text-corporate-600 dark:text-corporate-400">
-        <span>Open</span>
-        <FiChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform" />
+        <h3 className="text-lg font-semibold text-primary-900 dark:text-white mb-2 group-hover:text-corporate-600 dark:group-hover:text-corporate-400 transition-colors">
+          {feature.title}
+        </h3>
+        <p className="text-sm text-primary-600 dark:text-primary-400 mb-3">
+          {feature.description}
+        </p>
+        <div className="flex items-center text-sm font-medium text-corporate-600 dark:text-corporate-400">
+          <span>Open</span>
+          <FiChevronRight className="w-4 h-4 ml-1 group-hover:translate-x-2 transition-transform duration-300" />
+        </div>
       </div>
     </button>
   );
