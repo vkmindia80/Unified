@@ -202,7 +202,7 @@ function DigitalHQ() {
           </div>
         )}
       </div>
-    </div>
+    </Layout>
   );
 }
 
