@@ -245,6 +245,61 @@ function AdminIntegrations() {
             <li>Generate an API key</li>
           </ol>
         </div>
+      ),
+      'quickbooks': (
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+          <p className="mb-1">To get QuickBooks Online credentials:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Visit <a href="https://developer.intuit.com/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">developer.intuit.com</a></li>
+            <li>Create an app and get OAuth 2.0 credentials</li>
+            <li>Find your Company ID (Realm ID) in QuickBooks settings</li>
+            <li>Configure your redirect URI in the app settings</li>
+          </ol>
+        </div>
+      ),
+      'xero': (
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+          <p className="mb-1">To get Xero API credentials:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Visit <a href="https://developer.xero.com/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">developer.xero.com</a></li>
+            <li>Create a new app in the Developer Portal</li>
+            <li>Get your Client ID and Secret</li>
+            <li>Find Tenant ID after OAuth connection</li>
+          </ol>
+        </div>
+      ),
+      'freshbooks': (
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+          <p className="mb-1">To get FreshBooks API credentials:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Visit <a href="https://www.freshbooks.com/api/start" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">FreshBooks API</a></li>
+            <li>Create an application</li>
+            <li>Get your Client ID and Secret</li>
+            <li>Find your Account ID in FreshBooks settings</li>
+          </ol>
+        </div>
+      ),
+      'sage': (
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+          <p className="mb-1">To get Sage Business Cloud credentials:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Log in to Sage Business Cloud</li>
+            <li>Go to Settings {'>'} API Integration</li>
+            <li>Generate API credentials</li>
+            <li>Note your company ID and region</li>
+          </ol>
+        </div>
+      ),
+      'netsuite': (
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+          <p className="mb-1">To get NetSuite credentials:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Log in to NetSuite as administrator</li>
+            <li>Enable Token-Based Authentication (TBA)</li>
+            <li>Create integration record and get Consumer Key/Secret</li>
+            <li>Create access token and get Token ID/Secret</li>
+          </ol>
+        </div>
       )
     };
 
