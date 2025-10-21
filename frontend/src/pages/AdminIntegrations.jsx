@@ -350,7 +350,7 @@ function AdminIntegrations() {
         </p>
 
         {/* Filter Tabs */}
-        <div className="flex space-x-2 mt-4">
+        <div className="flex flex-wrap gap-2 mt-4">
           <button
             onClick={() => setFilterType('all')}
             className={`px-4 py-2 rounded-lg font-medium transition ${
@@ -376,6 +376,19 @@ function AdminIntegrations() {
           >
             <FaBriefcase className="inline mr-2" />
             HR Systems ({integrations.filter(i => i.type === 'hr_system').length})
+          </button>
+          <button
+            onClick={() => setFilterType('accounting_system')}
+            className={`px-4 py-2 rounded-lg font-medium transition ${
+              filterType === 'accounting_system'
+                ? 'bg-blue-500 text-white'
+                : darkMode
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            <FaUsers className="inline mr-2" />
+            Accounting ({integrations.filter(i => i.type === 'accounting_system').length})
           </button>
           <button
             onClick={() => setFilterType('communication')}
