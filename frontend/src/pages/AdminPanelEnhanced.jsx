@@ -500,6 +500,8 @@ function AdminPanelEnhanced() {
       {view === 'rewards' && <RewardsView rewards={rewards} darkMode={darkMode} onEdit={setEditingReward} onDelete={handleDeleteReward} onCreate={() => setEditingReward({})} />}
 
       {/* Modals */}
+      {creatingUser && <CreateUserModal darkMode={darkMode} onSave={handleCreateUser} onClose={() => setCreatingUser(false)} />}
+      {importingUsers && <ImportUsersModal darkMode={darkMode} onImport={handleImportCSV} onDownloadTemplate={handleDownloadTemplate} onClose={() => setImportingUsers(false)} />}
       {editingUser && <EditUserModal user={editingUser} darkMode={darkMode} onSave={handleUpdateUser} onClose={() => setEditingUser(null)} />}
       {editingAchievement !== null && <EditAchievementModal achievement={editingAchievement} darkMode={darkMode} onSave={editingAchievement.id ? handleUpdateAchievement : handleCreateAchievement} onClose={() => setEditingAchievement(null)} />}
       {editingChallenge !== null && <EditChallengeModal challenge={editingChallenge} darkMode={darkMode} onSave={editingChallenge.id ? handleUpdateChallenge : handleCreateChallenge} onClose={() => setEditingChallenge(null)} />}
