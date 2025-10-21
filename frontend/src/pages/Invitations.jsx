@@ -271,7 +271,7 @@ function Invitations() {
           </div>
         )}
       </div>
-    </div>
+    </Layout>
   );
 }
 
