@@ -39,6 +39,13 @@ function Dashboard() {
 
   const features = [
     {
+      icon: <FaBuilding className="text-4xl text-indigo-600" />,
+      title: 'Digital HQ',
+      description: 'Central command center with widgets and insights',
+      path: '/digital-hq',
+      color: 'from-indigo-500 to-indigo-600'
+    },
+    {
       icon: <FaComments className="text-4xl text-blue-600" />,
       title: 'Chat & Communication',
       description: 'Real-time messaging, video calls, file sharing',
