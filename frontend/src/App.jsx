@@ -13,6 +13,7 @@ import Achievements from './pages/Achievements';
 import Challenges from './pages/Challenges';
 import Rewards from './pages/Rewards';
 import AdminPanel from './pages/AdminPanel';
+import AdminIntegrations from './pages/AdminIntegrations';
 import CallHistory from './pages/CallHistory';
 import Feed from './pages/Feed';
 import RecognitionWall from './pages/RecognitionWall';
