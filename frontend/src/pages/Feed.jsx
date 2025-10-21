@@ -185,93 +185,82 @@ function Feed() {
       {/* Announcements List */}
       <div className="space-y-4">
         {announcements.length === 0 ? (
-          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-12 text-center`}>
-            <FaBell className={`text-6xl mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
-            <h3 className={`text-xl font-semibold mb-2 ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+          <Card className="text-center py-12">
+            <FiBell className="text-6xl mx-auto mb-4 text-gray-300 dark:text-gray-600" />
+            <h3 className="text-xl font-semibold mb-2 text-gray-600 dark:text-gray-400">
               No announcements yet
             </h3>
-            <p className={darkMode ? 'text-gray-500' : 'text-gray-400'}>
+            <p className="text-gray-500 dark:text-gray-500">
               Check back later for company updates
             </p>
-          </div>
+          </Card>
         ) : (
           announcements.map(announcement => (
-            <div
+            <Card
               key={announcement.id}
-              className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg overflow-hidden transition hover:shadow-xl`}
+              className="hover:shadow-lg transition-shadow"
               data-testid={`announcement-${announcement.id}`}
             >
-              {/* Priority Badge */}
-              <div className={`h-2 bg-gradient-to-r ${getPriorityColor(announcement.priority)}`} />
-              
-              <div className="p-6">
-                {/* Header */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      {getPriorityIcon(announcement.priority)}
-                      <span className={`text-xs font-semibold uppercase px-2 py-1 rounded ${
-                        announcement.priority === 'urgent' ? 'bg-red-100 text-red-700' :
-                        announcement.priority === 'high' ? 'bg-orange-100 text-orange-700' :
-                        'bg-blue-100 text-blue-700'
-                      }`}>
-                        {announcement.priority}
-                      </span>
-                    </div>
-                    <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                      {announcement.title}
-                    </h3>
+              {/* Priority Badge & Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1">
+                  <div className="flex items-center space-x-2 mb-2">
+                    {getPriorityIcon(announcement.priority)}
+                    <Badge variant={getPriorityBadge(announcement.priority)} size="sm">
+                      {announcement.priority}
+                    </Badge>
                   </div>
-                </div>
-
-                {/* Content */}
-                <p className={`mb-4 whitespace-pre-wrap ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  {announcement.content}
-                </p>
-
-                {/* Footer */}
-                <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center space-x-4 text-sm">
-                    <div className="flex items-center space-x-2">
-                      <img
-                        src={announcement.created_by_user?.avatar || `https://ui-avatars.com/api/?name=${announcement.created_by_user?.full_name || 'User'}&background=random`}
-                        alt={announcement.created_by_user?.full_name}
-                        className="w-8 h-8 rounded-full"
-                      />
-                      <span className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
-                        {announcement.created_by_user?.full_name}
-                      </span>
-                    </div>
-                    <div className="flex items-center space-x-1 text-gray-500">
-                      <FaClock />
-                      <span>{new Date(announcement.created_at).toLocaleDateString()}</span>
-                    </div>
-                    {announcement.requires_acknowledgement && (
-                      <div className="flex items-center space-x-1 text-gray-500">
-                        <FaUsers />
-                        <span>{announcement.acknowledgement_count || 0} acknowledged</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {announcement.requires_acknowledgement && (
-                    <button
-                      onClick={() => handleAcknowledge(announcement.id)}
-                      disabled={announcement.acknowledged}
-                      className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${
-                        announcement.acknowledged
-                          ? `${darkMode ? 'bg-green-900 text-green-300' : 'bg-green-100 text-green-700'} cursor-not-allowed`
-                          : 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:shadow-lg'
-                      }`}
-                      data-testid={`acknowledge-button-${announcement.id}`}
-                    >
-                      <FaCheckCircle />
-                      <span>{announcement.acknowledged ? 'Acknowledged' : 'Got it!'}</span>
-                    </button>
-                  )}
+                  <h3 className="text-xl font-bold text-primary-900 dark:text-white mb-2">
+                    {announcement.title}
+                  </h3>
                 </div>
               </div>
-            </div>
+
+              {/* Content */}
+              <p className="mb-4 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                {announcement.content}
+              </p>
+
+              {/* Footer */}
+              <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-primary-700 flex-wrap gap-3">
+                <div className="flex items-center space-x-4 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-gradient-to-br from-corporate-400 to-corporate-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                      {announcement.created_by_user?.full_name?.charAt(0) || 'U'}
+                    </div>
+                    <span className="text-gray-600 dark:text-gray-400">
+                      {announcement.created_by_user?.full_name}
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
+                    <FiClock className="w-4 h-4" />
+                    <span>{new Date(announcement.created_at).toLocaleDateString()}</span>
+                  </div>
+                  {announcement.requires_acknowledgement && (
+                    <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
+                      <FiUsers className="w-4 h-4" />
+                      <span>{announcement.acknowledgement_count || 0} ✓</span>
+                    </div>
+                  )}
+                </div>
+
+                {announcement.requires_acknowledgement && (
+                  <button
+                    onClick={() => handleAcknowledge(announcement.id)}
+                    disabled={announcement.acknowledged}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+                      announcement.acknowledged
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-corporate-600 to-corporate-700 text-white hover:shadow-lg'
+                    }`}
+                    data-testid={`acknowledge-button-${announcement.id}`}
+                  >
+                    <FiCheckCircle className="w-4 h-4" />
+                    <span>{announcement.acknowledged ? 'Acknowledged' : 'Got it!'}</span>
+                  </button>
+                )}
+              </div>
+            </Card>
           ))
         )}
       </div>
