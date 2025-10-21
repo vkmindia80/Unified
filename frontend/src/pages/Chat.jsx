@@ -568,7 +568,54 @@ function Chat() {
 
               {/* Message Input */}
               <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} px-6 py-4`}>
+                {/* Pending Files Preview */}
+                {pendingFiles.length > 0 && (
+                  <div className="mb-3 flex flex-wrap gap-2">
+                    {pendingFiles.map((file) => (
+                      <div
+                        key={file.id}
+                        className={`relative group ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-lg p-2 flex items-center space-x-2`}
+                      >
+                        {file.category === 'image' ? (
+                          <img src={file.url} alt={file.filename} className="w-12 h-12 object-cover rounded" />
+                        ) : (
+                          <div className="w-12 h-12 flex items-center justify-center bg-blue-500 text-white rounded">
+                            <FaPaperclip />
+                          </div>
+                        )}
+                        <span className={`text-sm truncate max-w-[100px] ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                          {file.filename}
+                        </span>
+                        <button
+                          onClick={() => removePendingFile(file.id)}
+                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                        >
+                          <FaTimes className="text-xs" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
                 <form onSubmit={sendMessage} className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowFileUpload(true)}
+                    className={`p-3 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-lg transition`}
+                    title="Attach file"
+                    data-testid="attach-file-button"
+                  >
+                    <FaPaperclip className={darkMode ? 'text-gray-400' : 'text-gray-600'} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowGifPicker(true)}
+                    className={`p-3 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-lg transition`}
+                    title="Send GIF"
+                    data-testid="gif-picker-button"
+                  >
+                    <FaSmile className={darkMode ? 'text-gray-400' : 'text-gray-600'} />
+                  </button>
                   <input
                     type="text"
                     value={newMessage}
@@ -579,7 +626,8 @@ function Chat() {
                   />
                   <button
                     type="submit"
-                    className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                    disabled={!newMessage.trim() && pendingFiles.length === 0}
+                    className="p-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
                     data-testid="send-message-button"
                   >
                     <FaPaperPlane />
