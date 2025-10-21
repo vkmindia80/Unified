@@ -207,6 +207,56 @@ GET /api/integrations/{integration_name}/accounts
 ```
 Retrieve chart of accounts from accounting system.
 
+## How to Obtain OAuth Tokens
+
+Since the platform uses manual token input, you need to obtain OAuth tokens from each accounting system's developer portal. Here's how:
+
+### Using OAuth Playground / Postman
+
+#### Method 1: OAuth 2.0 Playground
+Most accounting systems provide an OAuth playground or testing tool:
+1. Go to the system's developer portal
+2. Find the "OAuth Playground" or "API Explorer"
+3. Complete the OAuth authorization flow
+4. Copy the access token and refresh token
+5. Paste them into the integration configuration
+
+#### Method 2: Postman
+1. Create a new request in Postman
+2. Go to Authorization tab
+3. Select OAuth 2.0
+4. Fill in:
+   - Authorization URL (from system's docs)
+   - Token URL (from system's docs)
+   - Client ID and Client Secret
+   - Scopes (from system's docs)
+5. Click "Get New Access Token"
+6. Complete the authorization
+7. Copy the access token and refresh token
+8. Paste them into the integration configuration
+
+#### Method 3: Custom OAuth Flow
+If you're comfortable with coding:
+1. Create a simple Node.js/Python script
+2. Use OAuth library (passport, oauth2, etc.)
+3. Implement authorization code flow
+4. Run locally and capture tokens
+5. Use tokens in the platform
+
+### Token Lifespans
+- **QuickBooks**: 1 hour (refresh token: 100 days)
+- **Xero**: 30 minutes (refresh token: 60 days)
+- **FreshBooks**: Varies (check docs)
+- **Sage**: 20 minutes (refresh token: indefinite)
+- **NetSuite**: No expiry (uses TBA, not OAuth)
+
+### Important Notes
+- Always provide refresh tokens for automatic renewal
+- Tokens are stored encrypted in MongoDB
+- Platform automatically refreshes expired tokens
+- If refresh fails, you'll need to obtain new tokens
+- NetSuite doesn't use OAuth - uses Token-Based Authentication (TBA)
+
 ## Configuration Details
 
 ### QuickBooks Online
