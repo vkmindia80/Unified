@@ -4,8 +4,9 @@ import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
 import Layout from '../components/Layout/Layout';
-import { FaCog, FaKey, FaCheck, FaTimes, FaEye, FaEyeSlash, FaSave } from 'react-icons/fa';
-import { toast } from 'react-toastify';
+import { FaCog, FaKey, FaCheck, FaTimes, FaEye, FaEyeSlash, FaSave, FaSync, FaPlug, FaUsers, FaBriefcase } from 'react-icons/fa';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function AdminIntegrations() {
   const { user } = useAuth();
@@ -14,8 +15,11 @@ function AdminIntegrations() {
   const [integrations, setIntegrations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState({});
+  const [syncing, setSyncing] = useState({});
+  const [testing, setTesting] = useState({});
   const [showKeys, setShowKeys] = useState({});
-  const [editedKeys, setEditedKeys] = useState({});
+  const [editedData, setEditedData] = useState({});
+  const [filterType, setFilterType] = useState('all'); // 'all', 'hr_system', 'communication'
 
   useEffect(() => {
     if (user?.role !== 'admin') {
@@ -37,17 +41,21 @@ function AdminIntegrations() {
     }
   };
 
-  const toggleShowKey = (integrationName) => {
+  const toggleShowKey = (integrationName, fieldName) => {
+    const key = `${integrationName}_${fieldName}`;
     setShowKeys(prev => ({
       ...prev,
-      [integrationName]: !prev[integrationName]
+      [key]: !prev[key]
     }));
   };
 
-  const handleKeyChange = (integrationName, value) => {
-    setEditedKeys(prev => ({
+  const handleFieldChange = (integrationName, fieldName, value) => {
+    setEditedData(prev => ({
       ...prev,
-      [integrationName]: value
+      [integrationName]: {
+        ...prev[integrationName],
+        [fieldName]: value
+      }
     }));
   };
 
@@ -55,20 +63,37 @@ function AdminIntegrations() {
     setSaving(prev => ({ ...prev, [integration.name]: true }));
     
     try {
+      const edited = editedData[integration.name] || {};
       const updateData = {
-        api_key: editedKeys[integration.name] || integration.api_key,
         enabled: integration.enabled
       };
+
+      // Handle api_key separately
+      if (edited.api_key !== undefined) {
+        updateData.api_key = edited.api_key;
+      }
+
+      // Handle other config fields
+      const configFields = {};
+      Object.keys(edited).forEach(key => {
+        if (key !== 'api_key') {
+          configFields[key] = edited[key];
+        }
+      });
+
+      if (Object.keys(configFields).length > 0) {
+        updateData.config = configFields;
+      }
 
       await api.put(`/admin/integrations/${integration.name}`, updateData);
       
       toast.success(`${integration.display_name} updated successfully!`);
       
-      // Clear edited key
-      setEditedKeys(prev => {
-        const newKeys = { ...prev };
-        delete newKeys[integration.name];
-        return newKeys;
+      // Clear edited data
+      setEditedData(prev => {
+        const newData = { ...prev };
+        delete newData[integration.name];
+        return newData;
       });
       
       // Refresh integrations
@@ -95,33 +120,146 @@ function AdminIntegrations() {
     }
   };
 
-  const getIntegrationIcon = (name) => {
-    switch (name) {
-      case 'giphy':
-        return '🎬';
-      default:
-        return '🔌';
+  const testConnection = async (integration) => {
+    setTesting(prev => ({ ...prev, [integration.name]: true }));
+    
+    try {
+      const response = await api.post(`/integrations/${integration.name}/test-connection`);
+      
+      if (response.data.success) {
+        toast.success(response.data.message);
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.error('Failed to test connection:', error);
+      toast.error('Connection test failed');
+    } finally {
+      setTesting(prev => ({ ...prev, [integration.name]: false }));
     }
   };
 
-  const getIntegrationInstructions = (name) => {
-    switch (name) {
-      case 'giphy':
-        return (
-          <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
-            <p className="mb-1">To get a GIPHY API key:</p>
-            <ol className="list-decimal list-inside space-y-1">
-              <li>Visit <a href="https://developers.giphy.com/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">developers.giphy.com</a></li>
-              <li>Create a free account or log in</li>
-              <li>Create a new app and select "API" type</li>
-              <li>Copy your API key and paste it above</li>
-            </ol>
-          </div>
+  const syncEmployees = async (integration) => {
+    setSyncing(prev => ({ ...prev, [integration.name]: true }));
+    
+    try {
+      const response = await api.post(`/integrations/${integration.name}/sync-employees`);
+      
+      if (response.data.success) {
+        toast.success(
+          `${response.data.message}. Synced: ${response.data.synced}, Updated: ${response.data.updated}`
         );
-      default:
-        return null;
+      } else {
+        toast.error(response.data.message);
+      }
+    } catch (error) {
+      console.error('Failed to sync employees:', error);
+      toast.error('Employee sync failed');
+    } finally {
+      setSyncing(prev => ({ ...prev, [integration.name]: false }));
     }
   };
+
+  const getIntegrationIcon = (name, type) => {
+    // HR System specific icons
+    const hrIcons = {
+      'bamboohr': '🎋',
+      'workday': '💼',
+      'adp': '📊',
+      'gusto': '💰',
+      'namely': '👥',
+      'sap_successfactors': '🏢',
+      'oracle_hcm': '🏛️',
+      'rippling': '🌊',
+      'zenefits': '⚡',
+      'paycor': '💳'
+    };
+
+    // Communication icons
+    const commIcons = {
+      'giphy': '🎬'
+    };
+
+    return hrIcons[name] || commIcons[name] || '🔌';
+  };
+
+  const getIntegrationInstructions = (name) => {
+    const instructions = {
+      'giphy': (
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+          <p className="mb-1">To get a GIPHY API key:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Visit <a href="https://developers.giphy.com/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">developers.giphy.com</a></li>
+            <li>Create a free account or log in</li>
+            <li>Create a new app and select "API" type</li>
+            <li>Copy your API key and paste it above</li>
+          </ol>
+        </div>
+      ),
+      'bamboohr': (
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+          <p className="mb-1">To get BambooHR API credentials:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Log in to your BambooHR account</li>
+            <li>Go to Account {'>'} API Keys</li>
+            <li>Generate a new API key</li>
+            <li>Your subdomain is the part before .bamboohr.com in your URL</li>
+          </ol>
+        </div>
+      ),
+      'workday': (
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+          <p className="mb-1">To get Workday API credentials:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Contact your Workday administrator</li>
+            <li>Request API Client ID and Secret</li>
+            <li>Get your tenant name from your Workday URL</li>
+          </ol>
+        </div>
+      ),
+      'gusto': (
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+          <p className="mb-1">To get Gusto API credentials:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Visit <a href="https://dev.gusto.com/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">dev.gusto.com</a></li>
+            <li>Create an application</li>
+            <li>Get your API token and Company ID</li>
+          </ol>
+        </div>
+      ),
+      'rippling': (
+        <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
+          <p className="mb-1">To get Rippling API credentials:</p>
+          <ol className="list-decimal list-inside space-y-1">
+            <li>Log in to Rippling as admin</li>
+            <li>Go to Settings {'>'} Integrations {'>'} API</li>
+            <li>Generate an API key</li>
+          </ol>
+        </div>
+      )
+    };
+
+    return instructions[name] || null;
+  };
+
+  const getFieldValue = (integration, fieldName) => {
+    // Check if there's edited data
+    const edited = editedData[integration.name];
+    if (edited && edited[fieldName] !== undefined) {
+      return edited[fieldName];
+    }
+
+    // Return stored value
+    if (fieldName === 'api_key') {
+      return integration.api_key || '';
+    }
+    return integration.config?.[fieldName] || integration.config_masked?.[fieldName] || '';
+  };
+
+  const filteredIntegrations = integrations.filter(int => {
+    if (filterType === 'all') return true;
+    return int.type === filterType;
+  });
 
   if (loading) {
     return (
@@ -133,6 +271,8 @@ function AdminIntegrations() {
 
   return (
     <Layout>
+      <ToastContainer position="top-right" autoClose={3000} theme={darkMode ? 'dark' : 'light'} />
+      
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center space-x-3 mb-2">
@@ -142,24 +282,67 @@ function AdminIntegrations() {
           </h1>
         </div>
         <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-          Configure third-party integrations
+          Configure third-party integrations and HR systems
         </p>
+
+        {/* Filter Tabs */}
+        <div className="flex space-x-2 mt-4">
+          <button
+            onClick={() => setFilterType('all')}
+            className={`px-4 py-2 rounded-lg font-medium transition ${
+              filterType === 'all'
+                ? 'bg-blue-500 text-white'
+                : darkMode
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            <FaPlug className="inline mr-2" />
+            All Integrations
+          </button>
+          <button
+            onClick={() => setFilterType('hr_system')}
+            className={`px-4 py-2 rounded-lg font-medium transition ${
+              filterType === 'hr_system'
+                ? 'bg-blue-500 text-white'
+                : darkMode
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            <FaBriefcase className="inline mr-2" />
+            HR Systems ({integrations.filter(i => i.type === 'hr_system').length})
+          </button>
+          <button
+            onClick={() => setFilterType('communication')}
+            className={`px-4 py-2 rounded-lg font-medium transition ${
+              filterType === 'communication'
+                ? 'bg-blue-500 text-white'
+                : darkMode
+                ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+            }`}
+          >
+            <FaPlug className="inline mr-2" />
+            Communication
+          </button>
+        </div>
       </div>
 
       {/* Content */}
-      <div className="max-w-4xl">
-        <div className="space-y-6">
-          {integrations.map((integration) => (
+      <div className="max-w-6xl">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {filteredIntegrations.map((integration) => (
             <div
               key={integration.id}
-              className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-md p-6`}
+              className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-md p-6 hover:shadow-lg transition`}
               data-testid={`integration-${integration.name}`}
             >
               {/* Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-start space-x-3">
                   <div className="text-4xl">
-                    {getIntegrationIcon(integration.name)}
+                    {getIntegrationIcon(integration.name, integration.type)}
                   </div>
                   <div>
                     <h2 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
@@ -168,6 +351,13 @@ function AdminIntegrations() {
                     <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
                       {integration.description}
                     </p>
+                    {integration.type === 'hr_system' && (
+                      <span className={`inline-block mt-1 px-2 py-1 text-xs rounded-full ${
+                        darkMode ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-800'
+                      }`}>
+                        HR System
+                      </span>
+                    )}
                   </div>
                 </div>
                 
@@ -197,58 +387,79 @@ function AdminIntegrations() {
                 </button>
               </div>
 
-              {/* API Key Input */}
+              {/* Dynamic Configuration Fields */}
               <div className="space-y-3">
-                <label className={`block text-sm font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
-                  <FaKey className="inline mr-2" />
-                  API Key
-                </label>
-                
-                <div className="flex items-center space-x-2">
-                  <div className="relative flex-1">
-                    <input
-                      type={showKeys[integration.name] ? 'text' : 'password'}
-                      value={editedKeys[integration.name] !== undefined 
-                        ? editedKeys[integration.name] 
-                        : integration.api_key || ''}
-                      onChange={(e) => handleKeyChange(integration.name, e.target.value)}
-                      placeholder="Enter API key..."
-                      className={`w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none ${
-                        darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'
-                      }`}
-                      data-testid={`api-key-input-${integration.name}`}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => toggleShowKey(integration.name)}
-                      className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
-                        darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
-                      }`}
-                      data-testid={`toggle-visibility-${integration.name}`}
-                    >
-                      {showKeys[integration.name] ? <FaEyeSlash /> : <FaEye />}
-                    </button>
+                {integration.fields && integration.fields.map((field) => (
+                  <div key={field.name}>
+                    <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                      {field.label} {field.required && <span className="text-red-500">*</span>}
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showKeys[`${integration.name}_${field.name}`] ? 'text' : field.type}
+                        value={getFieldValue(integration, field.name)}
+                        onChange={(e) => handleFieldChange(integration.name, field.name, e.target.value)}
+                        placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}...`}
+                        className={`w-full px-4 py-2 pr-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none ${
+                          darkMode ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400' : 'border-gray-300'
+                        }`}
+                        data-testid={`${field.name}-input-${integration.name}`}
+                      />
+                      {(field.type === 'password' || field.name.includes('secret') || field.name.includes('token')) && (
+                        <button
+                          type="button"
+                          onClick={() => toggleShowKey(integration.name, field.name)}
+                          className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${
+                            darkMode ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'
+                          }`}
+                          data-testid={`toggle-visibility-${integration.name}-${field.name}`}
+                        >
+                          {showKeys[`${integration.name}_${field.name}`] ? <FaEyeSlash /> : <FaEye />}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  
-                  <button
-                    onClick={() => saveIntegration(integration)}
-                    disabled={saving[integration.name] || (!editedKeys[integration.name] && integration.api_key)}
-                    className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-                    data-testid={`save-${integration.name}`}
-                  >
-                    <FaSave />
-                    <span>{saving[integration.name] ? 'Saving...' : 'Save'}</span>
-                  </button>
-                </div>
+                ))}
+              </div>
 
-                {/* Current Status */}
-                {integration.api_key && !editedKeys[integration.name] && (
-                  <div className="flex items-center space-x-2">
-                    <FaCheck className="text-green-500" />
-                    <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                      API key configured: {integration.api_key_masked}
-                    </span>
-                  </div>
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-2 mt-4">
+                <button
+                  onClick={() => saveIntegration(integration)}
+                  disabled={saving[integration.name]}
+                  className="flex-1 min-w-[120px] px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  data-testid={`save-${integration.name}`}
+                >
+                  <FaSave />
+                  <span>{saving[integration.name] ? 'Saving...' : 'Save'}</span>
+                </button>
+
+                {integration.type === 'hr_system' && integration.enabled && (
+                  <>
+                    <button
+                      onClick={() => testConnection(integration)}
+                      disabled={testing[integration.name]}
+                      className={`px-4 py-2 rounded-lg transition flex items-center space-x-2 ${
+                        darkMode
+                          ? 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                          : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                      } disabled:opacity-50`}
+                      data-testid={`test-${integration.name}`}
+                    >
+                      <FaPlug />
+                      <span>{testing[integration.name] ? 'Testing...' : 'Test'}</span>
+                    </button>
+
+                    <button
+                      onClick={() => syncEmployees(integration)}
+                      disabled={syncing[integration.name]}
+                      className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50 flex items-center space-x-2"
+                      data-testid={`sync-${integration.name}`}
+                    >
+                      <FaSync className={syncing[integration.name] ? 'animate-spin' : ''} />
+                      <span>{syncing[integration.name] ? 'Syncing...' : 'Sync Now'}</span>
+                    </button>
+                  </>
                 )}
               </div>
 
@@ -265,11 +476,18 @@ function AdminIntegrations() {
           ))}
         </div>
 
+        {filteredIntegrations.length === 0 && (
+          <div className={`text-center py-12 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+            <FaPlug className="text-5xl mx-auto mb-4 opacity-50" />
+            <p>No integrations found for this filter</p>
+          </div>
+        )}
+
         {/* Help Text */}
         <div className={`mt-8 p-4 rounded-lg ${darkMode ? 'bg-blue-900/20 border border-blue-800' : 'bg-blue-50 border border-blue-200'}`}>
           <p className={`text-sm ${darkMode ? 'text-blue-300' : 'text-blue-800'}`}>
-            <strong>Note:</strong> Integration settings are saved securely and will be used across the application. 
-            Make sure to test the integration after updating the API key.
+            <strong>Note:</strong> Integration settings are saved securely and encrypted. For HR systems, use the "Sync Now" button to import employee data into your platform. 
+            All synced employees will receive login credentials via email.
           </p>
         </div>
       </div>
