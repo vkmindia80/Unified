@@ -1905,14 +1905,24 @@ async def get_integrations(current_user = Depends(get_current_user)):
                 "description": "Sync financial data and expense tracking",
                 "type": "accounting_system",
                 "api_key": "",
-                "config": {"client_secret": "", "company_id": "", "redirect_uri": "", "environment": "production"},
+                "config": {
+                    "client_secret": "", 
+                    "company_id": "", 
+                    "redirect_uri": "", 
+                    "environment": "production",
+                    "access_token": "",
+                    "refresh_token": "",
+                    "token_expiry": ""
+                },
                 "enabled": False,
                 "fields": [
                     {"name": "api_key", "label": "Client ID", "type": "text", "required": True},
                     {"name": "client_secret", "label": "Client Secret", "type": "password", "required": True},
                     {"name": "company_id", "label": "Company ID (Realm ID)", "type": "text", "required": True, "placeholder": "1234567890"},
-                    {"name": "redirect_uri", "label": "Redirect URI", "type": "text", "required": True, "placeholder": "https://yourapp.com/callback"},
-                    {"name": "environment", "label": "Environment", "type": "text", "required": False, "placeholder": "production or sandbox"}
+                    {"name": "redirect_uri", "label": "Redirect URI", "type": "text", "required": False, "placeholder": "https://yourapp.com/callback"},
+                    {"name": "environment", "label": "Environment", "type": "text", "required": False, "placeholder": "production or sandbox"},
+                    {"name": "access_token", "label": "Access Token", "type": "password", "required": False, "placeholder": "Paste your OAuth access token here"},
+                    {"name": "refresh_token", "label": "Refresh Token", "type": "password", "required": False, "placeholder": "Paste your OAuth refresh token here"}
                 ],
                 "updated_at": datetime.utcnow().isoformat()
             },
