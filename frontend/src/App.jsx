@@ -61,6 +61,7 @@ function AppRoutes() {
         <Route path="/spaces" element={<PrivateRoute><ChatWithSpaces /></PrivateRoute>} />
         <Route path="/feed" element={<PrivateRoute><Feed /></PrivateRoute>} />
         <Route path="/recognition" element={<PrivateRoute><RecognitionWall /></PrivateRoute>} />
+        <Route path="/polls" element={<PrivateRoute><Polls /></PrivateRoute>} />
         <Route path="/approvals" element={<PrivateRoute><ApprovalCenter /></PrivateRoute>} />
         <Route path="/invitations" element={<PrivateRoute><Invitations /></PrivateRoute>} />
         <Route path="/leaderboard" element={<PrivateRoute><Leaderboard /></PrivateRoute>} />
