@@ -763,16 +763,26 @@ async def delete_file(file_id: str, current_user = Depends(get_current_user)):
 
 # ==================== GIPHY INTEGRATION ====================
 
+def get_giphy_api_key():
+    """Get GIPHY API key from database or environment"""
+    # Try to get from database first
+    integration = integrations_collection.find_one({"name": "giphy"})
+    if integration and integration.get("api_key"):
+        return integration["api_key"]
+    # Fallback to environment variable
+    return GIPHY_API_KEY
+
 @app.get("/api/giphy/search")
 async def search_giphy(q: str, limit: int = 20, offset: int = 0, current_user = Depends(get_current_user)):
     """Search GIFs on GIPHY"""
-    if not GIPHY_API_KEY:
+    api_key = get_giphy_api_key()
+    if not api_key:
         raise HTTPException(status_code=503, detail="GIPHY API key not configured")
     
     try:
         url = "https://api.giphy.com/v1/gifs/search"
         params = {
-            "api_key": GIPHY_API_KEY,
+            "api_key": api_key,
             "q": q,
             "limit": limit,
             "offset": offset,
