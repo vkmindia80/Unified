@@ -3,7 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import Layout from '../components/Layout/Layout';
 import Card from '../components/UI/Card';
-import { FiTrendingUp, FiAward, FiMedal, FiTrophy, FiUsers, FiTarget } from 'react-icons/fi';
+import { FiTrendingUp, FiAward, FiTrophy, FiUsers, FiTarget } from 'react-icons/fi';
+import { FaMedal } from 'react-icons/fa';
 
 function Leaderboard() {
   const { user } = useAuth();
