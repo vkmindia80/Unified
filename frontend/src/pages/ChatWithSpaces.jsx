@@ -385,30 +385,26 @@ function ChatWithSpaces() {
   }
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
-      {/* Header */}
-      <header className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
-        <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className={`mr-2 p-2 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-lg transition`}
-            >
-              <FaArrowLeft className={darkMode ? 'text-gray-300' : 'text-gray-600'} />
-            </button>
-            <FaComments className={`text-3xl ${darkMode ? 'text-blue-400' : 'text-blue-500'}`} />
-            <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Spaces</h1>
-            {connected && (
-              <span className="flex items-center space-x-1 text-sm text-green-500">
-                <FaCircle className="text-xs" />
-                <span>Connected</span>
-              </span>
-            )}
+    <div className="flex min-h-screen bg-gray-50 dark:bg-primary-900">
+      <Sidebar />
+      <div className={`flex-1 flex flex-col ${darkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
+        {/* Header */}
+        <header className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md`}>
+          <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <FaComments className={`text-3xl ${darkMode ? 'text-blue-400' : 'text-blue-500'}`} />
+              <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Spaces</h1>
+              {connected && (
+                <span className="flex items-center space-x-1 text-sm text-green-500">
+                  <FaCircle className="text-xs" />
+                  <span>Connected</span>
+                </span>
+              )}
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
 
-      <div className="flex h-[calc(100vh-80px)]">
+        <div className="flex flex-1 h-[calc(100vh-80px)]">
         {/* Sidebar - Spaces Navigation */}
         <div className={`w-80 ${darkMode ? 'bg-gray-800' : 'bg-white'} border-r ${darkMode ? 'border-gray-700' : 'border-gray-200'} overflow-y-auto`}>
           <div className={`p-4 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
