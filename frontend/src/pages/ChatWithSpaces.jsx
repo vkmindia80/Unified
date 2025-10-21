@@ -48,6 +48,10 @@ function ChatWithSpaces() {
   const [channelName, setChannelName] = useState('');
   const [selectedUsers, setSelectedUsers] = useState([]);
   
+  // File Upload & GIF
+  const [showFileUpload, setShowFileUpload] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
