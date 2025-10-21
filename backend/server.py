@@ -521,6 +521,339 @@ async def get_messages(chat_id: str, current_user = Depends(get_current_user)):
     
     return messages
 
+# ==================== FILE UPLOAD & SHARING ====================
+
+def get_file_category(filename: str) -> str:
+    """Determine file category based on extension"""
+    ext = os.path.splitext(filename)[1].lower()
+    if ext in ALLOWED_IMAGE_EXTENSIONS:
+        return "image"
+    elif ext in ALLOWED_DOCUMENT_EXTENSIONS:
+        return "document"
+    elif ext in ALLOWED_VIDEO_EXTENSIONS:
+        return "video"
+    return "other"
+
+def get_max_file_size(category: str) -> int:
+    """Get maximum file size based on category"""
+    if category == "image":
+        return MAX_FILE_SIZE_IMAGE
+    elif category == "document":
+        return MAX_FILE_SIZE_DOCUMENT
+    elif category == "video":
+        return MAX_FILE_SIZE_VIDEO
+    return MAX_FILE_SIZE_DOCUMENT
+
+def validate_file(filename: str, file_size: int) -> tuple:
+    """Validate file type and size"""
+    ext = os.path.splitext(filename)[1].lower()
+    category = get_file_category(filename)
+    
+    if category == "other":
+        return False, "File type not allowed"
+    
+    max_size = get_max_file_size(category)
+    if file_size > max_size:
+        max_mb = max_size / (1024 * 1024)
+        return False, f"File size exceeds {max_mb}MB limit for {category}s"
+    
+    return True, category
+
+@app.post("/api/upload/file")
+async def upload_file(
+    file: UploadFile = File(...),
+    chat_id: Optional[str] = None,
+    current_user = Depends(get_current_user)
+):
+    """Upload a file (image, document, or video)"""
+    try:
+        # Read file content to check size
+        contents = await file.read()
+        file_size = len(contents)
+        
+        # Validate file
+        is_valid, result = validate_file(file.filename, file_size)
+        if not is_valid:
+            raise HTTPException(status_code=400, detail=result)
+        
+        category = result
+        
+        # Generate unique filename
+        file_id = str(uuid.uuid4())
+        file_ext = os.path.splitext(file.filename)[1]
+        unique_filename = f"{file_id}{file_ext}"
+        
+        # Determine subdirectory based on category
+        if category == "image":
+            subdir = "images"
+        elif category == "document":
+            subdir = "documents"
+        else:
+            subdir = "videos"
+        
+        file_path = os.path.join(FILE_UPLOAD_DIR, subdir, unique_filename)
+        
+        # Save file
+        async with aiofiles.open(file_path, 'wb') as f:
+            await f.write(contents)
+        
+        # Store file metadata
+        file_doc = {
+            "id": file_id,
+            "filename": file.filename,
+            "unique_filename": unique_filename,
+            "category": category,
+            "size": file_size,
+            "mime_type": file.content_type,
+            "path": f"/{subdir}/{unique_filename}",
+            "url": f"/api/files/{file_id}",
+            "uploaded_by": current_user["id"],
+            "chat_id": chat_id,
+            "created_at": datetime.utcnow().isoformat()
+        }
+        
+        files_collection.insert_one(file_doc)
+        file_doc["_id"] = str(file_doc["_id"])
+        
+        # Award points for file upload
+        award_points(current_user["id"], 10, "File uploaded", "file_upload")
+        
+        return {
+            "success": True,
+            "file": {
+                "id": file_id,
+                "filename": file.filename,
+                "category": category,
+                "size": file_size,
+                "url": f"/api/files/{file_id}",
+                "mime_type": file.content_type
+            }
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"File upload failed: {str(e)}")
+
+@app.post("/api/upload/files")
+async def upload_multiple_files(
+    files: List[UploadFile] = File(...),
+    chat_id: Optional[str] = None,
+    current_user = Depends(get_current_user)
+):
+    """Upload multiple files at once"""
+    if len(files) > 10:
+        raise HTTPException(status_code=400, detail="Maximum 10 files per upload")
+    
+    uploaded_files = []
+    errors = []
+    
+    for file in files:
+        try:
+            # Read file content
+            contents = await file.read()
+            file_size = len(contents)
+            
+            # Validate file
+            is_valid, result = validate_file(file.filename, file_size)
+            if not is_valid:
+                errors.append({"filename": file.filename, "error": result})
+                continue
+            
+            category = result
+            
+            # Generate unique filename
+            file_id = str(uuid.uuid4())
+            file_ext = os.path.splitext(file.filename)[1]
+            unique_filename = f"{file_id}{file_ext}"
+            
+            # Determine subdirectory
+            if category == "image":
+                subdir = "images"
+            elif category == "document":
+                subdir = "documents"
+            else:
+                subdir = "videos"
+            
+            file_path = os.path.join(FILE_UPLOAD_DIR, subdir, unique_filename)
+            
+            # Save file
+            async with aiofiles.open(file_path, 'wb') as f:
+                await f.write(contents)
+            
+            # Store metadata
+            file_doc = {
+                "id": file_id,
+                "filename": file.filename,
+                "unique_filename": unique_filename,
+                "category": category,
+                "size": file_size,
+                "mime_type": file.content_type,
+                "path": f"/{subdir}/{unique_filename}",
+                "url": f"/api/files/{file_id}",
+                "uploaded_by": current_user["id"],
+                "chat_id": chat_id,
+                "created_at": datetime.utcnow().isoformat()
+            }
+            
+            files_collection.insert_one(file_doc)
+            
+            uploaded_files.append({
+                "id": file_id,
+                "filename": file.filename,
+                "category": category,
+                "size": file_size,
+                "url": f"/api/files/{file_id}",
+                "mime_type": file.content_type
+            })
+            
+        except Exception as e:
+            errors.append({"filename": file.filename, "error": str(e)})
+    
+    # Award points for successful uploads
+    if uploaded_files:
+        points = min(len(uploaded_files) * 10, 50)  # Max 50 points per batch
+        award_points(current_user["id"], points, f"Uploaded {len(uploaded_files)} files", "file_upload")
+    
+    return {
+        "success": True,
+        "uploaded": len(uploaded_files),
+        "failed": len(errors),
+        "files": uploaded_files,
+        "errors": errors
+    }
+
+@app.get("/api/files/{file_id}")
+async def get_file(file_id: str):
+    """Serve an uploaded file"""
+    file_doc = files_collection.find_one({"id": file_id})
+    if not file_doc:
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    file_path = os.path.join(FILE_UPLOAD_DIR, file_doc["path"].lstrip("/"))
+    
+    if not os.path.exists(file_path):
+        raise HTTPException(status_code=404, detail="File not found on disk")
+    
+    return FileResponse(
+        file_path,
+        media_type=file_doc.get("mime_type", "application/octet-stream"),
+        filename=file_doc["filename"]
+    )
+
+@app.delete("/api/files/{file_id}")
+async def delete_file(file_id: str, current_user = Depends(get_current_user)):
+    """Delete an uploaded file"""
+    file_doc = files_collection.find_one({"id": file_id})
+    if not file_doc:
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    # Check permissions
+    if file_doc["uploaded_by"] != current_user["id"] and current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Not authorized to delete this file")
+    
+    # Delete file from disk
+    file_path = os.path.join(FILE_UPLOAD_DIR, file_doc["path"].lstrip("/"))
+    if os.path.exists(file_path):
+        os.remove(file_path)
+    
+    # Delete metadata
+    files_collection.delete_one({"id": file_id})
+    
+    return {"success": True, "message": "File deleted"}
+
+# ==================== GIPHY INTEGRATION ====================
+
+@app.get("/api/giphy/search")
+async def search_giphy(q: str, limit: int = 20, offset: int = 0, current_user = Depends(get_current_user)):
+    """Search GIFs on GIPHY"""
+    if not GIPHY_API_KEY:
+        raise HTTPException(status_code=503, detail="GIPHY API key not configured")
+    
+    try:
+        url = "https://api.giphy.com/v1/gifs/search"
+        params = {
+            "api_key": GIPHY_API_KEY,
+            "q": q,
+            "limit": limit,
+            "offset": offset,
+            "rating": "g",  # Family-friendly content
+            "lang": "en"
+        }
+        
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        # Format response
+        gifs = []
+        for item in data.get("data", []):
+            gifs.append({
+                "id": item["id"],
+                "title": item.get("title", ""),
+                "url": item["images"]["fixed_height"]["url"],
+                "preview_url": item["images"]["fixed_height_small"]["url"],
+                "width": item["images"]["fixed_height"]["width"],
+                "height": item["images"]["fixed_height"]["height"]
+            })
+        
+        return {
+            "success": True,
+            "gifs": gifs,
+            "pagination": {
+                "total_count": data.get("pagination", {}).get("total_count", 0),
+                "count": data.get("pagination", {}).get("count", 0),
+                "offset": offset
+            }
+        }
+        
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"GIPHY API error: {str(e)}")
+
+@app.get("/api/giphy/trending")
+async def trending_giphy(limit: int = 20, offset: int = 0, current_user = Depends(get_current_user)):
+    """Get trending GIFs from GIPHY"""
+    if not GIPHY_API_KEY:
+        raise HTTPException(status_code=503, detail="GIPHY API key not configured")
+    
+    try:
+        url = "https://api.giphy.com/v1/gifs/trending"
+        params = {
+            "api_key": GIPHY_API_KEY,
+            "limit": limit,
+            "offset": offset,
+            "rating": "g"
+        }
+        
+        response = requests.get(url, params=params, timeout=10)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        # Format response
+        gifs = []
+        for item in data.get("data", []):
+            gifs.append({
+                "id": item["id"],
+                "title": item.get("title", ""),
+                "url": item["images"]["fixed_height"]["url"],
+                "preview_url": item["images"]["fixed_height_small"]["url"],
+                "width": item["images"]["fixed_height"]["width"],
+                "height": item["images"]["fixed_height"]["height"]
+            })
+        
+        return {
+            "success": True,
+            "gifs": gifs,
+            "pagination": {
+                "total_count": data.get("pagination", {}).get("total_count", 0),
+                "count": data.get("pagination", {}).get("count", 0),
+                "offset": offset
+            }
+        }
+        
+    except requests.exceptions.RequestException as e:
+        raise HTTPException(status_code=500, detail=f"GIPHY API error: {str(e)}")
+
 # Gamification Routes
 @app.get("/api/leaderboard")
 async def get_leaderboard(period: str = "all", current_user = Depends(get_current_user)):
