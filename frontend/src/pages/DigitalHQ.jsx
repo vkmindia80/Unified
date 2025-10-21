@@ -113,41 +113,30 @@ function DigitalHQ() {
   const visibleWidgets = defaultWidgets.filter(w => !hiddenWidgets.includes(w.id));
 
   return (
-    <div className={`min-h-screen ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-gray-50 to-gray-100'}`}>
+    <Layout>
       {/* Header */}
-      <header className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md sticky top-0 z-50`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => navigate('/dashboard')}
-                className={`p-2 rounded-lg transition ${darkMode ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-600'}`}
-                data-testid="back-button"
-              >
-                <FaArrowLeft className="text-xl" />
-              </button>
-              <div>
-                <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-                  🏢 Digital HQ
-                </h1>
-                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-                  Your central command center
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => setShowSettings(!showSettings)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${
-                darkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-              data-testid="settings-button"
-            >
-              <FaCog className="text-lg" />
-              <span>Customize</span>
-            </button>
+      <div className="mb-8">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-2`}>
+              🏢 Digital HQ
+            </h1>
+            <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              Your central command center
+            </p>
           </div>
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${
+              darkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+            data-testid="settings-button"
+          >
+            <FaCog className="text-lg" />
+            <span>Customize</span>
+          </button>
         </div>
-      </header>
+      </div>
 
       {/* Settings Panel */}
       {showSettings && (
