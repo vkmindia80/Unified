@@ -1985,13 +1985,22 @@ async def get_integrations(current_user = Depends(get_current_user)):
                 "description": "Accounting software for SMBs",
                 "type": "accounting_system",
                 "api_key": "",
-                "config": {"client_secret": "", "company_id": "", "region": "us"},
+                "config": {
+                    "client_secret": "", 
+                    "company_id": "", 
+                    "region": "us",
+                    "access_token": "",
+                    "refresh_token": "",
+                    "token_expiry": ""
+                },
                 "enabled": False,
                 "fields": [
                     {"name": "api_key", "label": "Client ID", "type": "text", "required": True},
                     {"name": "client_secret", "label": "Client Secret", "type": "password", "required": True},
                     {"name": "company_id", "label": "Company ID", "type": "text", "required": True},
-                    {"name": "region", "label": "Region", "type": "text", "required": True, "placeholder": "us, uk, ca, etc."}
+                    {"name": "region", "label": "Region", "type": "text", "required": True, "placeholder": "us, uk, ca, etc."},
+                    {"name": "access_token", "label": "Access Token", "type": "password", "required": False, "placeholder": "Paste your OAuth access token here"},
+                    {"name": "refresh_token", "label": "Refresh Token", "type": "password", "required": False, "placeholder": "Paste your OAuth refresh token here"}
                 ],
                 "updated_at": datetime.utcnow().isoformat()
             },
