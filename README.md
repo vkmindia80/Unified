@@ -201,6 +201,12 @@ yarn dev
 - `GET /api/challenges` - Get active challenges
 - `GET /api/rewards` - Get available rewards
 
+### Communication Integrations (Admin)
+- `GET /api/admin/integrations` - List all integrations
+- `PUT /api/admin/integrations/{name}` - Update integration settings
+- `POST /api/integrations/{name}/test-connection` - Test integration connection
+- `POST /api/integrations/{name}/send-message` - Send message via integration
+
 ## 🎨 UI Components
 
 ### Design System
