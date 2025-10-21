@@ -3039,10 +3039,15 @@ async def send_message(sid, data):
         return
     
     chat_id = data.get("chat_id")
-    content = data.get("content")
+    content = data.get("content", "")
     message_type = data.get("type", "text")
+    files = data.get("files", [])  # Array of file objects with id, filename, url, etc.
     
-    if not chat_id or not content:
+    if not chat_id:
+        return
+    
+    # Require either content or files
+    if not content and not files:
         return
     
     # Verify user is participant
@@ -3058,6 +3063,7 @@ async def send_message(sid, data):
         "sender_id": user_id,
         "content": content,
         "type": message_type,
+        "files": files if files else [],  # Store file metadata
         "created_at": datetime.utcnow().isoformat(),
         "read_by": []
     }
@@ -3065,9 +3071,10 @@ async def send_message(sid, data):
     messages_collection.insert_one(message_doc)
     
     # Update chat last message
+    last_msg_text = content if content else f"📎 {len(files)} file(s)"
     chats_collection.update_one(
         {"id": chat_id},
-        {"$set": {"last_message": content, "last_message_at": datetime.utcnow().isoformat()}}
+        {"$set": {"last_message": last_msg_text, "last_message_at": datetime.utcnow().isoformat()}}
     )
     
     # Get sender details
@@ -3078,8 +3085,9 @@ async def send_message(sid, data):
     
     message_doc["_id"] = str(message_doc.get("_id", ""))
     
-    # Award points
-    award_points(user_id, 5, "Message sent", "message")
+    # Award points (more for file attachments)
+    points = 5 if not files else 10
+    award_points(user_id, points, "Message sent", "message")
     
     # Broadcast to chat room
     await sio.emit("new_message", message_doc, room=f"chat_{chat_id}")
