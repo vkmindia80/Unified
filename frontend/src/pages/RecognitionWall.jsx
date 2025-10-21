@@ -214,7 +214,7 @@ function RecognitionWall() {
       </div>
 
       {/* Recognitions List */}
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
+      <div className="space-y-4">
         {recognitions.length === 0 ? (
           <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-12 text-center`}>
             <FaTrophy className={`text-6xl mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
