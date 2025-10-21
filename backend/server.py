@@ -2481,6 +2481,198 @@ async def get_sync_history(integration_name: str, current_user = Depends(get_cur
         "history": []
     }
 
+
+# ==================== ACCOUNTING INTEGRATION SYNC ENDPOINTS ====================
+
+# Sync financial data from accounting system
+@app.post("/api/integrations/{integration_name}/sync-financials")
+async def sync_financials_from_accounting(integration_name: str, current_user = Depends(get_current_user)):
+    """Sync financial data from accounting system (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        integration = get_integration_config(integration_name)
+        
+        synced_count = 0
+        updated_count = 0
+        errors = []
+        
+        if integration_name == "quickbooks":
+            result = await sync_quickbooks_data(integration)
+            synced_count = result.get("synced", 0)
+            updated_count = result.get("updated", 0)
+            errors = result.get("errors", [])
+        elif integration_name == "xero":
+            result = await sync_xero_data(integration)
+            synced_count = result.get("synced", 0)
+            updated_count = result.get("updated", 0)
+            errors = result.get("errors", [])
+        elif integration_name == "freshbooks":
+            result = await sync_freshbooks_data(integration)
+            synced_count = result.get("synced", 0)
+            updated_count = result.get("updated", 0)
+            errors = result.get("errors", [])
+        else:
+            # Generic sync placeholder for other systems
+            return {
+                "success": True,
+                "message": f"Sync functionality for {integration['display_name']} is being implemented",
+                "synced": 0,
+                "updated": 0
+            }
+        
+        return {
+            "success": True,
+            "message": f"Financial data sync from {integration['display_name']} completed",
+            "synced": synced_count,
+            "updated": updated_count,
+            "errors": errors
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Sync failed: {str(e)}")
+
+# Get accounts/categories from accounting system
+@app.get("/api/integrations/{integration_name}/accounts")
+async def get_accounting_accounts(integration_name: str, current_user = Depends(get_current_user)):
+    """Get chart of accounts from accounting system"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    try:
+        integration = get_integration_config(integration_name)
+        
+        # Placeholder - would fetch actual accounts from the accounting system
+        return {
+            "success": True,
+            "accounts": [],
+            "message": f"Chart of accounts retrieval for {integration['display_name']}"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch accounts: {str(e)}")
+
+# Individual accounting system sync functions
+async def sync_quickbooks_data(integration: dict):
+    """Sync data from QuickBooks Online"""
+    try:
+        client_id = integration.get("api_key")
+        client_secret = integration.get("config", {}).get("client_secret")
+        company_id = integration.get("config", {}).get("company_id")
+        
+        if not client_id or not client_secret or not company_id:
+            return {"synced": 0, "updated": 0, "errors": ["Missing required credentials"]}
+        
+        # QuickBooks API implementation
+        # Note: QuickBooks uses OAuth 2.0, so this is a simplified example
+        # In production, you'd need to implement the full OAuth flow
+        
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        
+        # Example: Fetch company info to validate connection
+        base_url = "https://quickbooks.api.intuit.com/v3/company"
+        url = f"{base_url}/{company_id}/companyinfo/{company_id}"
+        
+        # For now, return placeholder data
+        # In production, you would:
+        # 1. Get OAuth token
+        # 2. Fetch expense categories
+        # 3. Fetch vendors/customers
+        # 4. Store relevant data for gamification (e.g., department budgets)
+        
+        return {
+            "synced": 0,
+            "updated": 0,
+            "errors": ["QuickBooks OAuth flow needs to be implemented"]
+        }
+            
+    except Exception as e:
+        return {"synced": 0, "updated": 0, "errors": [str(e)]}
+
+async def sync_xero_data(integration: dict):
+    """Sync data from Xero"""
+    try:
+        client_id = integration.get("api_key")
+        client_secret = integration.get("config", {}).get("client_secret")
+        tenant_id = integration.get("config", {}).get("tenant_id")
+        
+        if not client_id or not client_secret or not tenant_id:
+            return {"synced": 0, "updated": 0, "errors": ["Missing required credentials"]}
+        
+        # Xero API implementation
+        # Note: Xero uses OAuth 2.0
+        
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Xero-tenant-id": tenant_id
+        }
+        
+        # Example API endpoint (requires OAuth token)
+        url = "https://api.xero.com/api.xro/2.0/Organisation"
+        
+        # Placeholder implementation
+        # In production, you would:
+        # 1. Implement OAuth 2.0 flow
+        # 2. Fetch organization details
+        # 3. Fetch accounts and tracking categories
+        # 4. Sync expense data for gamification
+        
+        return {
+            "synced": 0,
+            "updated": 0,
+            "errors": ["Xero OAuth flow needs to be implemented"]
+        }
+            
+    except Exception as e:
+        return {"synced": 0, "updated": 0, "errors": [str(e)]}
+
+async def sync_freshbooks_data(integration: dict):
+    """Sync data from FreshBooks"""
+    try:
+        client_id = integration.get("api_key")
+        client_secret = integration.get("config", {}).get("client_secret")
+        account_id = integration.get("config", {}).get("account_id")
+        
+        if not client_id or not client_secret or not account_id:
+            return {"synced": 0, "updated": 0, "errors": ["Missing required credentials"]}
+        
+        # FreshBooks API implementation
+        # Note: FreshBooks uses OAuth 2.0
+        
+        headers = {
+            "Authorization": f"Bearer {client_id}",
+            "Content-Type": "application/json"
+        }
+        
+        url = f"https://api.freshbooks.com/accounting/account/{account_id}/users/me"
+        
+        try:
+            response = requests.get(url, headers=headers, timeout=30)
+            if response.status_code == 200:
+                # Successfully connected
+                # In production, you would:
+                # 1. Fetch expense categories
+                # 2. Fetch clients and projects
+                # 3. Sync invoice data for rewards/gamification
+                
+                return {
+                    "synced": 0,
+                    "updated": 0,
+                    "errors": ["FreshBooks data sync implementation in progress"]
+                }
+            else:
+                return {"synced": 0, "updated": 0, "errors": [f"FreshBooks API error: {response.status_code}"]}
+        except Exception as e:
+            return {"synced": 0, "updated": 0, "errors": [f"FreshBooks sync error: {str(e)}"]}
+            
+    except Exception as e:
+        return {"synced": 0, "updated": 0, "errors": [str(e)]}
+
 # ==================== ADMIN GAMIFICATION MANAGEMENT ====================
 
 # Achievement Management
