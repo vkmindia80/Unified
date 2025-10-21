@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
-import { FaComments, FaTrophy, FaMedal, FaTasks, FaGift, FaSignOutAlt, FaChartLine, FaUsers, FaMoon, FaSun, FaUserShield, FaPhone, FaBell, FaLayerGroup, FaCheckCircle, FaEnvelope } from 'react-icons/fa';
+import { FaComments, FaTrophy, FaMedal, FaTasks, FaGift, FaSignOutAlt, FaChartLine, FaUsers, FaMoon, FaSun, FaUserShield, FaPhone, FaBell, FaLayerGroup, FaCheckCircle, FaEnvelope, FaChartBar } from 'react-icons/fa';
 
 function Dashboard() {
   const { user, logout } = useAuth();
