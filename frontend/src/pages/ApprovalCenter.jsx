@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
+import Layout from '../components/Layout/Layout';
 import { 
-  FaArrowLeft, FaCheck, FaTimes, FaFilter, FaClock, 
+  FaCheck, FaTimes, FaFilter, FaClock, 
   FaCheckCircle, FaTimesCircle, FaUsers, FaGift, FaFileAlt,
   FaUserPlus, FaLayerGroup
 } from 'react-icons/fa';
