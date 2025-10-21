@@ -1411,6 +1411,274 @@ async def admin_delete_user(user_id: str, current_user = Depends(get_current_use
         raise HTTPException(status_code=404, detail="User not found")
     return {"success": True, "message": "User deleted"}
 
+# Admin User Creation
+class AdminUserCreate(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+    full_name: str
+    role: str = "employee"
+    department: Optional[str] = None
+    team: Optional[str] = None
+    points: int = 0
+
+@app.post("/api/admin/users/create")
+async def admin_create_user(user: AdminUserCreate, current_user = Depends(get_current_user)):
+    """Create a new user (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if user exists
+    if users_collection.find_one({"email": user.email}):
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    if users_collection.find_one({"username": user.username}):
+        raise HTTPException(status_code=400, detail="Username already taken")
+    
+    # Create user
+    user_id = str(uuid.uuid4())
+    hashed_password = get_password_hash(user.password)
+    
+    user_doc = {
+        "id": user_id,
+        "username": user.username,
+        "email": user.email,
+        "password": hashed_password,
+        "full_name": user.full_name,
+        "role": user.role,
+        "department": user.department,
+        "team": user.team,
+        "avatar": None,
+        "status": "offline",
+        "account_status": "active",
+        "points": user.points,
+        "level": calculate_level(user.points),
+        "created_at": datetime.utcnow().isoformat(),
+        "created_by": current_user["id"]
+    }
+    
+    users_collection.insert_one(user_doc)
+    user_doc["_id"] = str(user_doc["_id"])
+    
+    # Remove password from response
+    del user_doc["password"]
+    
+    return {"success": True, "user": user_doc}
+
+# Bulk User Import
+class BulkUserImport(BaseModel):
+    users: List[AdminUserCreate]
+
+@app.post("/api/admin/users/bulk-import")
+async def admin_bulk_import_users(import_data: BulkUserImport, current_user = Depends(get_current_user)):
+    """Bulk import users from JSON (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    results = {
+        "success": [],
+        "failed": [],
+        "total": len(import_data.users)
+    }
+    
+    for user_data in import_data.users:
+        try:
+            # Check if user exists
+            if users_collection.find_one({"email": user_data.email}):
+                results["failed"].append({
+                    "email": user_data.email,
+                    "reason": "Email already registered"
+                })
+                continue
+            
+            if users_collection.find_one({"username": user_data.username}):
+                results["failed"].append({
+                    "email": user_data.email,
+                    "reason": "Username already taken"
+                })
+                continue
+            
+            # Create user
+            user_id = str(uuid.uuid4())
+            hashed_password = get_password_hash(user_data.password)
+            
+            user_doc = {
+                "id": user_id,
+                "username": user_data.username,
+                "email": user_data.email,
+                "password": hashed_password,
+                "full_name": user_data.full_name,
+                "role": user_data.role,
+                "department": user_data.department,
+                "team": user_data.team,
+                "avatar": None,
+                "status": "offline",
+                "account_status": "active",
+                "points": user_data.points,
+                "level": calculate_level(user_data.points),
+                "created_at": datetime.utcnow().isoformat(),
+                "created_by": current_user["id"]
+            }
+            
+            users_collection.insert_one(user_doc)
+            
+            results["success"].append({
+                "email": user_data.email,
+                "username": user_data.username,
+                "full_name": user_data.full_name
+            })
+            
+        except Exception as e:
+            results["failed"].append({
+                "email": user_data.email,
+                "reason": str(e)
+            })
+    
+    return {
+        "success": True,
+        "imported": len(results["success"]),
+        "failed": len(results["failed"]),
+        "total": results["total"],
+        "details": results
+    }
+
+# CSV Import Endpoint
+@app.post("/api/admin/users/import-csv")
+async def admin_import_csv(file: UploadFile = File(...), current_user = Depends(get_current_user)):
+    """Import users from CSV file (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    if not file.filename.endswith('.csv'):
+        raise HTTPException(status_code=400, detail="Only CSV files are allowed")
+    
+    try:
+        import csv
+        import io
+        
+        # Read CSV file
+        contents = await file.read()
+        csv_data = contents.decode('utf-8')
+        csv_reader = csv.DictReader(io.StringIO(csv_data))
+        
+        results = {
+            "success": [],
+            "failed": [],
+            "total": 0
+        }
+        
+        for row in csv_reader:
+            results["total"] += 1
+            
+            try:
+                # Validate required fields
+                required_fields = ["username", "email", "password", "full_name"]
+                missing_fields = [field for field in required_fields if not row.get(field)]
+                
+                if missing_fields:
+                    results["failed"].append({
+                        "row": results["total"],
+                        "email": row.get("email", "N/A"),
+                        "reason": f"Missing required fields: {', '.join(missing_fields)}"
+                    })
+                    continue
+                
+                # Check if user exists
+                if users_collection.find_one({"email": row["email"]}):
+                    results["failed"].append({
+                        "row": results["total"],
+                        "email": row["email"],
+                        "reason": "Email already registered"
+                    })
+                    continue
+                
+                if users_collection.find_one({"username": row["username"]}):
+                    results["failed"].append({
+                        "row": results["total"],
+                        "email": row["email"],
+                        "reason": "Username already taken"
+                    })
+                    continue
+                
+                # Create user
+                user_id = str(uuid.uuid4())
+                hashed_password = get_password_hash(row["password"])
+                
+                user_doc = {
+                    "id": user_id,
+                    "username": row["username"],
+                    "email": row["email"],
+                    "password": hashed_password,
+                    "full_name": row["full_name"],
+                    "role": row.get("role", "employee"),
+                    "department": row.get("department"),
+                    "team": row.get("team"),
+                    "avatar": None,
+                    "status": "offline",
+                    "account_status": "active",
+                    "points": int(row.get("points", 0)),
+                    "level": calculate_level(int(row.get("points", 0))),
+                    "created_at": datetime.utcnow().isoformat(),
+                    "created_by": current_user["id"]
+                }
+                
+                users_collection.insert_one(user_doc)
+                
+                results["success"].append({
+                    "row": results["total"],
+                    "email": row["email"],
+                    "username": row["username"],
+                    "full_name": row["full_name"]
+                })
+                
+            except Exception as e:
+                results["failed"].append({
+                    "row": results["total"],
+                    "email": row.get("email", "N/A"),
+                    "reason": str(e)
+                })
+        
+        return {
+            "success": True,
+            "imported": len(results["success"]),
+            "failed": len(results["failed"]),
+            "total": results["total"],
+            "details": results
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to process CSV: {str(e)}")
+
+# Download CSV Template
+@app.get("/api/admin/users/csv-template")
+async def admin_get_csv_template(current_user = Depends(get_current_user)):
+    """Download CSV template for bulk user import"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    import csv
+    import io
+    from fastapi.responses import StreamingResponse
+    
+    # Create CSV template
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Write header
+    writer.writerow(["username", "email", "password", "full_name", "role", "department", "team", "points"])
+    
+    # Write example rows
+    writer.writerow(["john_doe", "john.doe@company.com", "SecurePass123!", "John Doe", "employee", "Engineering", "Alpha", "0"])
+    writer.writerow(["jane_smith", "jane.smith@company.com", "SecurePass123!", "Jane Smith", "manager", "Sales", "Beta", "50"])
+    
+    output.seek(0)
+    
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=user_import_template.csv"}
+    )
+
 @app.get("/api/admin/analytics")
 async def admin_analytics(current_user = Depends(get_current_user)):
     """Get system analytics"""
