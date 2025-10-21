@@ -249,17 +249,18 @@ const Dashboard = () => {
       {/* Quick Stats */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {quickStats.map((stat, index) => (
-          <Card key={index} padding={false} className="overflow-hidden">
-            <div className="p-5">
-              <div className="flex items-center justify-between mb-3">
-                <div className={`w-10 h-10 rounded-lg ${stat.bgColor} flex items-center justify-center`}>
-                  <stat.icon className={`w-5 h-5 ${stat.color}`} />
+          <Card key={index} padding={false} className="overflow-hidden hover:shadow-lg transition-shadow duration-300 animate-slide-up" style={{ animationDelay: `${index * 100}ms` }} hover>
+            <div className="p-5 relative">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-transparent to-gray-100 dark:to-primary-900 rounded-bl-full opacity-50"></div>
+              <div className="flex items-center justify-between mb-3 relative z-10">
+                <div className={`w-12 h-12 rounded-xl ${stat.bgColor} flex items-center justify-center shadow-md transform hover:scale-110 transition-transform duration-300`}>
+                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
                 </div>
               </div>
-              <p className="text-2xl font-bold text-primary-900 dark:text-white mb-1">
+              <p className="text-3xl font-bold text-primary-900 dark:text-white mb-1 relative z-10">
                 {stat.value}
               </p>
-              <p className="text-sm text-primary-600 dark:text-primary-400">
+              <p className="text-sm text-primary-600 dark:text-primary-400 relative z-10">
                 {stat.label}
               </p>
             </div>
