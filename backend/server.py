@@ -1536,6 +1536,325 @@ async def update_integration(
     
     return updated
 
+# ==================== ADMIN GAMIFICATION MANAGEMENT ====================
+
+# Achievement Management
+class AchievementCreate(BaseModel):
+    name: str
+    description: str
+    icon: str
+    points: int
+    type: str  # "milestone", "social", "activity"
+
+@app.get("/api/admin/achievements")
+async def admin_get_achievements(current_user = Depends(get_current_user)):
+    """Get all achievements (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    achievements = list(achievements_collection.find({}))
+    for achievement in achievements:
+        achievement["_id"] = str(achievement["_id"])
+        # Get unlock count
+        unlock_count = user_achievements_collection.count_documents({"achievement_id": achievement["id"]})
+        achievement["unlock_count"] = unlock_count
+    
+    return achievements
+
+@app.post("/api/admin/achievements")
+async def admin_create_achievement(achievement: AchievementCreate, current_user = Depends(get_current_user)):
+    """Create a new achievement (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    achievement_id = str(uuid.uuid4())
+    achievement_doc = {
+        "id": achievement_id,
+        "name": achievement.name,
+        "description": achievement.description,
+        "icon": achievement.icon,
+        "points": achievement.points,
+        "type": achievement.type,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    
+    achievements_collection.insert_one(achievement_doc)
+    achievement_doc["_id"] = str(achievement_doc["_id"])
+    
+    return achievement_doc
+
+@app.put("/api/admin/achievements/{achievement_id}")
+async def admin_update_achievement(achievement_id: str, updates: dict, current_user = Depends(get_current_user)):
+    """Update an achievement (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    allowed_fields = ["name", "description", "icon", "points", "type"]
+    update_data = {k: v for k, v in updates.items() if k in allowed_fields}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No valid fields to update")
+    
+    result = achievements_collection.update_one({"id": achievement_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Achievement not found")
+    
+    achievement = achievements_collection.find_one({"id": achievement_id})
+    achievement["_id"] = str(achievement["_id"])
+    return achievement
+
+@app.delete("/api/admin/achievements/{achievement_id}")
+async def admin_delete_achievement(achievement_id: str, current_user = Depends(get_current_user)):
+    """Delete an achievement (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Delete achievement and user unlocks
+    achievements_collection.delete_one({"id": achievement_id})
+    user_achievements_collection.delete_many({"achievement_id": achievement_id})
+    
+    return {"success": True, "message": "Achievement deleted"}
+
+# Challenge Management
+class ChallengeCreate(BaseModel):
+    name: str
+    description: str
+    points: int
+    target: int
+    type: str  # "messages", "participation", "attendance"
+    active: bool = True
+    start_date: Optional[str] = None
+    end_date: Optional[str] = None
+
+@app.get("/api/admin/challenges")
+async def admin_get_challenges(current_user = Depends(get_current_user)):
+    """Get all challenges (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    challenges = list(challenges_collection.find({}))
+    for challenge in challenges:
+        challenge["_id"] = str(challenge["_id"])
+    
+    return challenges
+
+@app.post("/api/admin/challenges")
+async def admin_create_challenge(challenge: ChallengeCreate, current_user = Depends(get_current_user)):
+    """Create a new challenge (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    challenge_id = str(uuid.uuid4())
+    challenge_doc = {
+        "id": challenge_id,
+        "name": challenge.name,
+        "description": challenge.description,
+        "points": challenge.points,
+        "target": challenge.target,
+        "type": challenge.type,
+        "active": challenge.active,
+        "start_date": challenge.start_date or datetime.utcnow().isoformat(),
+        "end_date": challenge.end_date,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    
+    challenges_collection.insert_one(challenge_doc)
+    challenge_doc["_id"] = str(challenge_doc["_id"])
+    
+    return challenge_doc
+
+@app.put("/api/admin/challenges/{challenge_id}")
+async def admin_update_challenge(challenge_id: str, updates: dict, current_user = Depends(get_current_user)):
+    """Update a challenge (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    allowed_fields = ["name", "description", "points", "target", "type", "active", "start_date", "end_date"]
+    update_data = {k: v for k, v in updates.items() if k in allowed_fields}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No valid fields to update")
+    
+    result = challenges_collection.update_one({"id": challenge_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Challenge not found")
+    
+    challenge = challenges_collection.find_one({"id": challenge_id})
+    challenge["_id"] = str(challenge["_id"])
+    return challenge
+
+@app.delete("/api/admin/challenges/{challenge_id}")
+async def admin_delete_challenge(challenge_id: str, current_user = Depends(get_current_user)):
+    """Delete a challenge (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    challenges_collection.delete_one({"id": challenge_id})
+    return {"success": True, "message": "Challenge deleted"}
+
+# Reward Management
+class RewardCreate(BaseModel):
+    name: str
+    description: str
+    cost: int
+    icon: str
+    category: str  # "food", "time-off", "perks", "merchandise"
+    active: bool = True
+    stock: int = 100
+
+@app.get("/api/admin/rewards")
+async def admin_get_rewards(current_user = Depends(get_current_user)):
+    """Get all rewards (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    rewards = list(rewards_collection.find({}))
+    for reward in rewards:
+        reward["_id"] = str(reward["_id"])
+        # Get redemption count
+        redemption_count = reward_redemptions_collection.count_documents({"reward_id": reward["id"]})
+        reward["redemption_count"] = redemption_count
+    
+    return rewards
+
+@app.post("/api/admin/rewards")
+async def admin_create_reward(reward: RewardCreate, current_user = Depends(get_current_user)):
+    """Create a new reward (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    reward_id = str(uuid.uuid4())
+    reward_doc = {
+        "id": reward_id,
+        "name": reward.name,
+        "description": reward.description,
+        "cost": reward.cost,
+        "icon": reward.icon,
+        "category": reward.category,
+        "active": reward.active,
+        "stock": reward.stock,
+        "created_at": datetime.utcnow().isoformat()
+    }
+    
+    rewards_collection.insert_one(reward_doc)
+    reward_doc["_id"] = str(reward_doc["_id"])
+    
+    return reward_doc
+
+@app.put("/api/admin/rewards/{reward_id}")
+async def admin_update_reward(reward_id: str, updates: dict, current_user = Depends(get_current_user)):
+    """Update a reward (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    allowed_fields = ["name", "description", "cost", "icon", "category", "active", "stock"]
+    update_data = {k: v for k, v in updates.items() if k in allowed_fields}
+    
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No valid fields to update")
+    
+    result = rewards_collection.update_one({"id": reward_id}, {"$set": update_data})
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Reward not found")
+    
+    reward = rewards_collection.find_one({"id": reward_id})
+    reward["_id"] = str(reward["_id"])
+    return reward
+
+@app.delete("/api/admin/rewards/{reward_id}")
+async def admin_delete_reward(reward_id: str, current_user = Depends(get_current_user)):
+    """Delete a reward (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    rewards_collection.delete_one({"id": reward_id})
+    return {"success": True, "message": "Reward deleted"}
+
+# Points Management
+class PointsAdjustment(BaseModel):
+    user_id: str
+    points: int
+    reason: str
+
+@app.post("/api/admin/points/adjust")
+async def admin_adjust_points(adjustment: PointsAdjustment, current_user = Depends(get_current_user)):
+    """Award or deduct points from a user (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Check if user exists
+    user = users_collection.find_one({"id": adjustment.user_id})
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Award/deduct points
+    new_points, new_level = award_points(adjustment.user_id, adjustment.points, adjustment.reason, "admin_adjustment")
+    
+    return {
+        "success": True,
+        "user_id": adjustment.user_id,
+        "new_points": new_points,
+        "new_level": new_level,
+        "adjustment": adjustment.points
+    }
+
+# System Stats
+@app.get("/api/admin/stats/detailed")
+async def admin_get_detailed_stats(current_user = Depends(get_current_user)):
+    """Get detailed system statistics (admin only)"""
+    if current_user["role"] != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    
+    # Get comprehensive stats
+    total_users = users_collection.count_documents({})
+    total_messages = messages_collection.count_documents({})
+    total_chats = chats_collection.count_documents({})
+    total_achievements = achievements_collection.count_documents({})
+    total_challenges = challenges_collection.count_documents({})
+    total_rewards = rewards_collection.count_documents({})
+    total_announcements = announcements_collection.count_documents({})
+    
+    # Active counts
+    active_challenges = challenges_collection.count_documents({"active": True})
+    active_rewards = rewards_collection.count_documents({"active": True})
+    
+    # User stats by role
+    users_by_role = {}
+    for role in ["admin", "manager", "employee", "team_lead", "department_head"]:
+        count = users_collection.count_documents({"role": role})
+        users_by_role[role] = count
+    
+    # Recent activity
+    from datetime import datetime, timedelta
+    yesterday = (datetime.utcnow() - timedelta(days=1)).isoformat()
+    week_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
+    
+    messages_24h = messages_collection.count_documents({"created_at": {"$gte": yesterday}})
+    messages_7d = messages_collection.count_documents({"created_at": {"$gte": week_ago}})
+    
+    # Achievement unlocks
+    total_unlocks = user_achievements_collection.count_documents({})
+    
+    # Reward redemptions
+    total_redemptions = reward_redemptions_collection.count_documents({})
+    
+    return {
+        "total_users": total_users,
+        "total_messages": total_messages,
+        "total_chats": total_chats,
+        "total_achievements": total_achievements,
+        "total_challenges": total_challenges,
+        "total_rewards": total_rewards,
+        "total_announcements": total_announcements,
+        "active_challenges": active_challenges,
+        "active_rewards": active_rewards,
+        "users_by_role": users_by_role,
+        "messages_24h": messages_24h,
+        "messages_7d": messages_7d,
+        "total_achievement_unlocks": total_unlocks,
+        "total_reward_redemptions": total_redemptions
+    }
+
 # Call History Routes
 @app.get("/api/calls/history")
 async def get_call_history(current_user = Depends(get_current_user)):
