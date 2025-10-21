@@ -775,7 +775,8 @@ function Chat() {
           onClose={() => setImageGallery(null)}
           darkMode={darkMode}
         />
-      )}
+        )}
+      </div>
     </div>
   );
 }
