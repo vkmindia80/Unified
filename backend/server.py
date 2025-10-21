@@ -248,6 +248,47 @@ class RewardRedemptionCreate(BaseModel):
     quantity: int = 1
     notes: Optional[str] = None
 
+# Poll Models
+class PollOption(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    text: str
+
+class PollQuestion(BaseModel):
+    question: str
+    type: str  # "single_choice", "multiple_choice", "rating", "open_ended"
+    options: Optional[List[PollOption]] = None  # For choice-based questions
+    rating_scale: Optional[int] = 5  # For rating questions (1-5, 1-10, etc.)
+    required: bool = True
+
+class PollCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    questions: List[PollQuestion]
+    anonymous_voting: bool = False
+    show_results_before_close: bool = True  # Admin can choose to hide results until poll closes
+    expires_at: Optional[str] = None
+    target_audience: str = "all"  # "all", "department", "team", "role"
+    target_value: Optional[str] = None
+
+class PollUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    expires_at: Optional[str] = None
+    show_results_before_close: Optional[bool] = None
+
+class PollVoteAnswer(BaseModel):
+    question_index: int
+    answer_type: str  # "single_choice", "multiple_choice", "rating", "text"
+    selected_option_ids: Optional[List[str]] = None  # For choice-based answers
+    rating_value: Optional[int] = None  # For rating answers
+    text_answer: Optional[str] = None  # For open-ended answers
+
+class PollVoteCreate(BaseModel):
+    poll_id: str
+    answers: List[PollVoteAnswer]
+    is_anonymous: bool = False
+
+
 # Helper functions
 def verify_password(plain_password, hashed_password):
     return pwd_context.verify(plain_password, hashed_password)
