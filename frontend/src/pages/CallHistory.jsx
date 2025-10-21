@@ -132,7 +132,7 @@ function CallHistory() {
           </div>
         )}
       </div>
-    </div>
+    </Layout>
   );
 }
 
