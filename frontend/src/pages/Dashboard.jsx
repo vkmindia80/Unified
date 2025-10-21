@@ -323,39 +323,39 @@ const Dashboard = () => {
       )}
 
       {/* Quick Actions */}
-      <Card title="Quick Actions" className="mb-8">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      <Card title="Quick Actions" className="mb-8 animate-slide-up">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           <button
             onClick={() => navigate('/chat')}
-            className="p-4 text-center bg-gray-50 dark:bg-primary-900 hover:bg-gray-100 dark:hover:bg-primary-700 rounded-lg transition-colors"
+            className="group p-5 text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-primary-900 dark:to-primary-800 hover:from-corporate-50 hover:to-corporate-100 dark:hover:from-corporate-900/30 dark:hover:to-corporate-800/30 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-md"
             data-testid="quick-start-chat"
           >
-            <FiMessageSquare className="w-6 h-6 mx-auto mb-2 text-corporate-600" />
-            <p className="text-sm font-medium text-primary-900 dark:text-white">Start Chat</p>
+            <FiMessageSquare className="w-7 h-7 mx-auto mb-2 text-corporate-600 dark:text-corporate-400 group-hover:scale-110 transition-transform" />
+            <p className="text-sm font-semibold text-primary-900 dark:text-white">Start Chat</p>
           </button>
           <button
             onClick={() => navigate('/leaderboard')}
-            className="p-4 text-center bg-gray-50 dark:bg-primary-900 hover:bg-gray-100 dark:hover:bg-primary-700 rounded-lg transition-colors"
+            className="group p-5 text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-primary-900 dark:to-primary-800 hover:from-amber-50 hover:to-amber-100 dark:hover:from-amber-900/30 dark:hover:to-amber-800/30 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-md"
             data-testid="quick-view-leaderboard"
           >
-            <FiTrendingUp className="w-6 h-6 mx-auto mb-2 text-amber-600" />
-            <p className="text-sm font-medium text-primary-900 dark:text-white">Leaderboard</p>
+            <FiTrendingUp className="w-7 h-7 mx-auto mb-2 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform" />
+            <p className="text-sm font-semibold text-primary-900 dark:text-white">Leaderboard</p>
           </button>
           <button
             onClick={() => navigate('/challenges')}
-            className="p-4 text-center bg-gray-50 dark:bg-primary-900 hover:bg-gray-100 dark:hover:bg-primary-700 rounded-lg transition-colors"
+            className="group p-5 text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-primary-900 dark:to-primary-800 hover:from-green-50 hover:to-green-100 dark:hover:from-green-900/30 dark:hover:to-green-800/30 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-md"
             data-testid="quick-view-challenges"
           >
-            <FiTarget className="w-6 h-6 mx-auto mb-2 text-green-600" />
-            <p className="text-sm font-medium text-primary-900 dark:text-white">Challenges</p>
+            <FiTarget className="w-7 h-7 mx-auto mb-2 text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform" />
+            <p className="text-sm font-semibold text-primary-900 dark:text-white">Challenges</p>
           </button>
           <button
             onClick={() => navigate('/rewards')}
-            className="p-4 text-center bg-gray-50 dark:bg-primary-900 hover:bg-gray-100 dark:hover:bg-primary-700 rounded-lg transition-colors"
+            className="group p-5 text-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-primary-900 dark:to-primary-800 hover:from-red-50 hover:to-red-100 dark:hover:from-red-900/30 dark:hover:to-red-800/30 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-md"
             data-testid="quick-redeem-rewards"
           >
-            <FiGift className="w-6 h-6 mx-auto mb-2 text-red-600" />
-            <p className="text-sm font-medium text-primary-900 dark:text-white">Rewards</p>
+            <FiGift className="w-7 h-7 mx-auto mb-2 text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform" />
+            <p className="text-sm font-semibold text-primary-900 dark:text-white">Rewards</p>
           </button>
         </div>
       </Card>
