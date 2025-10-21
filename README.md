@@ -244,6 +244,35 @@ FILE_UPLOAD_DIR=/app/backend/uploads
 REACT_APP_BACKEND_URL=http://localhost:8001
 ```
 
+## 📡 Communication Integrations
+
+The platform supports integration with 5 popular communication systems for broadcasting announcements and notifications:
+
+### Available Integrations
+
+1. **💬 Slack** - Team messaging and channel notifications
+2. **👥 Microsoft Teams** - Enterprise collaboration and announcements
+3. **🎮 Discord** - Community engagement and notifications
+4. **✈️ Telegram** - Instant messaging and broadcasts
+5. **📱 Twilio** - SMS and WhatsApp messaging
+6. **🎬 GIPHY** - GIF search for enhanced chat experience
+
+### Features
+- **Centralized Management**: Configure all integrations from Admin Panel
+- **Connection Testing**: Verify credentials before sending messages
+- **Outgoing Messages**: Send announcements to multiple platforms
+- **Secure Storage**: All credentials encrypted in database
+- **Real-time Updates**: Test and configure without restarting services
+
+### Configuration
+Navigate to **Admin Panel** → **Integration Settings** to:
+- Add API credentials for each platform
+- Test connection with live credentials
+- Enable/disable integrations
+- Send test messages
+
+For detailed setup instructions, see [COMMUNICATION_INTEGRATIONS_GUIDE.md](./COMMUNICATION_INTEGRATIONS_GUIDE.md)
+
 ## 📊 Current Status
 
 ### ✅ Completed
@@ -256,11 +285,13 @@ REACT_APP_BACKEND_URL=http://localhost:8001
 - Rewards store
 - Points calculation
 - Level progression
+- **Communication system integrations (Slack, Teams, Discord, Telegram, Twilio)**
+- **Integration management UI**
+- **File upload and sharing**
 
 ### 🔄 In Progress
 - Real-time WebSocket integration
-- File upload backend
-- Admin dashboard
+- Admin dashboard enhancements
 
 ### 📋 Planned
 - WebRTC video/voice calls
