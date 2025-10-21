@@ -76,34 +76,40 @@ function Leaderboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200 dark:border-amber-700">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 animate-slide-up">
+        <Card className="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200 dark:border-amber-700 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1" hover>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-amber-700 dark:text-amber-400 mb-1">Your Rank</p>
-              <p className="text-3xl font-bold text-amber-900 dark:text-amber-300">#{leaderboard.findIndex(p => p.id === user?.id) + 1 || '-'}</p>
+              <p className="text-sm font-semibold text-amber-700 dark:text-amber-400 mb-2">Your Rank</p>
+              <p className="text-4xl font-bold text-amber-900 dark:text-amber-300">#{leaderboard.findIndex(p => p.id === user?.id) + 1 || '-'}</p>
             </div>
-            <FiTarget className="w-12 h-12 text-amber-500" />
+            <div className="w-16 h-16 bg-amber-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <FiTarget className="w-8 h-8 text-white" />
+            </div>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-corporate-50 to-corporate-100 dark:from-corporate-900/20 dark:to-corporate-800/20 border-corporate-200 dark:border-corporate-700">
+        <Card className="bg-gradient-to-br from-corporate-50 to-corporate-100 dark:from-corporate-900/20 dark:to-corporate-800/20 border-corporate-200 dark:border-corporate-700 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1" hover>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-corporate-700 dark:text-corporate-400 mb-1">Your Points</p>
-              <p className="text-3xl font-bold text-corporate-900 dark:text-corporate-300">{user?.points || 0}</p>
+              <p className="text-sm font-semibold text-corporate-700 dark:text-corporate-400 mb-2">Your Points</p>
+              <p className="text-4xl font-bold text-corporate-900 dark:text-corporate-300">{user?.points || 0}</p>
             </div>
-            <FiAward className="w-12 h-12 text-corporate-500" />
+            <div className="w-16 h-16 bg-corporate-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <FiAward className="w-8 h-8 text-white" />
+            </div>
           </div>
         </Card>
 
-        <Card className="bg-gradient-to-br from-accent-50 to-accent-100 dark:from-accent-900/20 dark:to-accent-800/20 border-accent-200 dark:border-accent-700">
+        <Card className="bg-gradient-to-br from-accent-50 to-accent-100 dark:from-accent-900/20 dark:to-accent-800/20 border-accent-200 dark:border-accent-700 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1" hover>
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-accent-700 dark:text-accent-400 mb-1">Total Players</p>
-              <p className="text-3xl font-bold text-accent-900 dark:text-accent-300">{leaderboard.length}</p>
+              <p className="text-sm font-semibold text-accent-700 dark:text-accent-400 mb-2">Total Players</p>
+              <p className="text-4xl font-bold text-accent-900 dark:text-accent-300">{leaderboard.length}</p>
             </div>
-            <FiUsers className="w-12 h-12 text-accent-500" />
+            <div className="w-16 h-16 bg-accent-500 rounded-2xl flex items-center justify-center shadow-lg">
+              <FiUsers className="w-8 h-8 text-white" />
+            </div>
           </div>
         </Card>
       </div>
