@@ -730,6 +730,7 @@ function ChatWithSpaces() {
           onGifSelected={handleGifSelected}
         />
       )}
+      </div>
     </div>
   );
 }
