@@ -567,7 +567,7 @@ function Chat() {
               </div>
 
               {/* Message Input */}
-              <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} px-6 py-4`}>
+              <div className={`${darkMode ? 'bg-primary-800/80 backdrop-blur-xl' : 'bg-white/80 backdrop-blur-xl'} border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} px-6 py-4 shadow-lg`}>
                 {/* Pending Files Preview */}
                 {pendingFiles.length > 0 && (
                   <div className="mb-3 flex flex-wrap gap-2">
