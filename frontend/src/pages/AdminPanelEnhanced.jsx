@@ -538,11 +538,29 @@ const StatCard = ({ title, value, subtitle, icon: Icon, color, darkMode }) => {
 };
 
 // Users View Component
-const UsersView = ({ users, darkMode, onEdit, onDelete, onAdjustPoints }) => (
+const UsersView = ({ users, darkMode, onEdit, onDelete, onAdjustPoints, onCreate, onImport }) => (
   <div>
     <div className="flex items-center justify-between mb-6">
       <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>User Management</h2>
-      <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{users.length} total users</span>
+      <div className="flex items-center space-x-3">
+        <span className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>{users.length} total users</span>
+        <button
+          onClick={onCreate}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition flex items-center space-x-2"
+          data-testid="create-user-button"
+        >
+          <FaPlus />
+          <span>Create User</span>
+        </button>
+        <button
+          onClick={onImport}
+          className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center space-x-2"
+          data-testid="import-users-button"
+        >
+          <FaUsers />
+          <span>Import Users</span>
+        </button>
+      </div>
     </div>
 
     <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg overflow-hidden`}>
