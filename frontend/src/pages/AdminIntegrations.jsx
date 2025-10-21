@@ -308,13 +308,15 @@ function AdminIntegrations() {
       ),
       'sage': (
         <div className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'} mt-2`}>
-          <p className="mb-1">To get Sage Business Cloud credentials:</p>
+          <p className="mb-1 font-semibold">Setup Instructions:</p>
           <ol className="list-decimal list-inside space-y-1">
-            <li>Log in to Sage Business Cloud</li>
-            <li>Go to Settings {'>'} API Integration</li>
-            <li>Generate API credentials</li>
-            <li>Note your company ID and region</li>
+            <li>Visit <a href="https://developer.sage.com/" target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">developer.sage.com</a></li>
+            <li>Create an app and get OAuth 2.0 Client ID and Client Secret</li>
+            <li>Note your Company ID and region (us, uk, ca, etc.)</li>
+            <li>Complete OAuth flow to obtain Access Token and Refresh Token</li>
+            <li>Paste tokens below to enable sync functionality</li>
           </ol>
+          <p className="mt-2 text-xs italic">💡 Tip: Access tokens expire in 20 minutes. Provide a refresh token for automatic renewal.</p>
         </div>
       ),
       'netsuite': (
