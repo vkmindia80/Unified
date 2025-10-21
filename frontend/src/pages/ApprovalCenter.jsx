@@ -301,7 +301,7 @@ function ApprovalCenter() {
           </div>
         )}
       </div>
-    </div>
+    </Layout>
   );
 }
 
