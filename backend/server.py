@@ -2593,41 +2593,223 @@ async def get_accounting_accounts(integration_name: str, current_user = Depends(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to fetch accounts: {str(e)}")
 
+# Helper function to refresh OAuth tokens
+async def refresh_oauth_token(integration_name: str, integration: dict):
+    """Refresh OAuth token for accounting integrations"""
+    try:
+        config = integration.get("config", {})
+        client_id = integration.get("api_key")
+        client_secret = config.get("client_secret")
+        refresh_token = config.get("refresh_token")
+        
+        if not all([client_id, client_secret, refresh_token]):
+            return None
+        
+        # Refresh token endpoint by integration
+        token_urls = {
+            "quickbooks": "https://oauth.platform.intuit.com/oauth2/v1/tokens/bearer",
+            "xero": "https://identity.xero.com/connect/token",
+            "freshbooks": "https://api.freshbooks.com/auth/oauth/token",
+            "sage": "https://oauth.accounting.sage.com/token"
+        }
+        
+        if integration_name not in token_urls:
+            return None
+        
+        token_data = {
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "client_id": client_id,
+            "client_secret": client_secret
+        }
+        
+        response = requests.post(
+            token_urls[integration_name],
+            data=token_data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            token_response = response.json()
+            new_access_token = token_response.get("access_token")
+            new_refresh_token = token_response.get("refresh_token", refresh_token)
+            expires_in = token_response.get("expires_in", 3600)
+            
+            # Calculate token expiry
+            expiry_time = (datetime.utcnow() + timedelta(seconds=expires_in)).isoformat()
+            
+            # Update integration with new tokens
+            integrations_collection.update_one(
+                {"name": integration_name},
+                {"$set": {
+                    "config.access_token": new_access_token,
+                    "config.refresh_token": new_refresh_token,
+                    "config.token_expiry": expiry_time
+                }}
+            )
+            
+            return new_access_token
+        else:
+            return None
+            
+    except Exception as e:
+        print(f"Token refresh error: {str(e)}")
+        return None
+
 # Individual accounting system sync functions
 async def sync_quickbooks_data(integration: dict):
     """Sync data from QuickBooks Online"""
     try:
-        client_id = integration.get("api_key")
-        client_secret = integration.get("config", {}).get("client_secret")
-        company_id = integration.get("config", {}).get("company_id")
+        config = integration.get("config", {})
+        company_id = config.get("company_id")
+        access_token = config.get("access_token")
+        environment = config.get("environment", "production")
         
-        if not client_id or not client_secret or not company_id:
-            return {"synced": 0, "updated": 0, "errors": ["Missing required credentials"]}
+        if not company_id:
+            return {"synced": 0, "updated": 0, "errors": ["Missing Company ID (Realm ID)"]}
         
-        # QuickBooks API implementation
-        # Note: QuickBooks uses OAuth 2.0, so this is a simplified example
-        # In production, you'd need to implement the full OAuth flow
+        if not access_token:
+            return {"synced": 0, "updated": 0, "errors": ["Missing Access Token. Please provide your OAuth access token."]}
+        
+        # Check if token is expired and refresh if needed
+        token_expiry = config.get("token_expiry")
+        if token_expiry:
+            expiry_dt = datetime.fromisoformat(token_expiry)
+            if datetime.utcnow() >= expiry_dt:
+                new_token = await refresh_oauth_token("quickbooks", integration)
+                if new_token:
+                    access_token = new_token
+                else:
+                    return {"synced": 0, "updated": 0, "errors": ["Access token expired. Please provide a new token or refresh token."]}
+        
+        # QuickBooks API base URL
+        base_url = "https://sandbox-quickbooks.api.intuit.com" if environment == "sandbox" else "https://quickbooks.api.intuit.com"
         
         headers = {
             "Accept": "application/json",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {access_token}"
         }
         
-        # Example: Fetch company info to validate connection
-        base_url = "https://quickbooks.api.intuit.com/v3/company"
-        url = f"{base_url}/{company_id}/companyinfo/{company_id}"
+        synced_count = 0
+        updated_count = 0
+        errors = []
         
-        # For now, return placeholder data
-        # In production, you would:
-        # 1. Get OAuth token
-        # 2. Fetch expense categories
-        # 3. Fetch vendors/customers
-        # 4. Store relevant data for gamification (e.g., department budgets)
+        try:
+            # 1. Fetch Chart of Accounts
+            accounts_url = f"{base_url}/v3/company/{company_id}/query?query=select * from Account MAXRESULTS 100"
+            accounts_response = requests.get(accounts_url, headers=headers, timeout=30)
+            
+            if accounts_response.status_code == 200:
+                accounts_data = accounts_response.json()
+                accounts = accounts_data.get("QueryResponse", {}).get("Account", [])
+                
+                for account in accounts:
+                    account_doc = {
+                        "integration_name": "quickbooks",
+                        "account_id": account.get("Id"),
+                        "account_name": account.get("Name"),
+                        "account_type": account.get("AccountType"),
+                        "account_subtype": account.get("AccountSubType"),
+                        "balance": account.get("CurrentBalance", 0),
+                        "active": account.get("Active", True),
+                        "synced_at": datetime.utcnow().isoformat()
+                    }
+                    
+                    # Upsert to database
+                    result = financial_accounts_collection.update_one(
+                        {"integration_name": "quickbooks", "account_id": account.get("Id")},
+                        {"$set": account_doc},
+                        upsert=True
+                    )
+                    
+                    if result.upserted_id:
+                        synced_count += 1
+                    else:
+                        updated_count += 1
+            else:
+                errors.append(f"Failed to fetch accounts: {accounts_response.status_code}")
+            
+            # 2. Fetch Expense Categories (from Accounts with Expense type)
+            expense_accounts = [acc for acc in accounts if "Expense" in acc.get("AccountType", "")]
+            for exp_acc in expense_accounts:
+                category_doc = {
+                    "integration_name": "quickbooks",
+                    "category_id": exp_acc.get("Id"),
+                    "category_name": exp_acc.get("Name"),
+                    "category_type": "expense",
+                    "parent_category": exp_acc.get("ParentRef", {}).get("name") if exp_acc.get("ParentRef") else None,
+                    "synced_at": datetime.utcnow().isoformat()
+                }
+                
+                expense_categories_collection.update_one(
+                    {"integration_name": "quickbooks", "category_id": exp_acc.get("Id")},
+                    {"$set": category_doc},
+                    upsert=True
+                )
+            
+            # 3. Fetch Vendors
+            vendors_url = f"{base_url}/v3/company/{company_id}/query?query=select * from Vendor MAXRESULTS 50"
+            vendors_response = requests.get(vendors_url, headers=headers, timeout=30)
+            
+            if vendors_response.status_code == 200:
+                vendors_data = vendors_response.json()
+                vendors = vendors_data.get("QueryResponse", {}).get("Vendor", [])
+                
+                for vendor in vendors:
+                    vendor_doc = {
+                        "integration_name": "quickbooks",
+                        "entity_id": vendor.get("Id"),
+                        "entity_name": vendor.get("DisplayName"),
+                        "entity_type": "vendor",
+                        "email": vendor.get("PrimaryEmailAddr", {}).get("Address"),
+                        "balance": vendor.get("Balance", 0),
+                        "active": vendor.get("Active", True),
+                        "synced_at": datetime.utcnow().isoformat()
+                    }
+                    
+                    vendors_customers_collection.update_one(
+                        {"integration_name": "quickbooks", "entity_id": vendor.get("Id"), "entity_type": "vendor"},
+                        {"$set": vendor_doc},
+                        upsert=True
+                    )
+                    synced_count += 1
+            
+            # 4. Fetch Customers
+            customers_url = f"{base_url}/v3/company/{company_id}/query?query=select * from Customer MAXRESULTS 50"
+            customers_response = requests.get(customers_url, headers=headers, timeout=30)
+            
+            if customers_response.status_code == 200:
+                customers_data = customers_response.json()
+                customers = customers_data.get("QueryResponse", {}).get("Customer", [])
+                
+                for customer in customers:
+                    customer_doc = {
+                        "integration_name": "quickbooks",
+                        "entity_id": customer.get("Id"),
+                        "entity_name": customer.get("DisplayName"),
+                        "entity_type": "customer",
+                        "email": customer.get("PrimaryEmailAddr", {}).get("Address"),
+                        "balance": customer.get("Balance", 0),
+                        "active": customer.get("Active", True),
+                        "synced_at": datetime.utcnow().isoformat()
+                    }
+                    
+                    vendors_customers_collection.update_one(
+                        {"integration_name": "quickbooks", "entity_id": customer.get("Id"), "entity_type": "customer"},
+                        {"$set": customer_doc},
+                        upsert=True
+                    )
+                    synced_count += 1
+            
+        except requests.exceptions.RequestException as e:
+            errors.append(f"API request error: {str(e)}")
         
         return {
-            "synced": 0,
-            "updated": 0,
-            "errors": ["QuickBooks OAuth flow needs to be implemented"]
+            "synced": synced_count,
+            "updated": updated_count,
+            "errors": errors if errors else []
         }
             
     except Exception as e:
