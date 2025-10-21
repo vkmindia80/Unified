@@ -477,19 +477,19 @@ function Chat() {
                   <div className="flex items-center space-x-2">
                     <button 
                       onClick={() => initiateCall('voice')}
-                      className={`p-3 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-lg transition`} 
+                      className={`p-3 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-xl transition-all duration-200 transform hover:scale-110`} 
                       title="Voice Call"
                       data-testid="voice-call-button"
                     >
-                      <FaPhone className={darkMode ? 'text-gray-300' : 'text-gray-600'} />
+                      <FaPhone className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} w-5 h-5`} />
                     </button>
                     <button 
                       onClick={() => initiateCall('video')}
-                      className={`p-3 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-lg transition`} 
+                      className={`p-3 ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'} rounded-xl transition-all duration-200 transform hover:scale-110`} 
                       title="Video Call"
                       data-testid="video-call-button"
                     >
-                      <FaVideo className={darkMode ? 'text-gray-300' : 'text-gray-600'} />
+                      <FaVideo className={`${darkMode ? 'text-gray-300' : 'text-gray-600'} w-5 h-5`} />
                     </button>
                   </div>
                 </div>
