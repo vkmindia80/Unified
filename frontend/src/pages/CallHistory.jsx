@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
-import { FaArrowLeft, FaPhone, FaVideo, FaClock, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import Layout from '../components/Layout/Layout';
+import { FaPhone, FaVideo, FaClock, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 
 function CallHistory() {
   const { user } = useAuth();
