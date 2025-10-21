@@ -751,6 +751,35 @@ function Chat() {
           </div>
         </div>
       )}
+
+      {/* File Upload Modal */}
+      {showFileUpload && (
+        <FileUpload
+          onFilesUploaded={handleFilesUploaded}
+          onClose={() => setShowFileUpload(false)}
+          chatId={selectedChat?.id}
+          darkMode={darkMode}
+        />
+      )}
+
+      {/* GIF Picker Modal */}
+      {showGifPicker && (
+        <GifPicker
+          onGifSelect={handleGifSelect}
+          onClose={() => setShowGifPicker(false)}
+          darkMode={darkMode}
+        />
+      )}
+
+      {/* Image Gallery */}
+      {imageGallery && (
+        <ImageGallery
+          images={imageGallery.images}
+          initialIndex={imageGallery.initialIndex}
+          onClose={() => setImageGallery(null)}
+          darkMode={darkMode}
+        />
+      )}
     </div>
   );
 }
