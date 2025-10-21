@@ -269,11 +269,12 @@ const Dashboard = () => {
       </div>
 
       {/* Main Features */}
-      <div className="mb-8">
-        <h2 className="text-xl font-bold text-primary-900 dark:text-white mb-4">
+      <div className="mb-8 animate-slide-up">
+        <h2 className="text-2xl font-bold text-primary-900 dark:text-white mb-6 flex items-center">
+          <span className="w-1 h-8 bg-gradient-to-b from-corporate-600 to-corporate-800 rounded-full mr-3"></span>
           Main Features
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((feature) => (
             <FeatureCard key={feature.id} feature={feature} />
           ))}
@@ -281,11 +282,12 @@ const Dashboard = () => {
       </div>
 
       {/* Gamification */}
-      <div className="mb-8">
-        <h2 className="text-xl font-bold text-primary-900 dark:text-white mb-4">
+      <div className="mb-8 animate-slide-up">
+        <h2 className="text-2xl font-bold text-primary-900 dark:text-white mb-6 flex items-center">
+          <span className="w-1 h-8 bg-gradient-to-b from-amber-600 to-amber-800 rounded-full mr-3"></span>
           Gamification & Rewards
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {gamificationFeatures.map((feature) => (
             <FeatureCard key={feature.id} feature={feature} />
           ))}
