@@ -2553,6 +2553,16 @@ async def sync_financials_from_accounting(integration_name: str, current_user = 
             synced_count = result.get("synced", 0)
             updated_count = result.get("updated", 0)
             errors = result.get("errors", [])
+        elif integration_name == "sage":
+            result = await sync_sage_data(integration)
+            synced_count = result.get("synced", 0)
+            updated_count = result.get("updated", 0)
+            errors = result.get("errors", [])
+        elif integration_name == "netsuite":
+            result = await sync_netsuite_data(integration)
+            synced_count = result.get("synced", 0)
+            updated_count = result.get("updated", 0)
+            errors = result.get("errors", [])
         else:
             # Generic sync placeholder for other systems
             return {
