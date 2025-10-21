@@ -120,7 +120,7 @@ function Leaderboard() {
                     {leaderboard[1]?.full_name?.charAt(0) || '2'}
                   </div>
                   <div className="absolute -top-2 -right-2 w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-lg">
-                    <FiMedal className="text-gray-500 w-5 h-5" />
+                    <FaMedal className="text-gray-500 w-5 h-5" />
                   </div>
                 </div>
                 <p className="font-bold text-gray-800 dark:text-white text-center mb-1">{leaderboard[1]?.full_name}</p>
