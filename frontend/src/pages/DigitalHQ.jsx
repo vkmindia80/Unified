@@ -145,31 +145,50 @@ function DigitalHQ() {
 
       {/* Settings Panel */}
       {showSettings && (
-        <div className="mb-6">
-          <div className={`${darkMode ? 'bg-gray-800' : 'bg-white'} rounded-xl shadow-lg p-6 mb-6`}>
-            <h3 className={`text-lg font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
-              Widget Visibility
-            </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="mb-6 animate-slide-down">
+          <div className={`${darkMode ? 'bg-gradient-to-br from-gray-800 to-gray-900 border-gray-700' : 'bg-gradient-to-br from-white to-gray-50 border-gray-200'} border rounded-2xl shadow-xl p-6 mb-6`}>
+            <div className="flex items-center space-x-2 mb-5">
+              <span className="text-2xl">⚙️</span>
+              <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                Widget Visibility
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               {defaultWidgets.map(widget => (
                 <button
                   key={widget.id}
                   onClick={() => toggleWidgetVisibility(widget.id)}
-                  className={`flex items-center justify-between p-3 rounded-lg transition ${
+                  className={`flex items-center justify-between p-4 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md transform hover:scale-105 ${
                     hiddenWidgets.includes(widget.id)
-                      ? darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-100 text-gray-400'
-                      : darkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-50 text-blue-600'
+                      ? darkMode ? 'bg-gray-700 text-gray-400 border border-gray-600' : 'bg-gray-100 text-gray-400 border border-gray-300'
+                      : darkMode ? 'bg-gradient-to-br from-blue-900 to-blue-800 text-blue-200 border border-blue-700' : 'bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 border border-blue-300'
                   }`}
                   data-testid={`toggle-widget-${widget.id}`}
                 >
-                  <span className="font-medium">{widget.title}</span>
-                  {hiddenWidgets.includes(widget.id) ? <FaEyeSlash /> : <FaEye />}
+                  <span className="font-semibold">{widget.title}</span>
+                  {hiddenWidgets.includes(widget.id) ? (
+                    <FaEyeSlash className="text-lg" />
+                  ) : (
+                    <FaEye className="text-lg" />
+                  )}
                 </button>
               ))}
             </div>
-            <p className={`mt-4 text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              💡 Tip: Drag widgets to rearrange them on the dashboard
-            </p>
+            <div className={`mt-5 p-4 rounded-lg ${darkMode ? 'bg-blue-900/20 border border-blue-800' : 'bg-blue-50 border border-blue-200'}`}>
+              <div className="flex items-start space-x-3">
+                <span className="text-2xl">💡</span>
+                <div className="flex-1">
+                  <p className={`text-sm font-medium ${darkMode ? 'text-blue-200' : 'text-blue-800'}`}>
+                    Pro Tips:
+                  </p>
+                  <ul className={`text-xs mt-2 space-y-1 ${darkMode ? 'text-blue-300' : 'text-blue-700'}`}>
+                    <li>• Drag widgets to rearrange them on the dashboard</li>
+                    <li>• Click the eye icon to show/hide widgets</li>
+                    <li>• Resize widgets by dragging their corners</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}
