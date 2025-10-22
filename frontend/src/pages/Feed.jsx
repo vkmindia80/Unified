@@ -174,16 +174,18 @@ function Feed() {
       </div>
 
       {/* Filter Tabs */}
-      <Card className="mb-6">
-        <div className="flex space-x-2 flex-wrap">
+      <div className={`mb-6 p-4 rounded-xl shadow-lg border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+        <div className="flex space-x-2 flex-wrap gap-2">
           {['all', 'urgent', 'high', 'normal', 'low'].map(priority => (
             <button
               key={priority}
               onClick={() => setSelectedPriority(priority)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all transform hover:scale-105 ${
                 selectedPriority === priority
-                  ? 'bg-corporate-600 text-white shadow-sm'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-primary-700'
+                  ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-md'
+                  : darkMode 
+                    ? 'text-gray-400 hover:bg-gray-700 hover:text-white' 
+                    : 'text-gray-600 hover:bg-gray-100'
               }`}
               data-testid={`filter-${priority}`}
             >
@@ -191,7 +193,7 @@ function Feed() {
             </button>
           ))}
         </div>
-      </Card>
+      </div>
 
       {/* Announcements List */}
       <div className="space-y-4">
