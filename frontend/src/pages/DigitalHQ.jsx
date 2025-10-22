@@ -116,24 +116,29 @@ function DigitalHQ() {
     <Layout>
       {/* Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'} mb-2`}>
-              🏢 Digital HQ
-            </h1>
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="text-4xl">🏢</div>
+              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>
+                Digital HQ
+              </h1>
+            </div>
             <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Your central command center
+              Your central command center for productivity and collaboration
             </p>
           </div>
           <button
             onClick={() => setShowSettings(!showSettings)}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition ${
-              darkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            className={`flex items-center justify-center space-x-2 px-5 py-2.5 rounded-lg font-medium transition-all shadow-md hover:shadow-lg transform hover:scale-105 ${
+              showSettings
+                ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white'
+                : darkMode ? 'bg-gray-800 text-white hover:bg-gray-700 border border-gray-700' : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
             }`}
             data-testid="settings-button"
           >
-            <FaCog className="text-lg" />
-            <span>Customize</span>
+            <FaCog className={`text-lg ${showSettings ? 'animate-spin' : ''}`} />
+            <span>{showSettings ? 'Hide Settings' : 'Customize'}</span>
           </button>
         </div>
       </div>
