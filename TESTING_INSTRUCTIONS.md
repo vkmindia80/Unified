@@ -13,8 +13,8 @@ This document provides step-by-step instructions for testing the newly enhanced 
 - Access to Digital HQ page
 
 ### 2. Test Environment
-- **Frontend URL**: https://hq-creator-suite.preview.emergentagent.com
-- **Backend API**: https://hq-creator-suite.preview.emergentagent.com/api
+- **Frontend URL**: https://hq-maint.preview.emergentagent.com
+- **Backend API**: https://hq-maint.preview.emergentagent.com/api
 - **Digital HQ Route**: `/digital-hq`
 
 ### 3. Test Users
@@ -635,7 +635,7 @@ If you have limited time, run this quick smoke test:
 
 - **Documentation**: `/app/DIGITAL_HQ_ENHANCEMENT_SUMMARY.md`
 - **Changelog**: `/app/ENHANCEMENT_CHANGELOG.md`
-- **API Docs**: https://hq-creator-suite.preview.emergentagent.com/docs
+- **API Docs**: https://hq-maint.preview.emergentagent.com/docs
 - **Original Implementation**: `/app/DIGITAL_HQ_IMPLEMENTATION.md`
 
 ---

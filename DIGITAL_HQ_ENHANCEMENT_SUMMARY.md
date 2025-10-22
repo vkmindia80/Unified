@@ -160,11 +160,11 @@ No changes were needed for QuickLinksWidget.
 ### API Testing
 ```bash
 # Get events
-curl -X GET "https://hq-creator-suite.preview.emergentagent.com/api/events/upcoming" \
+curl -X GET "https://hq-maint.preview.emergentagent.com/api/events/upcoming" \
   -H "Authorization: Bearer YOUR_TOKEN"
 
 # Create event
-curl -X POST "https://hq-creator-suite.preview.emergentagent.com/api/events" \
+curl -X POST "https://hq-maint.preview.emergentagent.com/api/events" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -177,7 +177,7 @@ curl -X POST "https://hq-creator-suite.preview.emergentagent.com/api/events" \
   }'
 
 # Update event
-curl -X PUT "https://hq-creator-suite.preview.emergentagent.com/api/events/{event_id}" \
+curl -X PUT "https://hq-maint.preview.emergentagent.com/api/events/{event_id}" \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -186,7 +186,7 @@ curl -X PUT "https://hq-creator-suite.preview.emergentagent.com/api/events/{even
   }'
 
 # Delete event
-curl -X DELETE "https://hq-creator-suite.preview.emergentagent.com/api/events/{event_id}" \
+curl -X DELETE "https://hq-maint.preview.emergentagent.com/api/events/{event_id}" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
