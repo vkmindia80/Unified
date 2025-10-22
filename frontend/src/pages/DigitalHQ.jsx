@@ -42,7 +42,7 @@ function DigitalHQ() {
 
   const fetchPreferences = async () => {
     try {
-      const response = await api.get('/api/user-preferences');
+      const response = await api.get('/user-preferences');
       setPreferences(response.data);
       setHiddenWidgets(response.data.hidden_widgets || []);
       
@@ -86,7 +86,7 @@ function DigitalHQ() {
         .sort((a, b) => a.y - b.y || a.x - b.x)
         .map(item => item.i);
       
-      await api.put('/api/user-preferences', {
+      await api.put('/user-preferences', {
         widget_order: widgetOrder
       });
     } catch (error) {
@@ -102,7 +102,7 @@ function DigitalHQ() {
     setHiddenWidgets(newHidden);
     
     try {
-      await api.put('/api/user-preferences', {
+      await api.put('/user-preferences', {
         hidden_widgets: newHidden
       });
     } catch (error) {
