@@ -1,5 +1,9 @@
 # Login Credentials
 
+## ✅ SETUP COMPLETE - Users Created!
+
+All demo accounts have been created and are ready to use.
+
 ## Demo User Accounts
 
 The following demo accounts are now available:
