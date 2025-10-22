@@ -40,9 +40,9 @@ function QuickLinksWidget() {
     e.preventDefault();
     try {
       if (editingLink) {
-        await api.put(`/api/quick-links/${editingLink.id}`, formData);
+        await api.put(`/quick-links/${editingLink.id}`, formData);
       } else {
-        await api.post('/api/quick-links', formData);
+        await api.post('/quick-links', formData);
       }
       fetchLinks();
       setShowModal(false);
