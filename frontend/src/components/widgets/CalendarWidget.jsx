@@ -62,7 +62,7 @@ function CalendarWidget() {
   const handleDelete = async (eventId) => {
     if (window.confirm('Are you sure you want to delete this event?')) {
       try {
-        await api.delete(`/api/events/${eventId}`);
+        await api.delete(`/events/${eventId}`);
         fetchEvents();
       } catch (error) {
         console.error('Error deleting event:', error);
