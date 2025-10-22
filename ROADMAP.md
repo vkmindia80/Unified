@@ -408,8 +408,8 @@ Build a best-in-class enterprise platform combining real-time communication with
 
 ---
 
-#### 8.4 Digital HQ (Central Command Center)
-**Status:** ✅ COMPLETED | **Priority:** P1 - High
+#### 8.4 Digital HQ (Central Command Center) 🆕 ENHANCED
+**Status:** ✅ COMPLETED + ENHANCED | **Priority:** P1 - High
 
 **Backend Tasks:** ✅ ALL COMPLETE
 - [x] Create `quick_links` collection
@@ -423,10 +423,13 @@ Build a best-in-class enterprise platform combining real-time communication with
 - [x] Create widgets configuration system
 - [x] Build birthday/work anniversary widget API
 
-**Frontend Tasks:** ✅ ALL COMPLETE
+**Frontend Tasks:** ✅ ALL COMPLETE + ENHANCED (August 2025)
 - [x] Create Digital HQ dashboard page (`/digital-hq`)
 - [x] Build quick links widget (customizable)
 - [x] Create calendar widget with event list
+- [x] **🆕 Add Edit functionality to Calendar widget** (August 2025)
+- [x] **🆕 Add Delete functionality to Calendar widget** (August 2025)
+- [x] **🆕 Fix API path issues for all widgets** (August 2025)
 - [x] Design performance scorecard widget
 - [x] Build team directory widget with search
 - [x] Add company updates/news widget
@@ -436,9 +439,9 @@ Build a best-in-class enterprise platform combining real-time communication with
 - [x] Add widget visibility controls
 - [x] Integrate react-grid-layout for drag & drop
 
-**Widgets:** ✅ ALL 7 WIDGETS COMPLETE
-1. **Quick Links**: Customizable shortcuts to internal/external tools (admin/manager can create)
-2. **Calendar**: Upcoming meetings, events, deadlines with full CRUD
+**Widgets:** ✅ ALL 7 WIDGETS COMPLETE WITH FULL CRUD
+1. **Quick Links**: ✅ Full CRUD (Create, Read, Update, Delete) - Admin/Manager only
+2. **Calendar**: ✅ Full CRUD (Create, Read, Update, Delete) 🆕 **Edit & Delete added August 2025**
 3. **Performance Dashboard**: Personal metrics, team rankings, and comparison charts
 4. **Team Directory**: Search team members with direct chat/call buttons
 5. **Company News**: Latest announcements from feed
@@ -449,12 +452,36 @@ Build a best-in-class enterprise platform combining real-time communication with
 - Customizable dashboard layout with drag-and-drop
 - Widget personalization (show/hide widgets)
 - Role-based widget visibility and permissions
+- **🆕 Full CRUD for Calendar events** (Create, Edit, Delete with hover buttons)
+- **🆕 Full CRUD for Quick Links** (Create, Edit, Delete with hover buttons)
+- **🆕 Permission-based editing** (users can only edit their own events, admins can edit all)
+- **🆕 Confirmation dialogs** for delete actions
 - Integration with existing features (announcements, recognition, performance)
 - Quick access to all platform features
 - Real-time Socket.IO updates
 - Mobile-responsive design with dark mode support
 - User preferences persistence
 - Admin/Manager controls for organization-wide content
+
+**Recent Enhancements (August 2025):**
+- ✅ **CalendarWidget CRUD Enhancement**:
+  - Added edit button (blue pencil icon) with hover effect
+  - Added delete button (red trash icon) with confirmation
+  - Smart modal that handles both create and edit modes
+  - Pre-filled forms when editing existing events
+  - Proper date/time formatting for datetime-local inputs
+  - Permission checks (users edit own events, admins edit all)
+  
+- ✅ **API Path Fix (All Widgets)**:
+  - Fixed double `/api/` prefix issue in 8 files
+  - All widgets now correctly call `/events`, `/quick-links`, etc.
+  - Frontend restarted with clean build
+  - Verified all APIs return 200 OK
+
+- ✅ **Demo Users Created**:
+  - Created 8 demo user accounts (admin, manager, employees)
+  - All authentication working correctly
+  - Test data added (quick links, calendar events)
 
 **API Endpoints:** 20+ new endpoints
 - Quick Links: POST, GET, PUT, DELETE /api/quick-links
@@ -464,7 +491,28 @@ Build a best-in-class enterprise platform combining real-time communication with
 - Team Directory: GET /api/team-directory
 - Celebrations: GET /api/birthdays/upcoming
 
+**Files Modified (August 2025):**
+- `/app/frontend/src/components/widgets/CalendarWidget.jsx` - Added Edit & Delete
+- `/app/frontend/src/components/widgets/QuickLinksWidget.jsx` - Fixed API paths
+- `/app/frontend/src/components/widgets/PerformanceDashboardWidget.jsx` - Fixed API paths
+- `/app/frontend/src/components/widgets/BirthdaysWidget.jsx` - Fixed API paths
+- `/app/frontend/src/components/widgets/CompanyNewsWidget.jsx` - Fixed API paths
+- `/app/frontend/src/components/widgets/AtAGlanceWidget.jsx` - Fixed API paths
+- `/app/frontend/src/components/widgets/TeamDirectoryWidget.jsx` - Fixed API paths
+- `/app/frontend/src/pages/DigitalHQ.jsx` - Fixed API paths
+
+**Documentation Created (August 2025):**
+- `DIGITAL_HQ_ENHANCEMENT_SUMMARY.md` - Complete technical overview
+- `ENHANCEMENT_CHANGELOG.md` - Detailed before/after comparison
+- `TESTING_INSTRUCTIONS.md` - 35-test comprehensive test suite
+- `API_FIX_SUMMARY.md` - API path fix documentation
+- `QUICK_LOGIN_GUIDE.md` - Quick reference for demo accounts
+- `create_demo_users.py` - Script to create/recreate demo users
+
 **Access:** Dashboard → "Digital HQ" card or `/digital-hq`
+
+**Testing Status:** ✅ APIs tested and verified working
+**Login Credentials:** See `QUICK_LOGIN_GUIDE.md` or `LOGIN_CREDENTIALS.md`
 
 ---
 
