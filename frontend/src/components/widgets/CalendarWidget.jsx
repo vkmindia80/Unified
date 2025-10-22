@@ -309,7 +309,19 @@ function CalendarWidget() {
               <div className="flex space-x-3 pt-4">
                 <button
                   type="button"
-                  onClick={() => setShowModal(false)}
+                  onClick={() => {
+                    setShowModal(false);
+                    setEditingEvent(null);
+                    setFormData({
+                      title: '',
+                      description: '',
+                      event_type: 'meeting',
+                      start_time: '',
+                      end_time: '',
+                      location: '',
+                      all_day: false
+                    });
+                  }}
                   className={`flex-1 px-4 py-2 rounded-lg transition ${
                     darkMode ? 'bg-gray-700 text-white hover:bg-gray-600' : 'bg-gray-200 text-gray-800 hover:bg-gray-300'
                   }`}
@@ -319,8 +331,9 @@ function CalendarWidget() {
                 <button
                   type="submit"
                   className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+                  data-testid="submit-event-button"
                 >
-                  Create Event
+                  {editingEvent ? 'Update Event' : 'Create Event'}
                 </button>
               </div>
             </form>
