@@ -74,8 +74,13 @@ function Feed() {
 
   const handleCreateAnnouncement = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
+    
     try {
+      console.log('Submitting announcement:', newAnnouncement);
       const response = await api.post('/announcements', newAnnouncement);
+      console.log('Announcement created:', response.data);
+      
       setAnnouncements([response.data, ...announcements]);
       setShowCreateModal(false);
       setNewAnnouncement({
@@ -87,10 +92,12 @@ function Feed() {
         expires_at: '',
         requires_acknowledgement: true
       });
-      toast.success('Announcement created successfully!');
+      toast.success('📢 Announcement posted successfully!');
     } catch (error) {
       console.error('Error creating announcement:', error);
-      toast.error('Failed to create announcement');
+      toast.error(error.response?.data?.detail || 'Failed to create announcement');
+    } finally {
+      setSubmitting(false);
     }
   };
 
