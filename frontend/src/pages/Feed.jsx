@@ -150,20 +150,20 @@ function Feed() {
     <Layout>
       {/* Page Header */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
           <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center">
+            <div className="w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
               <FiFileText className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-primary-900 dark:text-white">Company Feed</h1>
-              <p className="text-primary-600 dark:text-primary-400">Stay updated with announcements</p>
+              <h1 className={`text-3xl font-bold ${darkMode ? 'text-white' : 'text-gray-800'}`}>Company Feed</h1>
+              <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>Stay updated with company announcements</p>
             </div>
           </div>
           {canCreateAnnouncement && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-corporate-600 to-corporate-700 text-white rounded-lg hover:shadow-lg transition"
+              className="flex items-center justify-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:from-blue-600 hover:to-blue-700 transition-all shadow-md hover:shadow-lg transform hover:scale-105 font-medium"
               data-testid="create-announcement-button"
             >
               <FiPlus className="w-5 h-5" />
