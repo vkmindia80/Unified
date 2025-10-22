@@ -56,7 +56,7 @@ function QuickLinksWidget() {
   const handleDelete = async (linkId) => {
     if (window.confirm('Delete this quick link?')) {
       try {
-        await api.delete(`/api/quick-links/${linkId}`);
+        await api.delete(`/quick-links/${linkId}`);
         fetchLinks();
       } catch (error) {
         console.error('Error deleting quick link:', error);
