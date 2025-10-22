@@ -219,13 +219,35 @@ function DigitalHQ() {
           </GridLayout>
         ) : (
           <div className="text-center py-20">
-            <div className="text-4xl mb-4">⚙️</div>
-            <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+            <div className="text-6xl mb-4 animate-pulse">⚙️</div>
+            <p className={`font-medium ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               Loading your dashboard...
             </p>
           </div>
         )}
       </div>
+
+      <style jsx>{`
+        @keyframes slide-down {
+          from {
+            opacity: 0;
+            transform: translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-slide-down {
+          animation: slide-down 0.3s ease-out;
+        }
+        .widget-container {
+          transition: all 0.3s ease;
+        }
+        .widget-container:hover {
+          z-index: 10;
+        }
+      `}</style>
     </Layout>
   );
 }
