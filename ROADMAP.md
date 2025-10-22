@@ -1357,8 +1357,21 @@ Build a best-in-class enterprise platform combining real-time communication with
 ---
 
 **Last Updated:** August 2025
-**Version:** 3.1.0 - Communication Integrations Complete
-**Current Status:** Phase 7 (50%), Phase 8 (70%), Phase 9 (30%) - Communication systems fully integrated
+**Version:** 3.2.0 - Digital HQ Enhanced with Full CRUD + API Fixes
+**Current Status:** Phase 7 (50%), Phase 8 (75%), Phase 9 (30%) - Digital HQ fully enhanced
+
+**Recent Completions (v3.2.0 - August 2025):**
+- ✅ **Digital HQ Enhancement** - Full CRUD for Calendar widget
+- ✅ Calendar widget: Added Edit & Delete functionality with hover buttons
+- ✅ Smart modal handling both Create and Edit modes with pre-filled data
+- ✅ Permission-based editing (users own events, admins all events)
+- ✅ Delete confirmation dialogs to prevent accidental deletions
+- ✅ Fixed API path issues across all 8 Digital HQ files (removed double `/api/` prefix)
+- ✅ Created 8 demo user accounts with proper authentication
+- ✅ Verified all APIs working (quick-links, events, preferences, etc.)
+- ✅ Created comprehensive documentation (5 new markdown files)
+- ✅ Frontend restarted with clean build and hot reload verified
+- ✅ Test data added (1 quick link, 1 calendar event)
 
 **Recent Completions (v3.1.0 - August 2025):**
 - ✅ **PHASE 7: Communication System Integrations** - Complete integration framework
