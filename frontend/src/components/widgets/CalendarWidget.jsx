@@ -38,9 +38,9 @@ function CalendarWidget() {
     e.preventDefault();
     try {
       if (editingEvent) {
-        await api.put(`/api/events/${editingEvent.id}`, formData);
+        await api.put(`/events/${editingEvent.id}`, formData);
       } else {
-        await api.post('/api/events', formData);
+        await api.post('/events', formData);
       }
       fetchEvents();
       setShowModal(false);
