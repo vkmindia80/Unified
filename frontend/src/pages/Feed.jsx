@@ -197,62 +197,82 @@ function Feed() {
 
       {/* Announcements List */}
       <div className="space-y-4">
-        {announcements.length === 0 ? (
-          <Card className="text-center py-12">
-            <FiBell className="text-6xl mx-auto mb-4 text-gray-300 dark:text-gray-600" />
-            <h3 className="text-xl font-semibold mb-2 text-gray-600 dark:text-gray-400">
+        {loading ? (
+          <div className={`text-center py-12 rounded-xl shadow-lg ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="text-5xl mb-3 animate-pulse">⏳</div>
+            <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>Loading announcements...</p>
+          </div>
+        ) : announcements.length === 0 ? (
+          <div className={`text-center py-12 rounded-xl shadow-lg border ${darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
+            <FiBell className={`text-6xl mx-auto mb-4 ${darkMode ? 'text-gray-600' : 'text-gray-300'}`} />
+            <h3 className={`text-xl font-semibold mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
               No announcements yet
             </h3>
-            <p className="text-gray-500 dark:text-gray-500">
-              Check back later for company updates
+            <p className={`text-sm ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+              {canCreateAnnouncement ? 'Click "New Post" to create your first announcement' : 'Check back later for company updates'}
             </p>
-          </Card>
+          </div>
         ) : (
           announcements.map(announcement => (
-            <Card
+            <div
               key={announcement.id}
-              className="hover:shadow-lg transition-shadow"
+              className={`p-6 rounded-xl shadow-lg border transition-all duration-200 hover:shadow-xl ${
+                darkMode ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+              }`}
               data-testid={`announcement-${announcement.id}`}
             >
               {/* Priority Badge & Header */}
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    {getPriorityIcon(announcement.priority)}
-                    <Badge variant={getPriorityBadge(announcement.priority)} size="sm">
-                      {announcement.priority}
-                    </Badge>
+                  <div className="flex items-center space-x-2 mb-3">
+                    <div className={`text-2xl ${
+                      announcement.priority === 'urgent' ? '🚨' :
+                      announcement.priority === 'high' ? '⚠️' :
+                      announcement.priority === 'low' ? 'ℹ️' : '📢'
+                    }`}>
+                      {announcement.priority === 'urgent' ? '🚨' :
+                       announcement.priority === 'high' ? '⚠️' :
+                       announcement.priority === 'low' ? 'ℹ️' : '📢'}
+                    </div>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                      announcement.priority === 'urgent' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                      announcement.priority === 'high' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
+                      announcement.priority === 'low' ? 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-400' :
+                      'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                    }`}>
+                      {announcement.priority.toUpperCase()}
+                    </span>
                   </div>
-                  <h3 className="text-xl font-bold text-primary-900 dark:text-white mb-2">
+                  <h3 className={`text-xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-800'}`}>
                     {announcement.title}
                   </h3>
                 </div>
               </div>
 
               {/* Content */}
-              <p className="mb-4 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+              <p className={`mb-4 whitespace-pre-wrap leading-relaxed ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                 {announcement.content}
               </p>
 
               {/* Footer */}
-              <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-primary-700 flex-wrap gap-3">
+              <div className={`flex items-center justify-between pt-4 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'} flex-wrap gap-3`}>
                 <div className="flex items-center space-x-4 text-sm">
                   <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-gradient-to-br from-corporate-400 to-corporate-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
+                    <div className="w-9 h-9 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-bold shadow-md">
                       {announcement.created_by_user?.full_name?.charAt(0) || 'U'}
                     </div>
-                    <span className="text-gray-600 dark:text-gray-400">
+                    <span className={`font-medium ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
                       {announcement.created_by_user?.full_name}
                     </span>
                   </div>
-                  <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
+                  <div className={`flex items-center space-x-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                     <FiClock className="w-4 h-4" />
                     <span>{new Date(announcement.created_at).toLocaleDateString()}</span>
                   </div>
                   {announcement.requires_acknowledgement && (
-                    <div className="flex items-center space-x-1 text-gray-500 dark:text-gray-400">
+                    <div className={`flex items-center space-x-1 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
                       <FiUsers className="w-4 h-4" />
-                      <span>{announcement.acknowledgement_count || 0} ✓</span>
+                      <span>{announcement.acknowledgement_count || 0} acknowledged</span>
                     </div>
                   )}
                 </div>
@@ -261,19 +281,19 @@ function Feed() {
                   <button
                     onClick={() => handleAcknowledge(announcement.id)}
                     disabled={announcement.acknowledged}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition ${
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                       announcement.acknowledged
-                        ? 'bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400 cursor-not-allowed'
-                        : 'bg-gradient-to-r from-corporate-600 to-corporate-700 text-white hover:shadow-lg'
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 shadow-md hover:shadow-lg transform hover:scale-105'
                     }`}
                     data-testid={`acknowledge-button-${announcement.id}`}
                   >
                     <FiCheckCircle className="w-4 h-4" />
-                    <span>{announcement.acknowledged ? 'Acknowledged' : 'Got it!'}</span>
+                    <span>{announcement.acknowledged ? '✓ Acknowledged' : 'Got it!'}</span>
                   </button>
                 )}
               </div>
-            </Card>
+            </div>
           ))
         )}
       </div>
