@@ -29,7 +29,7 @@ function QuickLinksWidget() {
 
   const fetchLinks = async () => {
     try {
-      const response = await api.get('/api/quick-links');
+      const response = await api.get('/quick-links');
       setLinks(response.data);
     } catch (error) {
       console.error('Error fetching quick links:', error);
