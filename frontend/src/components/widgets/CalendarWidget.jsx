@@ -10,6 +10,7 @@ function CalendarWidget() {
   const { darkMode } = useTheme();
   const [events, setEvents] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [editingEvent, setEditingEvent] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
