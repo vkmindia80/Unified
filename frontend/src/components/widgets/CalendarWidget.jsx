@@ -37,9 +37,14 @@ function CalendarWidget() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/api/events', formData);
+      if (editingEvent) {
+        await api.put(`/api/events/${editingEvent.id}`, formData);
+      } else {
+        await api.post('/api/events', formData);
+      }
       fetchEvents();
       setShowModal(false);
+      setEditingEvent(null);
       setFormData({
         title: '',
         description: '',
@@ -50,8 +55,37 @@ function CalendarWidget() {
         all_day: false
       });
     } catch (error) {
-      console.error('Error creating event:', error);
+      console.error('Error saving event:', error);
     }
+  };
+
+  const handleDelete = async (eventId) => {
+    if (window.confirm('Are you sure you want to delete this event?')) {
+      try {
+        await api.delete(`/api/events/${eventId}`);
+        fetchEvents();
+      } catch (error) {
+        console.error('Error deleting event:', error);
+      }
+    }
+  };
+
+  const handleEdit = (event) => {
+    setEditingEvent(event);
+    // Format dates for datetime-local input
+    const startTime = event.start_time ? format(parseISO(event.start_time), "yyyy-MM-dd'T'HH:mm") : '';
+    const endTime = event.end_time ? format(parseISO(event.end_time), "yyyy-MM-dd'T'HH:mm") : '';
+    
+    setFormData({
+      title: event.title || '',
+      description: event.description || '',
+      event_type: event.event_type || 'meeting',
+      start_time: startTime,
+      end_time: endTime,
+      location: event.location || '',
+      all_day: event.all_day || false
+    });
+    setShowModal(true);
   };
 
   const getEventIcon = (type) => {
