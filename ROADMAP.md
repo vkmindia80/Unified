@@ -1430,7 +1430,11 @@ Build a best-in-class enterprise platform combining real-time communication with
 - ✅ Dark mode support for all new components
 
 **What's Working Now:**
-- ✅ Digital HQ with 7 customizable widgets (quick links, calendar, performance, team directory, company news, celebrations, at-a-glance stats)
+- ✅ **Digital HQ with 7 customizable widgets** - **🆕 Full CRUD for Quick Links & Calendar** (August 2025)
+  - Quick Links: Create, Edit, Delete (Admin/Manager)
+  - Calendar: Create, Edit, Delete events with hover buttons
+  - Performance Dashboard, Team Directory, Company News, Celebrations, At-a-Glance Stats
+  - All API paths fixed and working correctly
 - ✅ Polls & Surveys with multiple question types and results visualization
 - ✅ File uploads with drag-and-drop (images, documents, videos)
 - ✅ GIF sharing with GIPHY integration (search & trending)
@@ -1441,7 +1445,7 @@ Build a best-in-class enterprise platform combining real-time communication with
 - 📢 Company-wide announcements with priority levels
 - 🎉 Public recognition system with likes and comments
 - 🏆 Complete gamification (points, badges, leaderboard, challenges, rewards)
-- 🔐 Authentication (login, register, demo accounts)
+- 🔐 Authentication (login, register, 8 demo accounts) - **🆕 All demo users created** (August 2025)
 - 💬 Chat UI with real-time messaging (WebSocket integration)
 - 📊 Dashboard with user stats and notification badges
 - 🎥 Video/Voice calls with WebRTC
