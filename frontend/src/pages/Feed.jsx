@@ -13,10 +13,12 @@ import { toast } from 'react-toastify';
 function Feed() {
   const { user } = useAuth();
   const { socket } = useSocket();
+  const { darkMode } = useTheme();
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedPriority, setSelectedPriority] = useState('all');
+  const [submitting, setSubmitting] = useState(false);
   const [newAnnouncement, setNewAnnouncement] = useState({
     title: '',
     content: '',
