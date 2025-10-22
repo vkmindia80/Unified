@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
+import { useTheme } from '../context/ThemeContext';
 import api from '../services/api';
 import Layout from '../components/Layout/Layout';
 import Card from '../components/UI/Card';
 import Badge from '../components/UI/Badge';
 import { FiBell, FiAlertCircle, FiCheckCircle, FiPlus, FiClock, FiUsers, FiFileText } from 'react-icons/fi';
+import { FaBell, FaExclamationCircle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
 function Feed() {
