@@ -135,7 +135,7 @@ function CalendarWidget() {
             return (
               <div
                 key={event.id}
-                className={`p-3 rounded-lg border-l-4 border-${color}-500 ${
+                className={`group p-3 rounded-lg border-l-4 border-${color}-500 ${
                   darkMode ? 'bg-gray-700' : 'bg-gray-50'
                 }`}
                 data-testid={`event-${event.id}`}
@@ -171,6 +171,30 @@ function CalendarWidget() {
                         )}
                       </div>
                     </div>
+                  </div>
+                  <div className="flex items-center space-x-2 ml-2 opacity-0 group-hover:opacity-100 transition">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(event);
+                      }}
+                      className="p-2 rounded bg-blue-500 text-white hover:bg-blue-600 transition"
+                      data-testid={`edit-event-${event.id}`}
+                      title="Edit event"
+                    >
+                      <FaEdit className="text-sm" />
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(event.id);
+                      }}
+                      className="p-2 rounded bg-red-500 text-white hover:bg-red-600 transition"
+                      data-testid={`delete-event-${event.id}`}
+                      title="Delete event"
+                    >
+                      <FaTrash className="text-sm" />
+                    </button>
                   </div>
                 </div>
               </div>
