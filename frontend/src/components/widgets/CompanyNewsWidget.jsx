@@ -18,7 +18,7 @@ function CompanyNewsWidget() {
 
   const fetchAnnouncements = async () => {
     try {
-      const response = await api.get('/api/announcements');
+      const response = await api.get('/announcements');
       setAnnouncements(response.data.slice(0, 5)); // Show latest 5
       setLoading(false);
     } catch (error) {

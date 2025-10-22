@@ -19,8 +19,8 @@ function PerformanceDashboardWidget() {
   const fetchPerformance = async () => {
     try {
       const [myRes, teamRes] = await Promise.all([
-        api.get('/api/performance/me'),
-        api.get('/api/performance/team')
+        api.get('/performance/me'),
+        api.get('/performance/team')
       ]);
       setMyPerformance(myRes.data);
       setTeamPerformance(teamRes.data);

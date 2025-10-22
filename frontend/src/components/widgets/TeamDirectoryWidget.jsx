@@ -20,7 +20,7 @@ function TeamDirectoryWidget() {
   const fetchDirectory = async () => {
     try {
       const params = search ? { search } : {};
-      const response = await api.get('/api/team-directory', { params });
+      const response = await api.get('/team-directory', { params });
       setDirectory(response.data);
       setLoading(false);
     } catch (error) {

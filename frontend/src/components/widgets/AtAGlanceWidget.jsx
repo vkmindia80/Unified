@@ -15,7 +15,7 @@ function AtAGlanceWidget() {
 
   const fetchStats = async () => {
     try {
-      const response = await api.get('/api/admin/analytics');
+      const response = await api.get('/admin/analytics');
       setStats(response.data);
       setLoading(false);
     } catch (error) {

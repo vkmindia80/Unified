@@ -15,7 +15,7 @@ function BirthdaysWidget() {
 
   const fetchCelebrations = async () => {
     try {
-      const response = await api.get('/api/birthdays/upcoming');
+      const response = await api.get('/birthdays/upcoming');
       setCelebrations(response.data);
       setLoading(false);
     } catch (error) {
